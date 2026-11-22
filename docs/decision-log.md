@@ -35,6 +35,22 @@ El humano aprobó D2–D11 en bloque, sin motivo específico por decisión.
 - Cambio: el orquestador recomendó Signal Forms, señalando el cambio de forma explícita. El humano lo aprobó.
 - Pendiente: el ADR de formularios (Fase 3) debe recoger alternativas y consecuencias.
 
+## G1 — Flujo agéntico (Fase 2)
+
+- Fecha: 2026-11-22
+- Aprobador: Jorge (humano)
+- Presentado: `CLAUDE.md`, `.claude/agents/` (6), `.claude/skills/` (`sdd-traceability`, `country-content` en esqueleto), `FLOW.md` (borrador), `docs/traceability.md`, `.gitattributes`.
+
+| # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
+|---|---|---|---|---|
+| G1-a | Proteger `logs/` | Hook `PreToolUse` (PowerShell) que bloquea `Write` y `Edit` dentro de `logs/` | Aprobada | "Apruebo G1" |
+| G1-b | Modelo de cada agente | `model: inherit` en los 6 subagentes (Opus 5.5) | Aprobada | "Apruebo G1" |
+| G1-c | Ramas | Una rama y un PR por fase hacia `main`; cada push se pide antes al humano | Aprobada | "Apruebo G1" |
+| G1-d | Alcance de `strapi-developer` (aclara D11) | Además de `cms/`, es dueño de `docker-compose.yml`, nginx y `.env.example` | Aprobada | "Apruebo G1" |
+| G1-e | Copia de logs | Al cerrar cada sesión, copiar el JSONL original tal cual a `logs/sessions/` (solo se añaden archivos) | Aprobada | "Apruebo G1" |
+
+El humano aprobó G1 en bloque, sin motivo específico por decisión.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
