@@ -99,7 +99,10 @@ Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/de
 
 ## 7. Qué no funcionó como se esperaba y cómo se ajustó
 
-*Pendiente: se registra durante el proyecto.* Primer ajuste ya ocurrido: la Fase 1 se hizo en claude.ai sin Docker; se movió a Claude Code local (D1) y se re-verificó el entorno, lo que cambió la recomendación de D5.
+*Se registra durante el proyecto.*
+
+- **Entorno de la Fase 1.** Se hizo en claude.ai sin daemon de Docker; se movió a Claude Code local (D1) y se re-verificó el entorno, lo que cambió la recomendación de D5.
+- **Carga de subagentes a mitad de sesión (2026-11-22).** Las Skills creadas durante la sesión se cargaron al momento, pero la prueba de humo del subagente `code-reviewer` falló con `Agent type 'code-reviewer' not found`. Los archivos son correctos (frontmatter en la línea 1, sin BOM). Causa probable: `.claude/agents/` no existía al iniciar la sesión. Ajuste: la prueba de humo de los 6 agentes pasa a ser el primer paso de la sesión de la Fase 3, antes de delegar nada.
 
 ## 8. Dónde se decidió no usar IA
 
