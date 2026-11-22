@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Exports a Claude Code session transcript into logs/sessions/ as a new snapshot folder (G1-e, G1-f).
 
