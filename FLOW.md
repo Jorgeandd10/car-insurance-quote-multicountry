@@ -1,12 +1,12 @@
 # FLOW.md — Flujo agéntico
 
-> **Estado: BORRADOR (Fase 2, pendiente de G1).** Las secciones 6–8 se completan con lo que ocurra realmente durante el proyecto; no se rellenan por adelantado.
+> **Estado: aprobado en G1 (2026-11-22), documento vivo.** Las secciones 6–8 se completan con lo que ocurra realmente durante el proyecto; no se rellenan por adelantado.
 
 Cómo una historia de usuario funcional pasa a un incremento listo para QA, quién interviene en cada paso y dónde decide una persona.
 
 ## 1. Herramienta y por qué
 
-**Claude Code** (app de escritorio, sesión local), modelo del orquestador **Claude Opus 5.5** (`claude-opus-5-5`). Los subagentes heredan el modelo (`model: inherit`) salvo que G1 decida otra cosa.
+**Claude Code** (app de escritorio, sesión local), modelo del orquestador **Claude Opus 5.5** (`claude-opus-5-5`). Los subagentes heredan el modelo (`model: inherit`, decisión G1-b).
 
 Motivos (D1):
 
@@ -14,7 +14,7 @@ Motivos (D1):
 - `CLAUDE.md` se carga automáticamente en el orquestador y en los subagentes: un único contexto que gobierna la generación.
 - Ejecuta en la máquina real: Docker, Node, Playwright y Git, de modo que tests y arranque se verifican con salida real.
 - Las transcripciones originales quedan como JSONL en local y se pueden copiar sin editar a `logs/sessions/` (requisito de logs sin editar).
-- Hooks para convertir reglas críticas en controles deterministas (propuesto en G1).
+- Hooks para convertir reglas críticas en controles deterministas: `.claude/settings.json` bloquea `Write`/`Edit` en `logs/` (G1-a).
 
 La Fase 1 se hizo en claude.ai porque aún no estaba el entorno local; allí no había daemon de Docker, que es uno de los motivos del cambio.
 
@@ -102,7 +102,9 @@ Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/de
 *Se registra durante el proyecto.*
 
 - **Entorno de la Fase 1.** Se hizo en claude.ai sin daemon de Docker; se movió a Claude Code local (D1) y se re-verificó el entorno, lo que cambió la recomendación de D5.
-- **Carga de subagentes a mitad de sesión (2026-11-22).** Las Skills creadas durante la sesión se cargaron al momento, pero la prueba de humo del subagente `code-reviewer` falló con `Agent type 'code-reviewer' not found`. Los archivos son correctos (frontmatter en la línea 1, sin BOM). Causa probable: `.claude/agents/` no existía al iniciar la sesión. Ajuste: la prueba de humo de los 6 agentes pasa a ser el primer paso de la sesión de la Fase 3, antes de delegar nada.
+- **Carga de subagentes a mitad de sesión (2026-11-22).** Las Skills creadas durante la sesión se cargaron al momento, pero la primera prueba de humo de `code-reviewer` falló con `Agent type 'code-reviewer' not found`. Los archivos eran correctos (frontmatter en la línea 1, sin BOM). Más tarde, en la misma sesión, los 6 agentes aparecieron disponibles sin reiniciar: la carga tuvo retraso. Ajuste: no delegar en un agente recién creado sin una prueba de humo previa.
+- **`CLAUDE.md` no llega a los subagentes (2026-11-22).** La prueba de humo de los 6 agentes confirmó herramientas y Skills correctas (`code-reviewer` sin `Edit`), pero los 6 respondieron que no tenían `CLAUDE.md` en contexto. Como el contexto global es la base del flujo, se añadió a cada agente un paso 0 obligatorio: leer `CLAUDE.md` con `Read` antes de actuar. Re-prueba con `code-reviewer`: lo leyó y respondió correctamente sobre la sección 6, los commits y `logs/`.
+- **Hook de `logs/` (G1-a).** Probado con entradas simuladas (5 casos) y en real: un `Write` sobre `logs/sessions/.gitkeep` fue rechazado por el hook.
 
 ## 8. Dónde se decidió no usar IA
 
