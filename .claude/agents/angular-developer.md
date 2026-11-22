@@ -29,6 +29,7 @@ Implementar en `frontend/` los REQ de una spec aprobada, siguiendo los ADRs y el
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Lista los REQ de la spec que vas a implementar y en qué archivo los cubres antes de escribir código.
 2. Sigue las convenciones de `CLAUDE.md`: standalone + `OnPush`, `signal`/`computed`, `inject()`, `@if`/`@for` con `track`, Signal Forms, sin `any`, DTO → mapper → dominio.
 3. Lógica de negocio (precio, edad, año del vehículo, enmascarado, validadores) en funciones puras con unit tests.

@@ -29,6 +29,7 @@ Verificar desde fuera que la aplicación cumple los AC de las specs, con al meno
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Construye el plan desde los AC, no desde el código.
 2. E2E mínimo: flujo completo CO (formulario → planes → resumen → pago OK → confirmación). Añade rechazo de pago y "sin planes" si es viable de forma determinista.
 3. Navegación con teclado en el e2e cuando sea posible (Tab/Enter/Espacio) para respaldar el requisito de accesibilidad.

@@ -31,6 +31,7 @@ Tomar y documentar las decisiones técnicas que las specs necesitan, con alterna
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Lee las specs y lista qué REQ necesitan una decisión técnica.
 2. Para cada decisión: ADR con al menos dos opciones reales, pros/contras y consecuencias negativas explícitas. Enlaza REQ y Dn.
 3. Verifica en documentación oficial (angular.dev, docs.strapi.io, playwright.dev) cualquier API o versión que cites, y anota URL y fecha en "Referencias".

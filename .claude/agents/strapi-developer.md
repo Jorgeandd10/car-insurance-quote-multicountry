@@ -30,6 +30,7 @@ Que Strapi sirva, solo en lectura, el contenido por país definido en `docs/arch
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Implementa exactamente el modelo aprobado. Si falta algo, detente y repórtalo; no lo improvises.
 2. Seed idempotente: ejecutar dos veces no duplica datos. Datos ficticios para ambos países.
 3. Permisos del rol público solo `find`/`findOne` de los tipos que Angular lee. Documenta cada permiso y su motivo.

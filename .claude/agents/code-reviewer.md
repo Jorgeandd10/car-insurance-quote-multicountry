@@ -27,6 +27,7 @@ Encontrar defectos reales antes de QA y del humano, incluida la revisión de seg
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Lee la spec antes que el código. Revisa el diff completo (`git diff <base>..<head>`) y el contexto necesario.
 2. Ejecuta lo que sustenta tus hallazgos (`ng build`, `ng test`, lint, `grep`) y pega la salida real. Solo comandos de lectura, build y test.
 3. Checklist mínimo:

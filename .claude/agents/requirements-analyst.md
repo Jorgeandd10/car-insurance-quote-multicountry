@@ -28,6 +28,7 @@ Producir la spec de **una** historia de usuario: el contrato verificable del que
 
 ## Instrucciones
 
+0. **Antes de cualquier otra acción, lee `CLAUDE.md` completo con `Read`.** No se inyecta automáticamente en los subagentes (comprobado en la prueba de humo de la Fase 2). Si no puedes leerlo, detente y repórtalo.
 1. Lee el PDF completo y la sección de la historia. Copia literalmente historia, contexto, reglas y escenarios.
 2. Sigue el procedimiento 2.1 de `sdd-traceability`: REQ con origen, AC en Gherkin, Q con propuesta.
 3. Aplica la lista de comprobación de huecos (sección 3 de la Skill) y los huecos de `analysis.md` que afecten a la historia.
