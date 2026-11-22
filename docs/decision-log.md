@@ -14,7 +14,7 @@ Registro de las decisiones humanas tomadas en cada gate. Cada entrada guarda la 
 
 | # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
 |---|---|---|---|---|
-| D1 | Entorno de trabajo y repo | Claude Code local sobre el repositorio GitHub privado propio | Aprobada (decidida por el humano) | "D1 ya está decidida por mí: trabajamos en Claude Code local sobre este repositorio GitHub privado." |
+| D1 | Entorno de trabajo y repo | Claude Code local sobre el repositorio GitHub privado propio | Modificada (visibilidad: ver "Cambio de D1") | "D1 ya está decidida por mí: trabajamos en Claude Code local sobre este repositorio GitHub privado." |
 | D2 | Versión de Angular | Angular 22 (22.3.0 al 2026-11-22) | Aprobada | "Apruebo todas" |
 | D3 | Estrategia multipaís | Colección `Country` + relaciones (sin i18n de Strapi); país en la URL (`/co`, `/cl`) | Aprobada | "Apruebo todas" |
 | D4 | Acceso a Strapi | Rol público solo `find`/`findOne` + proxy nginx GET-only con allowlist; sin tokens en el navegador ni BFF | Aprobada | "Apruebo todas" |
@@ -58,6 +58,14 @@ El humano aprobó G1 en bloque, sin motivo específico por decisión.
 - **Resolución:** opción 1. Única transformación permitida: sustituir las cadenas listadas en un archivo de redacción que vive **fuera** del repositorio. Ningún archivo de `logs/` se modifica después de colocarlo. El manifiesto con hashes va en `docs/logs-manifest.md`.
 - **Estado:** Aprobada.
 - **Motivo literal del humano:** "Redactar solo email"
+
+## Cambio de D1 — Visibilidad del repositorio (2026-11-22)
+
+- **Contexto:** al abrir el PR de la Fase 2, el orquestador detectó que el repositorio es **público** (API de GitHub: `private=False visibility=public`), mientras D1 decía "privado", y lo señaló al humano tras el primer push de `phase-2/agentic-flow`.
+- **Resolución:** el repositorio es **público**. Se mantiene el resto de D1 (Claude Code local, repositorio GitHub propio).
+- **Motivo literal del humano:** "El tema de ponerlo publico no creoq  deba, pq cuando me pasaron la prueba, el reclutador decia lo sig: \"Para enviar, responde a este correo antes de la fecha límite con la URL de tu repositorio, que debe ser pública.\""
+- **Consecuencias:** todo lo que se suba es visible. Refuerza G1-f (redacción de datos personales en los logs), la regla de no versionar `.env` ni credenciales y el uso exclusivo de datos ficticios. Compatible con el PDF ("public or private and shared").
+- **Estado:** Aprobada.
 
 ### Verificaciones que respaldan las decisiones
 

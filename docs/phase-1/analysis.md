@@ -144,4 +144,4 @@ Detalle, veredicto y motivo literal en [`docs/decision-log.md`](../decision-log.
 
 ### Nota posterior sobre D1
 
-Decisión del humano (2026-11-22): el proyecto continúa en **Claude Code local** sobre un repositorio GitHub privado propio. Motivos: los subagentes de `.claude/agents/` se cargan de forma nativa, las transcripciones JSONL originales quedan en `~/.claude/projects/` (requisito de "logs sin editar"), Docker se puede verificar en la máquina y `git push` usa las credenciales del humano. Esta fase (claude.ai) se conserva como exportación en `logs/sessions/`.
+Decisión del humano (2026-11-22): el proyecto continúa en **Claude Code local** sobre un repositorio GitHub propio (inicialmente descrito como privado; **es público** por requisito del reclutador, ver "Cambio de D1" en `docs/decision-log.md`). Motivos: los subagentes de `.claude/agents/` se cargan de forma nativa, las transcripciones JSONL originales quedan en `~/.claude/projects/` (requisito de "logs sin editar"), Docker se puede verificar en la máquina y `git push` usa las credenciales del humano. Esta fase (claude.ai) se conserva como exportación en `logs/sessions/`.
