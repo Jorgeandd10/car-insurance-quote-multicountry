@@ -74,6 +74,30 @@ El humano aprobó G1 en bloque, sin motivo específico por decisión.
 - **Consecuencias:** todo lo que se suba es visible. Refuerza G1-f (redacción de datos personales en los logs), la regla de no versionar `.env` ni credenciales y el uso exclusivo de datos ficticios. Compatible con el PDF ("public or private and shared").
 - **Estado:** Aprobada.
 
+## G2 — Specs de US-01, US-02 y US-03 (Fase 3)
+
+- Fecha: 2026-11-22
+- Aprobador: Jorge (humano)
+- Presentado: `specs/US-01/spec.md`, `specs/US-02/spec.md`, `specs/US-03/spec.md` (Draft, commits `c27274b`, `b5a3852`, `fa038a7`) y la revisión del orquestador [`reviews/000-G2-specs-cross-consistency.md`](../reviews/000-G2-specs-cross-consistency.md) (F-00.1–F-00.6). Las 60 preguntas abiertas se agruparon en 13 decisiones.
+
+| # | Decisión | Resolución aprobada | Preguntas / hallazgos | Estado | Motivo literal del humano |
+|---|---|---|---|---|---|
+| G2-1 | Identificar documento, fecha de nacimiento y año del vehículo | Roles de campo (`documentNumber`, `birthDate`, `vehicleYear`) asignados en Strapi; reglas, precio y enmascarado se enlazan al rol | Q-01.3, Q-03.1, Q-02.4; F-00.1, F-00.2 | Aprobada | "Apruebo todo" |
+| G2-2 | Textos fijos en código (excepción a `CLAUDE.md` §11) | Solo "cargando", "error de carga", "reintentar" y "país no disponible", en español. Todo lo demás desde Strapi. Texto ausente en Strapi = error de configuración con el mensaje genérico | Q-01.6, Q-02.13, Q-03.14; F-00.3, F-00.4 | Aprobada | "Apruebo todo" |
+| G2-3 | Entrada al país | `/` = selección entre países publicados; código desconocido o despublicado = "país no disponible"; `/CO` → `/co` | Q-01.1 | Aprobada | "Apruebo todo" |
+| G2-4 | Mayoría de edad y año del vehículo | Lógica en código, siempre aplicada; edad mínima por país en Strapi (18 CO y CL); año en `[añoActual − 20, añoActual + 1]` inclusivo, fijo en código | Q-01.2, Q-01.9 | Aprobada | "Apruebo todo" |
+| G2-5 | Falta el campo de un rol obligatorio | Formulario "no disponible"; nunca se salta una regla del PDF | Q-01.7 | Aprobada | "Apruebo todo" |
+| G2-6 | Secciones | Atributo de sección por campo (`policyholder` · `vehicle`), secciones en orden fijo | Q-01.4, Q-03.3 | Aprobada | "Apruebo todo" |
+| G2-7 | Validaciones configurables | `text`: `minLength`, `maxLength`, `pattern`; `number`: `min`, `max`, `integer`; `select`/`date`/`checkbox`: solo `required` + reglas por rol | Q-01.5 | Aprobada | "Apruebo todo" |
+| G2-8 | Regla de precio | `Math.round(basePrice × Π multiplicadores)`; operandos `vehicleAge` y `ageInYears` con tramos por país en Strapi (§6.3 de US-02) | Q-02.3, Q-02.6 | Aprobada | "Apruebo todo" |
+| G2-9 | Precio entre pasos 2 y 3 | Solo se persiste el id del plan; el resumen recalcula con la misma función | Q-02.12, Q-03.6 | Aprobada | "Apruebo todo" |
+| G2-10 | Acceso a un paso sin el anterior | Redirección al paso que falta; `isComplete` se calcula con la configuración vigente, no se persiste una señal | Q-01.18, Q-02.10, Q-03.8; F-00.5 | Aprobada | "Apruebo todo" |
+| G2-11 | Plan no disponible o en otra moneda | Plan desactivado: se deselecciona con aviso y se vuelve al paso 2; plan con moneda distinta a la del país: no se muestra | Q-02.11, Q-02.2 | Aprobada | "Apruebo todo" |
+| G2-12 | Resultado del pago simulado | Opciones visibles aprobado (por defecto) / rechazado dentro del paso 3, en un bloque "pasarela simulada" | Q-03.15 | Aprobada | "Apruebo todo" |
+| G2-13 | Resto de preguntas abiertas | Se aprueban tal cual las propuestas de cada spec | Resto de Q-01, Q-02, Q-03 | Aprobada | "Apruebo todo" |
+
+Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que es un hecho verificado y no una decisión.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
