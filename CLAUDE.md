@@ -57,7 +57,7 @@ frontend/  cms/  e2e/
 ## 6. Reglas no negociables
 
 - **Spec antes que código.** Ninguna historia se implementa sin su spec aprobada en G2.
-- **`logs/` es evidencia original.** Nunca se edita, reescribe ni borra nada dentro de `logs/`. Solo se añaden copias sin modificar.
+- **`logs/` es evidencia original.** Nunca se edita, reescribe ni borra nada dentro de `logs/` (lo bloquea un hook, G1-a). Las transcripciones se añaden solo con `scripts/export-session-logs.ps1`, cuya única transformación es redactar datos personales listados fuera del repo (G1-f); hashes en `docs/logs-manifest.md`.
 - **Seguridad.** Ningún token de Strapi llega al navegador. El rol público solo lee. Credenciales solo en `.env` (versionado únicamente `.env.example` con valores ficticios).
 - **Datos ficticios.** Nada de datos personales reales, tarjetas reales ni pasarelas reales.
 - **Evidencia real.** No se declaran tests, builds ni revisiones que no se hayan ejecutado. Los informes incluyen el comando y su salida real.

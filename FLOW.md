@@ -82,7 +82,7 @@ Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/de
 | 8. Triage | Decidir cada hallazgo: corregir, aceptar o rechazar. | **No** | — | Tabla de resolución del informe + `docs/decision-log.md` | **G4**: el humano decide. Corregir → desarrollador → re-review. |
 | 9. Demo | Probar la historia en la app real antes de pasar a la siguiente. | **No** | — | Entrada en `docs/decision-log.md` | Rechazo → vuelve a la spec o al desarrollador según la causa. |
 | 10. Prueba manual | Recorrer el wizard solo con teclado y en ancho móvil. | **No** | — | `docs/qa/manual-check.md` | **G5**: el humano ejecuta y firma. Defecto → desarrollador. |
-| 11. Trazabilidad y logs | Actualizar la matriz y copiar sin editar las transcripciones de la fase. | Sí | Orquestador + Skill `sdd-traceability` | `docs/traceability.md`, `logs/sessions/` | El humano comprueba la matriz en G6. |
+| 11. Trazabilidad y logs | Actualizar la matriz y exportar la transcripción de la sesión: copia íntegra salvo la redacción de datos personales (G1-f), con hashes. | Sí | Orquestador + Skill `sdd-traceability` + `scripts/export-session-logs.ps1` | `docs/traceability.md`, `logs/sessions/`, `docs/logs-manifest.md` | El humano decide qué se redacta (G1-f) y comprueba la matriz en G6. |
 | 12. Entrega a QA | README, FLOW y `docker compose up` verificado desde cero. | Sí | Orquestador | `README.md`, `FLOW.md` | **G6**: aprueba la entrega. |
 
 ## 5. Mecanismo de trazabilidad
