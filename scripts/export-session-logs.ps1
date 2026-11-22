@@ -18,11 +18,13 @@
 param(
     [Parameter(Mandatory = $true)] [string] $SessionId,
     [string] $RedactionFile = (Join-Path $env:USERPROFILE '.claude\redactions.txt'),
-    [string] $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
+    [string] $ProjectRoot,
     [string] $TranscriptDir
 )
 
 $ErrorActionPreference = 'Stop'
+# $PSScriptRoot is empty inside param() defaults on Windows PowerShell 5.1, so resolve it here.
+if (-not $ProjectRoot) { $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path }
 $token = '<redacted-personal-data>'
 $textExtensions = @('.jsonl', '.json', '.txt', '.md')
 $utf8 = New-Object System.Text.UTF8Encoding($false, $true)   # no BOM, throw on invalid bytes
