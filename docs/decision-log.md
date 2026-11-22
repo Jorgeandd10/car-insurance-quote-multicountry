@@ -59,6 +59,13 @@ El humano aprobó G1 en bloque, sin motivo específico por decisión.
 - **Estado:** Aprobada.
 - **Motivo literal del humano:** "Redactar solo email"
 
+### Cierre de G1 — revisión y merge del PR (2026-11-22)
+
+- **Evidencia:** [PR #1](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/1), 20 commits y 53 archivos de `phase-2/agentic-flow` hacia `main`.
+- **Revisión humana** (review de GitHub, estado `COMMENTED`; GitHub no permite aprobar un PR propio): "G0/G1 reviewed: decisions, CLAUDE.md, agents, skills, and FLOW.md. OK to merge."
+- **Merge:** hecho por el humano con merge commit `29eccf5` (conserva los commits y sus IDs).
+- **Estado:** G1 cerrado. Comienza la Fase 3 en `phase-3/specs-adrs`.
+
 ## Cambio de D1 — Visibilidad del repositorio (2026-11-22)
 
 - **Contexto:** al abrir el PR de la Fase 2, el orquestador detectó que el repositorio es **público** (API de GitHub: `private=False visibility=public`), mientras D1 decía "privado", y lo señaló al humano tras el primer push de `phase-2/agentic-flow`.
