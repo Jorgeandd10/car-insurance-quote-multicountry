@@ -6,9 +6,11 @@ Estados: `Spec` → `Designed` → `Implemented` → `Tested` → `Reviewed` →
 
 | US | REQ | AC | ADR | Código | Tests | Review | Estado |
 |---|---|---|---|---|---|---|---|
-| US-01 | — | — | — | — | — | — | Sin spec |
-| US-02 | — | — | — | — | — | — | Sin spec |
-| US-03 | — | — | — | — | — | — | Sin spec |
+| US-01 | REQ-01.1–REQ-01.35 | AC-01.1–AC-01.34 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) | Spec (Draft, pendiente G2) |
+| US-02 | REQ-02.1–REQ-02.33 | AC-02.1–AC-02.32 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) | Spec (Draft, pendiente G2) |
+| US-03 | REQ-03.1–REQ-03.38 | AC-03.1–AC-03.35 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) | Spec (Draft, pendiente G2) |
+
+Las filas pasan a una por `REQ` cuando cada spec se apruebe en G2.
 
 ## Decisiones humanas relacionadas
 
