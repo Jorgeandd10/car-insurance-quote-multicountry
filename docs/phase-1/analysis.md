@@ -1,8 +1,9 @@
 # Fase 1 — Análisis y contextualización
 
 > Origen: sesión en claude.ai (chat agéntico), 2026-11-22. Este documento es el entregable de la Fase 1.
-> Estado: **pendiente de aprobación (G0)**. Ver sección 7.
+> Estado: **aprobado en G0 (2026-11-22)**. D1–D11 registradas en [`docs/decision-log.md`](../decision-log.md).
 > Nota posterior (misma fecha): el humano decidió continuar el proyecto en **Claude Code local**; esto modifica D1 (ver al final).
+> Revisión local (misma fecha): entorno re-verificado en la máquina local y recomendación de **D5 cambiada** a Signal Forms antes del gate (ver secciones "Entorno verificado (local)" y 7).
 
 Fuente principal de requisitos: `docs/assessment/Technical assessment -Frontend.pdf`.
 Contexto operativo: `docs/assessment/master-prompt.md`.
@@ -17,6 +18,22 @@ No se encontraron contradicciones entre ambos. Matices: el PDF exige el e2e para
 | Strapi | Última 5.63.0. Exige Node `>=22 <=26` |
 | Docker | CLI presente, daemon no disponible y Docker Hub bloqueado en el sandbox |
 | Playwright | CDN de navegadores bloqueado; Google Chrome del sistema disponible |
+
+## Entorno verificado (local, Windows 11) — 2026-11-22
+
+| Elemento | Salida real | Resultado |
+|---|---|---|
+| Node | `v24.22.3` | Cumple Angular 22 (`^24.15.0`) y Strapi 5.63 (`>=22 <=26`) |
+| npm | `11.19.1` | OK (no se actualiza a npm 12) |
+| Git | `2.47.0.windows.1`, `core.autocrlf=true`, remote `origin` en GitHub | OK |
+| Docker | `29.7.2`; `docker info`: Docker Desktop, linux/x86_64, 8 CPU, ~3,7 GiB RAM | Daemon activo |
+| Docker Compose | `v5.5.0` | OK |
+| Docker Hub | `registry-1.docker.io/v2/` → 401 (respuesta normal sin autenticación) | Accesible |
+| Navegadores | Chrome `159.0.8154.13`, Edge `158.0.4370.33`; caché `ms-playwright` vacía | Playwright usará `channel: 'chrome'` salvo que se apruebe descargar Chromium |
+| Puertos 80, 1337, 3000, 4200, 8080 | Libres | OK |
+| Versiones npm | `@angular/core 22.3.0`, `@strapi/strapi 5.63.0`, `@playwright/test 1.65.1`, `vitest 5.1.1` | Coinciden con el análisis |
+
+Fuentes oficiales verificadas: Signal Forms "Stable (v22+)" ([angular.dev](https://angular.dev/guide/forms/signals/comparison)); test runner por defecto Vitest con `jsdom` ([guía de testing](https://angular.dev/guide/testing), [`ng test`](https://angular.dev/cli/test)).
 
 ## 1. Interpretación ejecutiva
 
@@ -96,22 +113,35 @@ Rechazo en cualquier gate: vuelve al agente productor con el feedback registrado
 
 **Metodológicos:** autenticidad de los logs; hallazgos triviales o inventados → exigir archivo:línea y commit de cierre; deriva de alcance o pérdida de contexto → specs como fuente de verdad + CLAUDE.md; sobreingeniería vs. tiempo.
 
-## 7. Decisiones pendientes de aprobación (G0)
+**Actualización tras la verificación local (2026-11-22):**
 
-| # | Decisión | Recomendación |
-|---|---|---|
-| D1 | Entorno de trabajo y repo | *(actualizada, ver nota)* |
-| D2 | Versión de Angular | 22 |
-| D3 | Estrategia multipaís | Colección `Country` + relaciones (no i18n); país en la URL `/co`, `/cl` |
-| D4 | Acceso a Strapi | Rol público read-only + nginx GET-only; sin tokens ni BFF |
-| D5 | Formularios | Reactive Forms tipados, salvo que Signal Forms sea estable en v22 (verificar, ADR) |
-| D6 | Persistencia | sessionStorage por país |
-| D7 | Pasos del wizard | 3 + pantalla de confirmación |
-| D8 | Regla de precio | Factores por país configurables en Strapi + función pura documentada |
-| D9 | Pago simulado | Pasarela mock con resultado elegido (éxito/rechazo), sin campos de tarjeta |
-| D10 | SDD | Variante propia ligera vía Skill (no Spec Kit) |
-| D11 | Equipo de agentes y Skills | Los de la sección 3 |
+- Resueltos: verificación de Docker (daemon activo, Docker Hub accesible); madurez de Signal Forms (estable en v22); autenticidad de los logs (las transcripciones JSONL originales de Claude Code quedan en local).
+- Siguen: formato de Strapi 5, sin caché agresiva, fechas date-only, formato COP/CLP y los riesgos metodológicos.
+- Nuevos:
+  - `core.autocrlf=true`: los `.sh` y entrypoints llegarían con CRLF a contenedores Linux → `.gitattributes` con `eol=lf`.
+  - Módulos nativos (`better-sqlite3`): no montar `node_modules` desde Windows; instalar dentro de la imagen con base Debian (`node:24-*-slim`).
+  - ~3,7 GiB de RAM en Docker: el build del admin de Strapi puede ir justo; se comprueba al ejecutarlo.
+  - Playwright sin navegadores descargados: usar Chrome del sistema o pedir permiso para descargar Chromium.
+  - Exportación de logs: copiar (sin editar) los JSONL de `~/.claude/projects/` a `logs/sessions/` al cierre de cada fase.
+
+## 7. Decisiones de G0 (aprobadas el 2026-11-22)
+
+Detalle, veredicto y motivo literal en [`docs/decision-log.md`](../decision-log.md).
+
+| # | Decisión | Recomendación | Estado |
+|---|---|---|---|
+| D1 | Entorno de trabajo y repo | *(actualizada, ver nota)* | Aprobada |
+| D2 | Versión de Angular | 22 | Aprobada |
+| D3 | Estrategia multipaís | Colección `Country` + relaciones (no i18n); país en la URL `/co`, `/cl` | Aprobada |
+| D4 | Acceso a Strapi | Rol público read-only + nginx GET-only; sin tokens ni BFF | Aprobada |
+| D5 | Formularios | ~~Reactive Forms tipados, salvo que Signal Forms sea estable en v22~~ → **Signal Forms** (verificado estable en v22; ADR en Fase 3) | Aprobada (recomendación cambiada) |
+| D6 | Persistencia | sessionStorage por país | Aprobada |
+| D7 | Pasos del wizard | 3 + pantalla de confirmación | Aprobada |
+| D8 | Regla de precio | Factores por país configurables en Strapi + función pura documentada | Aprobada |
+| D9 | Pago simulado | Pasarela mock con resultado elegido (éxito/rechazo), sin campos de tarjeta | Aprobada |
+| D10 | SDD | Variante propia ligera vía Skill (no Spec Kit) | Aprobada |
+| D11 | Equipo de agentes y Skills | Los de la sección 3 | Aprobada |
 
 ### Nota posterior sobre D1
 
-Decisión del humano (2026-11-22): el proyecto continúa en **Claude Code local** sobre un repositorio GitHub privado propio. Motivos: los subagentes de `.claude/agents/` se cargan de forma nativa, las transcripciones JSONL originales quedan en `~/.claude/projects/` (requisito de "logs sin editar"), Docker se puede verificar en la máquina y `git push` usa las credenciales del humano. Esta fase (claude.ai) se conserva como exportación en `logs/sessions/`.
+Decisión del humano (2026-11-22): el proyecto continúa en **Claude Code local** sobre un repositorio GitHub propio (inicialmente descrito como privado; **es público** por requisito del reclutador, ver "Cambio de D1" en `docs/decision-log.md`). Motivos: los subagentes de `.claude/agents/` se cargan de forma nativa, las transcripciones JSONL originales quedan en `~/.claude/projects/` (requisito de "logs sin editar"), Docker se puede verificar en la máquina y `git push` usa las credenciales del humano. Esta fase (claude.ai) se conserva como exportación en `logs/sessions/`.

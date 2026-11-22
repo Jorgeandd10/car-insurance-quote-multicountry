@@ -1,0 +1,25 @@
+# Normalize text files to LF in the repo and in the working tree.
+# Reason: shell scripts and entrypoints run inside Linux containers;
+# CRLF line endings break them (core.autocrlf=true on the Windows host).
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.db binary
+*.sqlite binary
+
+# Session logs are original evidence: store them byte-for-byte, no EOL conversion.
+logs/** -text
