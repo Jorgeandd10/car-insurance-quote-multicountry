@@ -62,7 +62,8 @@ frontend/  cms/  e2e/
 - **Datos ficticios.** Nada de datos personales reales, tarjetas reales ni pasarelas reales.
 - **Evidencia real.** No se declaran tests, builds ni revisiones que no se hayan ejecutado. Los informes incluyen el comando y su salida real.
 - **Dependencias.** Ninguna dependencia nueva sin justificarla en el commit o en un ADR.
-- **Git.** Commits pequeños, Conventional Commits. Sin `push` salvo petición humana. Nunca `--no-verify`.
+- **Git.** Commits pequeños, Conventional Commits. Sin `push` salvo petición humana. Nunca `--no-verify`. Los subagentes **no hacen commit**: entregan al orquestador, que revisa el diff contra el criterio de terminado del agente y hace el commit citando los IDs.
+- **Propiedad de rutas.** Cada subagente escribe solo en las rutas que declara su definición en `.claude/agents/`.
 - **Errores.** Ante un fallo, primero la causa; después la corrección.
 
 ## 7. Trazabilidad
