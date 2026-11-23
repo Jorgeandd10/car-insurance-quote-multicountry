@@ -4,14 +4,15 @@ import { countryCaseGuard } from './core/country/country-case-guard';
 import { CountryRouteReuseStrategy } from './core/country/country-route-reuse-strategy';
 import { step1CompleteGuard } from './features/form-step/validation/step1-complete-guard';
 import { planSelectedGuard } from './features/summary-step/plan-selected-guard';
+import { confirmationGuard } from './features/confirmation/confirmation-guard';
 import { WizardScreen } from './features/wizard-shell/wizard-screens';
 
 const screen = (value: WizardScreen) => ({ screen: value });
 
 /**
  * Routes (ADR-0001), all lazy loaded. Steps 2 and 3 require a complete step 1 (`step1CompleteGuard`,
- * ADR-0004); the summary also requires a chosen plan (`planSelectedGuard`). `confirmationGuard`
- * arrives with US-03 (phase 4d).
+ * ADR-0004); the summary also requires a chosen plan (`planSelectedGuard`) and the confirmation a successful
+ * payment in this session (`confirmationGuard`).
  */
 export const routes: Routes = [
   {
@@ -52,6 +53,7 @@ export const routes: Routes = [
       {
         path: 'confirmation',
         data: screen('confirmation'),
+        canActivate: [confirmationGuard],
         loadComponent: () =>
           import('./features/confirmation/confirmation-page').then((m) => m.ConfirmationPage),
       },

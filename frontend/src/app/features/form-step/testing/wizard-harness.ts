@@ -1,3 +1,4 @@
+import { EnvironmentProviders, Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -11,7 +12,7 @@ import {
   pending,
   requestIdOf,
 } from '../../../core/cms/testing/fake-cms-client';
-import { strapiC1, strapiC3 } from '../../../core/cms/testing/strapi-fixtures';
+import { strapiC1, strapiC3, strapiC7 } from '../../../core/cms/testing/strapi-fixtures';
 import { WIZARD_STORAGE } from '../../../core/storage/wizard-storage';
 import { InMemoryStorage } from '../../../core/storage/testing/in-memory-storage';
 import { coFormFieldsDto } from './form-fixtures';
@@ -46,9 +47,19 @@ export interface WizardContent {
   /** `priceFactors` of each country (C6). */
   coFactors: unknown;
   clFactors: unknown;
+  /** `termsAndConditions` of each country (C7). */
+  coTerms: unknown;
+  clTerms: unknown;
 }
 
-/** C1, C3, C4, C5 and C6 for CO and CL as the seed would answer them; C2 and C7 stay pending. */
+/** Blocks with the terms of Chile, different from the documented ones of Colombia. */
+export function clTermsBlocks(): unknown[] {
+  return [
+    { type: 'paragraph', children: [{ type: 'text', text: 'Términos ficticios de Chile.' }] },
+  ];
+}
+
+/** C1 and C3 to C7 for CO and CL as the seed would answer them; C2 stays pending. */
 export function wizardHandler(content: WizardContent): CmsHandler {
   return async (call) => {
     const code = countryOf(call);
@@ -67,6 +78,17 @@ export function wizardHandler(content: WizardContent): CmsHandler {
           : code === 'cl'
             ? factorsCountryDto('cl', content.clFactors)
             : [];
+      case 'C7':
+        return code === 'co' || code === 'cl'
+          ? [
+              {
+                id: 2,
+                documentId: `country-${code}`,
+                code,
+                termsAndConditions: code === 'co' ? content.coTerms : content.clTerms,
+              },
+            ]
+          : [];
       default:
         return pending();
     }
@@ -79,7 +101,10 @@ export const FIXED_NOW = new Date(2026, 10, 22, 12, 0, 0);
 /**
  * Real routes and shell with a fake CMS, in-memory `WIZARD_STORAGE` and a fixed clock (ADR-0007).
  */
-export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
+export async function createWizardHarness(
+  patch: Partial<WizardContent> = {},
+  extraProviders: (Provider | EnvironmentProviders)[] = [],
+) {
   const content: WizardContent = {
     co: strapiC3().data[0] as unknown as Record<string, unknown>,
     coFields: coFormFieldsDto(),
@@ -88,6 +113,8 @@ export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
     clPlans: clPlansDto(),
     coFactors: coFactorsDto(),
     clFactors: clFactorsDto(),
+    coTerms: strapiC7().data[0].termsAndConditions,
+    clTerms: clTermsBlocks(),
     ...patch,
   };
   const cms = new FakeCmsClient();
@@ -99,6 +126,7 @@ export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
       { provide: CmsClient, useValue: cms },
       { provide: WIZARD_STORAGE, useValue: storage },
       { provide: CLOCK, useValue: () => FIXED_NOW },
+      ...extraProviders,
     ],
   });
   const harness = await RouterTestingHarness.create();

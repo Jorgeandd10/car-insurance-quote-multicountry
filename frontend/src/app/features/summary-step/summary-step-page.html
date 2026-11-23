@@ -1,0 +1,168 @@
+@if (title(); as pageTitle) {
+  <app-step-heading [text]="pageTitle" />
+
+  <div class="summary">
+    <!-- Data of step 1 (REQ-03.1 to REQ-03.3, REQ-03.6) -->
+    <section class="summary-section summary-data">
+      @if (dataTexts(); as texts) {
+        @for (section of sections(); track section.id) {
+          <h2 [id]="'summary-' + section.id">{{ section.legend }}</h2>
+          <dl [attr.aria-labelledby]="'summary-' + section.id">
+            @for (item of section.items; track item.key) {
+              <div class="item">
+                <dt>{{ item.label }}</dt>
+                <dd>{{ item.display }}</dd>
+              </div>
+            }
+          </dl>
+        }
+        <button type="button" (click)="editData()" [disabled]="processing()">
+          {{ texts.editDataLabel }}
+        </button>
+      } @else {
+        <app-status-message kind="message" [message]="genericErrorMessage()" />
+      }
+    </section>
+
+    <!-- Chosen plan and final price (REQ-03.4, REQ-03.5) -->
+    <section class="summary-section summary-plan" aria-labelledby="summary-plan-heading">
+      @if (planTexts(); as texts) {
+        <h2 id="summary-plan-heading">{{ texts.planHeading }}</h2>
+        @if (planState(); as state) {
+          @if (state.kind === 'loading') {
+            <app-status-message kind="loading" />
+          } @else if (state.kind === 'error') {
+            <app-status-message kind="error" (retry)="planResource.reload()" />
+          } @else {
+            <p class="plan-name">{{ state.plan.plan.name }}</p>
+            @if (state.plan.plan.shortDescription) {
+              <p>{{ state.plan.plan.shortDescription }}</p>
+            }
+            @if (state.plan.plan.coverages.length > 0) {
+              <p class="list-title" id="summary-coverages">{{ texts.coveragesHeading }}</p>
+              <ul aria-labelledby="summary-coverages">
+                @for (coverage of state.plan.plan.coverages; track $index) {
+                  <li>{{ coverage }}</li>
+                }
+              </ul>
+            }
+            @if (state.plan.plan.benefits.length > 0) {
+              <p class="list-title" id="summary-benefits">{{ texts.benefitsHeading }}</p>
+              <ul aria-labelledby="summary-benefits">
+                @for (benefit of state.plan.plan.benefits; track $index) {
+                  <li>{{ benefit }}</li>
+                }
+              </ul>
+            }
+            <p class="final-price">
+              <span>{{ texts.finalPriceLabel }}</span>&ngsp;
+              <strong>{{ state.plan.formattedPrice }}</strong>
+            </p>
+          }
+        }
+        <button type="button" (click)="changePlan()" [disabled]="processing()">
+          {{ texts.changePlanLabel }}
+        </button>
+      } @else {
+        <app-status-message kind="message" [message]="genericErrorMessage()" />
+      }
+    </section>
+
+    <!-- Terms and conditions (REQ-03.15 to REQ-03.18) -->
+    <section class="summary-section summary-terms" aria-labelledby="summary-terms-heading">
+      @if (termsTexts(); as texts) {
+        <h2 id="summary-terms-heading">{{ texts.termsHeading }}</h2>
+        @if (termsState(); as state) {
+          @if (state.kind === 'loading') {
+            <app-status-message kind="loading" />
+          } @else if (state.kind === 'error') {
+            <app-status-message kind="error" (retry)="termsResource.reload()" />
+          } @else if (state.kind === 'unavailable') {
+            <app-status-message kind="message" [message]="texts.termsUnavailableMessage" />
+          } @else {
+            <div
+              class="terms-region"
+              role="region"
+              tabindex="0"
+              aria-labelledby="summary-terms-heading"
+            >
+              <app-terms-blocks [document]="state.document" />
+            </div>
+          }
+          <div class="accept">
+            <input
+              type="checkbox"
+              id="accept-terms"
+              [checked]="termsAccepted()"
+              [disabled]="state.kind !== 'ready' || processing()"
+              (change)="onTermsChange($event)"
+            />
+            <label for="accept-terms">{{ texts.acceptTermsLabel }}</label>
+          </div>
+        }
+      } @else {
+        <app-status-message kind="message" [message]="genericErrorMessage()" />
+      }
+    </section>
+
+    <!-- Simulated gateway and payment (REQ-03.19 to REQ-03.25, REQ-03.30, REQ-03.35) -->
+    <section class="summary-section summary-payment">
+      @if (paymentTexts(); as texts) {
+        <fieldset class="gateway">
+          <legend>{{ texts.gatewayLegend }}</legend>
+          <div class="outcome">
+            <input
+              type="radio"
+              name="payment-outcome"
+              id="outcome-approved"
+              value="approved"
+              [checked]="outcome() === 'approved'"
+              [disabled]="processing()"
+              (change)="chooseOutcome('approved')"
+            />
+            <label for="outcome-approved">{{ texts.approvedOptionLabel }}</label>
+          </div>
+          <div class="outcome">
+            <input
+              type="radio"
+              name="payment-outcome"
+              id="outcome-rejected"
+              value="rejected"
+              [checked]="outcome() === 'rejected'"
+              [disabled]="processing()"
+              (change)="chooseOutcome('rejected')"
+            />
+            <label for="outcome-rejected">{{ texts.rejectedOptionLabel }}</label>
+          </div>
+        </fieldset>
+
+        @if (!termsAccepted() && termsTexts(); as hintTexts) {
+          <p id="pay-hint" class="hint">{{ hintTexts.acceptTermsHint }}</p>
+        }
+        <button
+          type="button"
+          class="pay"
+          [disabled]="payNativelyDisabled()"
+          [attr.aria-disabled]="processing() ? 'true' : null"
+          [attr.aria-busy]="processing() ? 'true' : null"
+          [attr.aria-describedby]="payDescribedBy()"
+          (click)="pay()"
+        >
+          {{ texts.payLabel }}
+        </button>
+        <p id="pay-status" class="processing" aria-live="polite">
+          @if (processing()) {
+            {{ texts.processingMessage }}
+          }
+        </p>
+        @if (payment() === 'rejected') {
+          <p id="pay-rejected" class="rejected" role="alert">{{ texts.rejectedMessage }}</p>
+        }
+      } @else {
+        <app-status-message kind="message" [message]="genericErrorMessage()" />
+      }
+    </section>
+  </div>
+} @else {
+  <app-status-message kind="message" [message]="genericErrorMessage()" />
+}

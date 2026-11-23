@@ -18,6 +18,7 @@ import {
   strapiC4Complete,
   strapiC5,
   strapiC6,
+  strapiC7,
 } from '../../core/cms/testing/strapi-fixtures';
 import { CLOCK } from '../../core/clock/clock';
 import { WIZARD_STORAGE } from '../../core/storage/wizard-storage';
@@ -46,6 +47,8 @@ const seedHandler =
         return countryOf(call) === 'co' ? strapiC5().data : [];
       case 'C6':
         return countryOf(call) === 'co' ? strapiC6().data : [];
+      case 'C7':
+        return countryOf(call) === 'co' ? strapiC7().data : [];
       default:
         return pending();
     }
@@ -169,6 +172,17 @@ describe('CountryShell', () => {
   });
 
   it('D7 the confirmation is not a step: no step is marked as current', async () => {
+    // The confirmation requires a successful payment in this session (confirmationGuard).
+    storage.setItem(
+      'ciq.v1.co.confirmation',
+      JSON.stringify({
+        quoteNumber: 'CO-20261122-AAAAAA',
+        planName: 'Plan Esencial',
+        finalPrice: 935000,
+        currency: 'COP',
+        paidAt: '2026-11-22T17:00:00.000Z',
+      }),
+    );
     await open('/co/confirmation');
     expect(text('h1')).toBe('¡Listo!');
     expect(root().querySelector('nav li[aria-current]')).toBeNull();
