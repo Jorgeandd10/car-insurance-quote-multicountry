@@ -22,6 +22,8 @@ import { createQuoteNumber } from '../../domain/quote-number/create-quote-number
 import { TermsDocument } from '../../domain/terms/terms-document';
 import { StatusMessage } from '../../shared/status-message';
 import { StepHeading } from '../../shared/step-heading';
+import { Step1Result } from '../form-step/validation/evaluate-step1';
+import { step1Backstop } from '../form-step/validation/step1-backstop';
 import { Step1ResultReader } from '../form-step/validation/step1-result-reader';
 import { PlanView, buildPlanViews } from '../plans-step/plan-views';
 import { PlansData } from '../plans-step/plans-data';
@@ -83,6 +85,16 @@ export class SummaryStepPage {
   protected readonly config = computed(() => this.context.config());
   protected readonly genericErrorMessage = computed(() => this.config()?.genericErrorMessage ?? '');
 
+  /**
+   * Step 1 with the current configuration; recomputed when it arrives, also after a retry
+   * (review 002 F-03.1). It feeds the data section, the price, the backstop and `canPay`.
+   */
+  private readonly step1 = computed<Step1Result | null>(() => {
+    const config = this.config();
+    return config ? this.reader.read(config) : null;
+  });
+  private readonly step1Complete = computed(() => this.step1()?.isComplete === true);
+
   protected readonly title = computed(() => {
     const config = this.config();
     return config ? (textsOf(config.texts.summaryStep.page)?.title ?? null) : null;
@@ -118,11 +130,12 @@ export class SummaryStepPage {
     const config = this.config();
     const texts = this.dataTexts();
     const wizard = config ? textsOf(config.texts.wizard) : null;
-    if (!config || !texts || !wizard) {
+    const step1 = this.step1();
+    if (!config || !texts || !wizard || !step1?.isComplete) {
       return null;
     }
     return buildSummarySections(
-      this.reader.read(config),
+      step1,
       { policyholder: wizard.policyholderSectionLabel, vehicle: wizard.vehicleSectionLabel },
       texts,
       config.country.intlLocale,
@@ -134,7 +147,7 @@ export class SummaryStepPage {
    * function as step 2. If it is no longer available, step 2 discards it and warns (G2-11).
    */
   protected readonly planResource = resource({
-    params: () => this.config() ?? undefined,
+    params: () => (this.step1Complete() ? (this.config() ?? undefined) : undefined),
     loader: async ({ params, abortSignal }) => this.loadChosenPlan(params, abortSignal),
   });
 
@@ -142,7 +155,7 @@ export class SummaryStepPage {
   protected readonly termsResource = resource({
     params: () => {
       const config = this.config();
-      return config && this.termsTexts() ? config.country.code : undefined;
+      return config && this.termsTexts() && this.step1Complete() ? config.country.code : undefined;
     },
     loader: async ({ params: code, abortSignal }): Promise<TermsMapping> => {
       const mapped = mapTerms(
@@ -178,6 +191,7 @@ export class SummaryStepPage {
   protected readonly payEnabled = computed(() =>
     canPay({
       dataReady: this.sections() !== null,
+      step1Complete: this.step1Complete(),
       planReady: this.planState().kind === 'ready',
       termsReady: this.termsState().kind === 'ready' && this.termsTexts() !== null,
       termsAccepted: this.termsAccepted(),
@@ -203,6 +217,7 @@ export class SummaryStepPage {
   });
 
   constructor() {
+    step1Backstop(this.step1, () => this.context.code());
     inject(DestroyRef).onDestroy(() => this.pending?.abort());
   }
 

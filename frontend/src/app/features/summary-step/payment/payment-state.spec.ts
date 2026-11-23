@@ -2,6 +2,7 @@ import { PayConditions, canPay } from './payment-state';
 
 const ready: PayConditions = {
   dataReady: true,
+  step1Complete: true,
   planReady: true,
   termsReady: true,
   termsAccepted: true,
@@ -19,6 +20,10 @@ describe('canPay', () => {
     ['terms not loaded or unavailable', { termsReady: false }],
     ['plan not loaded', { planReady: false }],
     ['data texts missing', { dataReady: false }],
+    [
+      'F-03.1 an incomplete or invalid step 1, although its texts are loaded',
+      { step1Complete: false },
+    ],
     ['payment texts missing', { paymentTextsReady: false }],
     ['a payment in progress', { payment: 'processing' as const }],
   ])('REQ-03.19 is false with %s', (_case, patch) => {

@@ -138,6 +138,34 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
 - **Estado:** Aprobado.
 - **Motivo literal del humano:** "Aprobado, arranca"
 
+## Cierre de la Fase 4 — demo, revisión y merge del PR #3 (2026-11-23)
+
+- **Evidencia:** [PR #3](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/3), 9 commits de `phase-4/implementation` hacia `main`. Merge commit `f69ae34` (padres `3708a48` y `b423202`), hecho por el humano.
+- **Revisión humana** (review de GitHub, `COMMENTED`), texto preparado por el orquestador y pegado por el humano: "Phase 4 reviewed (implementation): - Demo on http://localhost:8080 (docker compose up): country selection, CO form, plans, summary, approved and rejected payment, confirmation. - Verified orchestrator evidence: 457/457 unit tests, curl checks on nginx/Strapi (draft blocked, writes 403/405, no-store, CSP), no .env committed. - Reviewed docs/qa/phase-4-implementation-notes.md: implementer decisions 1–18 accepted [or: rejected n, m → findings for review 002]. …OK to merge."
+- **Interpretación del orquestador:** el texto conserva la alternativa de la plantilla. Se registran las 18 decisiones de `docs/qa/phase-4-implementation-notes.md` como **aceptadas**, y se le pide al humano que avise si alguna no lo está.
+- **Modelo de los subagentes de la Fase 5:** el humano no respondió a la propuesta de usar Sonnet; G1-b se mantiene (`model: inherit`).
+
+## G4 — Triage de la review 002 (2026-11-23)
+
+- Presentado: [`reviews/002-phase-4-implementation.md`](../reviews/002-phase-4-implementation.md) (commit `2dac3aa`). El orquestador reprodujo F-00.12 antes del gate.
+
+| Hallazgo | Severidad | Decisión | Responsable | Motivo literal del humano |
+|---|---|---|---|---|
+| F-00.12 | Major (seguridad) | Corregir: `proxy_pass` con la URI normalizada y verificación con `curl` | `strapi-developer` | "Apruebo el triage de G4" |
+| F-03.1 | Major | Corregir: reevaluar `isComplete` tras el reintento y `canPay` exige datos válidos | `angular-developer` | "Apruebo el triage de G4" |
+| F-02.1 | Minor | Corregir junto con F-03.1 | `angular-developer` | "Apruebo el triage de G4" |
+| F-03.2 | Minor | Corregir el seed: RUT con y sin puntos | `strapi-developer` | "Apruebo el triage de G4" |
+| F-00.13 | Nit | Corregir (regex de caché de nginx) | `strapi-developer` | "Apruebo el triage de G4" |
+| F-00.14 | Nit | Aceptar; comprobar en G5 | — | "Apruebo el triage de G4" |
+
+## G5 — Prueba manual con teclado y móvil, sin IA (2026-11-23)
+
+- **Presentado:** guía paso a paso por chat derivada de [`docs/qa/manual-check.md`](qa/manual-check.md) (partes 0–4), sobre la pila levantada desde `e2713d2`.
+- **Primer mensaje del humano:** pegaba el texto de ejemplo del orquestador, con una falla ficticia en 1.13. El orquestador no lo registró y pidió los resultados reales.
+- **Estado:** Aprobado. Sin defectos.
+- **Motivo literal del humano:** "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
+- **Alcance no detallado por el humano:** dispositivo o viewport, versión del navegador y la parte 3 (lector de pantalla, opcional). F-00.14 sigue Accepted como limitación conocida; se documenta en el README.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.

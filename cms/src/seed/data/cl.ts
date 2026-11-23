@@ -109,15 +109,16 @@ export const cl: CountrySeed = {
       label: 'RUT',
       type: 'text',
       required: true,
-      helpText: 'Sin puntos y con guion, por ejemplo 12345678-5.',
+      helpText: 'Con o sin puntos y con guion, por ejemplo 12.345.678-5 o 12345678-5.',
       errorMessage: 'Ingresa un RUT válido.',
       order: 1,
       section: 'policyholder',
       role: 'documentNumber',
-      // Format only, no check digit (Q-01.17 → G2-13).
+      // Format only, no check digit (Q-01.17 → G2-13). Accepts the RUT with and without
+      // thousands dots (F-03.2, AC-03.6): 12.345.678-5, 12345678-5, 1.234.567-8, 1234567-8.
       validations: [
-        { kind: 'pattern', pattern: '[0-9]{7,8}-[0-9Kk]' },
-        { kind: 'maxLength', value: 10 },
+        { kind: 'pattern', pattern: '[0-9]{1,2}\\.?[0-9]{3}\\.?[0-9]{3}-[0-9Kk]' },
+        { kind: 'maxLength', value: 12 },
       ],
     },
     {
