@@ -231,5 +231,5 @@ export async function runSeed(strapi: Core.Strapi): Promise<void> {
     await seedCountry(strapi, seed, counters);
   }
   await seedCountrySelection(strapi, counters);
-  log(strapi, `done: ${counters.created} created, ${counters.existing} already present (left untouched)`);
+  log(strapi, `done: ${counters.created} created, ${counters.existing} already present (content kept; see backfill lines above for any filled-in field)`);
 }
