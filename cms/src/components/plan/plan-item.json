@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_plan_plan_items",
+  "info": {
+    "displayName": "Plan item",
+    "description": "Coverage or benefit line of a plan (content-model 3.3)."
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true,
+      "maxLength": 200
+    }
+  }
+}

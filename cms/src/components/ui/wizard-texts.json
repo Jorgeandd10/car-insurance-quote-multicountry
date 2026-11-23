@@ -1,0 +1,38 @@
+{
+  "collectionName": "components_ui_wizard_texts",
+  "info": {
+    "displayName": "Wizard texts",
+    "description": "Common wizard texts (content-model 3.5). All texts are required (G3-5)."
+  },
+  "options": {},
+  "attributes": {
+    "stepIndicatorLabel": {
+      "type": "string",
+      "required": true
+    },
+    "step1Label": {
+      "type": "string",
+      "required": true
+    },
+    "step2Label": {
+      "type": "string",
+      "required": true
+    },
+    "step3Label": {
+      "type": "string",
+      "required": true
+    },
+    "policyholderSectionLabel": {
+      "type": "string",
+      "required": true
+    },
+    "vehicleSectionLabel": {
+      "type": "string",
+      "required": true
+    },
+    "genericErrorMessage": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "collectionName": "components_ui_plans_step_texts",
+  "info": {
+    "displayName": "Plans step texts",
+    "description": "Step 2 texts (REQ-02.32). All texts are required (G3-5)."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "groupLegend": {
+      "type": "string",
+      "required": true
+    },
+    "recommendedLabel": {
+      "type": "string",
+      "required": true
+    },
+    "coveragesHeading": {
+      "type": "string",
+      "required": true
+    },
+    "benefitsHeading": {
+      "type": "string",
+      "required": true
+    },
+    "backLabel": {
+      "type": "string",
+      "required": true
+    },
+    "continueLabel": {
+      "type": "string",
+      "required": true
+    },
+    "choosePlanMessage": {
+      "type": "string",
+      "required": true
+    },
+    "emptyMessage": {
+      "type": "text",
+      "required": true
+    },
+    "planUnavailableMessage": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

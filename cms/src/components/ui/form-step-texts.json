@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_ui_form_step_texts",
+  "info": {
+    "displayName": "Form step texts",
+    "description": "Step 1 texts (REQ-01.5, REQ-01.13). All texts are required (G3-5)."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "continueLabel": {
+      "type": "string",
+      "required": true
+    },
+    "emptyMessage": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

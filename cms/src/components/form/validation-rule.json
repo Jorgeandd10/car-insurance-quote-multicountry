@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_form_validation_rules",
+  "info": {
+    "displayName": "Validation rule",
+    "description": "Typed validation from the closed catalog (content-model 3.2, G2-7). pattern has no ^/$: the app anchors it."
+  },
+  "options": {},
+  "attributes": {
+    "kind": {
+      "type": "enumeration",
+      "required": true,
+      "enum": ["minLength", "maxLength", "pattern", "min", "max", "integer"]
+    },
+    "value": {
+      "type": "decimal"
+    },
+    "pattern": {
+      "type": "string",
+      "maxLength": 500
+    }
+  }
+}
