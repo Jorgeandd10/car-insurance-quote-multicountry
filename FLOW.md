@@ -96,11 +96,17 @@ Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/de
 
 ## 6. Si lo usara un equipo de 5 personas
 
-*Pendiente: se completa al final con la experiencia real del proyecto.*
+Lo que cambiaría, a partir de lo que funcionó y falló aquí:
+
+- **Personas dueñas de rutas, no solo agentes.** La propiedad de rutas de los agentes (`.claude/agents/`) se trasladaría a `CODEOWNERS`. Por ejemplo: dos personas en `frontend/`, una en `cms/` e `infra/`, una de QA en `e2e/` y `docs/qa/`, y un *tech lead* en `specs/`, `docs/adr/` y los gates. Cada persona usaría los mismos subagentes en su zona.
+- **Gates en el flujo de Git.** G2 y G3 serían PR de specs y ADRs con aprobación obligatoria de producto y del *tech lead*. G4 sería la review en el propio PR, con hallazgos como comentarios y la resolución enlazada. G6, una *release*. El `decision-log.md` seguiría siendo la fuente para lo que no cabe en un PR.
+- **Integración continua obligatoria.** Unit, build y e2e en cada PR, sobre un *runner* con recursos fijos. Aquí los e2e en local fueron sensibles a la carga del equipo (§7).
+- **Specs en paralelo con un responsable de lo transversal.** Aquí, tres specs en paralelo produjeron 7 inconsistencias (§7). Con 5 personas, una sola persona resolvería los temas compartidos (roles de campo, textos fijos, persistencia) antes de repartir las historias.
+- **Un entorno de Strapi compartido para cambios reales de contenido,** además de la intercepción en los e2e: el negocio y QA lo probarían igual que en la parte 4 de G5.
+- **Las Skills como conocimiento del equipo.** `sdd-traceability` y `country-content` serían la guía de *onboarding*. Cambiar una Skill pasaría por review, como el código.
+- **Lo que no escala igual:** un único orquestador que revisa cada diff es un cuello de botella. Con 5 personas, cada una revisa los diffs de sus agentes, y el orquestador queda para la integración y los gates.
 
 ## 7. Qué no funcionó como se esperaba y cómo se ajustó
-
-*Se registra durante el proyecto.*
 
 - **Entorno de la Fase 1.** Se hizo en claude.ai sin daemon de Docker; se movió a Claude Code local (D1) y se re-verificó el entorno, lo que cambió la recomendación de D5.
 - **Carga de subagentes a mitad de sesión (2026-11-22).** Las Skills creadas durante la sesión se cargaron al momento, pero la primera prueba de humo de `code-reviewer` falló con `Agent type 'code-reviewer' not found`. Los archivos eran correctos (frontmatter en la línea 1, sin BOM). Más tarde, en la misma sesión, los 6 agentes aparecieron disponibles sin reiniciar: la carga tuvo retraso. Ajuste: no delegar en un agente recién creado sin una prueba de humo previa.
@@ -108,11 +114,20 @@ Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/de
 - **Hook de `logs/` (G1-a).** Probado con entradas simuladas (5 casos) y en real: un `Write` sobre `logs/sessions/.gitkeep` fue rechazado por el hook.
 - **Specs en paralelo (Fase 3).** Tres instancias de `requirements-analyst` escribieron US-01, US-02 y US-03 a la vez para ganar tiempo. Cada una resolvió sola los temas compartidos, y salieron 6 inconsistencias (p. ej. roles de campo frente a un booleano `masked` para el documento). Ajuste: se añadió el paso 2b (revisión cruzada del orquestador antes de G2) y las 60 preguntas abiertas se agruparon en 13 decisiones para el humano. La re-review encontró una séptima inconsistencia (F-00.7) causada por la redacción ambigua del propio orquestador en G2-2.
 - **Integración y límites de uso (Fase 4).** El trabajo en paralelo de `strapi-developer` y `angular-developer` sin pisarse funcionó, pero la CSP de ADR-0003 rompió los estilos al juntar las dos partes: el CSS crítico de Angular inyecta un `<script>` en línea. Solo apareció al integrar, no en los unit tests (corregido en `b22d2ad`). Además, la sesión llegó al límite de uso a mitad de la fase y un subagente quedó cortado antes de crear nada; se reanudó con el mismo agente y con los comandos largos en segundo plano. Se añadió a cada fase la verificación de integración del orquestador.
+- **Rediseño visual tardío (D12–D14, Fase 5).** Tras G5, el humano pidió un estilo cercano al de SURA. Tres efectos reales:
+  - Las animaciones nuevas duplicaron la duración de los e2e (de 4,0 a 7,6 min) y provocaron fallos intermitentes ("error de carga" por el timeout de 10 s de la app con Strapi cargado). La causa se aisló repitiendo los tests (60/60 por separado) y midiendo tiempos. Se corrigió ejecutando el e2e con `reducedMotion`, sin reintentos que lo ocultaran.
+  - El cambio de contenido de D14 obligó a un *backfill* idempotente del volumen ya sembrado, porque el seed no tocaba los países existentes.
+  - Dos agentes reconstruyeron contenedores a la vez y chocaron por el nombre del contenedor. Ajuste: el orquestador serializa las operaciones de Docker.
+  Además, un cambio de diseño posterior a G5 invalida en parte esa prueba manual, así que se abrió la review 003 de todo lo posterior.
 - **Datos personales en las transcripciones (G1-f).** La revisión previa a copiar los logs encontró el email del autor (contexto que añade Claude Code). El humano decidió redactar solo esa cadena; se creó `scripts/export-session-logs.ps1` con lista de redacción fuera del repo, sin sobrescritura y con hashes en `docs/logs-manifest.md`. El script falló dos veces en Windows PowerShell 5.1 (sin BOM corrompía los acentos; `$PSScriptRoot` vacío en los valores por defecto de `param`); ambas causas se analizaron y corrigieron antes de exportar.
 
 ## 8. Dónde se decidió no usar IA
 
 - **Gates G0–G6:** las aprobaciones y rechazos son humanos; la IA solo prepara la información.
 - **Triage de hallazgos (G4):** decidir si un hallazgo se corrige o se acepta es una decisión de riesgo del humano.
-- **Prueba manual de teclado y móvil (G5):** comprobación independiente de lo que la IA afirma.
-- *Se completa durante el proyecto.*
+- **Prueba manual de teclado y móvil (G5):** comprobación independiente de lo que la IA afirma. Su primer resultado pegaba el texto de ejemplo del orquestador, que no lo registró hasta tener la confirmación real del humano.
+- **Alcance y prioridades:** el humano rechazó extras propuestos por la IA (un tercer país por e2e, CI, varias mejoras de UX) por el tiempo disponible (D15). Decidir qué no se hace es una decisión de producto.
+- **Identidad visual:** el logo, el favicon y la dirección de estilo (D12, D13, D15) los aportó y decidió el humano. La IA midió la paleta del sitio de referencia y la aplicó, pero no copió la fuente propietaria ni las ilustraciones.
+- **Credenciales y el admin de Strapi:** el superadmin y cualquier cambio real en el admin los hace el humano. La IA no entra con sus credenciales.
+- **Merges y publicación:** los merges de cada PR, la visibilidad pública del repositorio (D1) y el envío al reclutador son del humano.
+- **Exportación de la conversación de la Fase 1 (claude.ai):** solo puede hacerla el humano desde su cuenta.
