@@ -248,3 +248,13 @@ D-E2E-1 queda corregido (AC-03.35 a 320 px en verde). AC-03.6 con RUT con puntos
 - **Causa:** la suite pasó de 4.0 a 7.6 min con las animaciones de D13 (entrada de vistas y esqueleto en bucle), en el mismo equipo de 8 GB donde ya se había documentado que, con carga, Strapi supera el timeout de 10 s de la app. Los fallos cambian de test en cada pasada y todos son "error de carga" o esperas agotadas, no aserciones de presentación.
 - **Corrección:** `reducedMotion: 'reduce'` en `e2e/playwright.config.ts`. La app ya desactiva sus animaciones con `prefers-reduced-motion`, y la suite verifica comportamiento, no movimiento.
 - **E2E tras la corrección:** `npx playwright test --reporter=line` → `77 passed (4.4m)`.
+
+## Re-ejecución tras D14 (enlace "cambiar de país" y tarjeta de plan pulsable, 2026-11-23)
+
+- **Cambios:**
+  - `cms`: `wizardTexts.changeCountryLabel`, con backfill idempotente del volumen existente; lo hizo el `strapi-developer`.
+  - `frontend`: el enlace y la tarjeta pulsable; lo hizo el `angular-developer`.
+  - `e2e`: `flow/change-country-and-plan-card.spec.ts`, con 3 tests de AC-01.36 y AC-02.34; lo hizo el `qa-engineer`.
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 469 passed (469)`.
+- **Pila:** `docker compose up -d --build cms` (el agente de Strapi) y `docker compose up -d --build web` (el orquestador). C3 devuelve `"changeCountryLabel":"Cambiar de país"` para CO y CL.
+- **E2E:** `npx playwright test --reporter=line` → `80 passed (4.4m)`.

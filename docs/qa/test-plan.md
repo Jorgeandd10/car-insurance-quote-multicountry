@@ -19,7 +19,8 @@
 - `intercepción + G5`: automatizado con `page.route` sobre la respuesta real (`route.fetch()` + `route.fulfill()`), sin escribir en Strapi ni usar credenciales; el cambio real en el admin se comprueba a mano en G5 (G3-3).
 - Todos los tests pasan además por el fixture `networkGuard` (`e2e/support/fixtures.ts`): toda petición es `GET`, ninguna lleva `Authorization` y ninguna pide borradores.
 
-Abreviaturas de archivo: `full` = `flow/co-full-flow.spec.ts`, `pay` = `flow/co-payment.spec.ts`, `nav` = `flow/navigation-persistence.spec.ts`, `cl` = `flow/cl-flow.spec.ts`, `dates` = `flow/date-rules.spec.ts`, `pst` = `states/plans-states.spec.ts`, `cst` = `states/config-states.spec.ts`, `net` = `states/network.spec.ts`, `fch` = `content-changes/form-changes.spec.ts`, `pch` = `content-changes/plans-changes.spec.ts`, `a11y` = `a11y-responsive/keyboard-and-viewports.spec.ts`.
+Abreviaturas de archivo: `full` = `flow/co-full-flow.spec.ts`, `pay` = `flow/co-payment.spec.ts`, `nav` = `flow/navigation-persistence.spec.ts`, `cl` = `flow/cl-flow.spec.ts`, `dates` = `flow/date-rules.spec.ts`, `pst` = `states/plans-states.spec.ts`, `cst` = `states/config-states.spec.ts`, `net` = `states/network.spec.ts`, `fch` = `content-changes/form-changes.spec.ts`, `pch` = `content-changes/plans-changes.spec.ts`, `a11y` = `a11y-responsive/keyboard-and-viewports.spec.ts`, `chg` = `flow/change-country-and-plan-card.spec.ts` (D14).
+- `Pendiente de ejecución`: el test existe pero aún no se ha ejecutado contra una pila que contenga el cambio; no cuenta como cubierto.
 
 ## US-01 — Formulario
 
@@ -60,6 +61,7 @@ Abreviaturas de archivo: `full` = `flow/co-full-flow.spec.ts`, `pay` = `flow/co-
 | AC-01.33 | E2E seed | ✅ | `a11y › AC-01.26 AC-01.2 AC-01.14 AC-01.33 …` | — | Cubierto ✅ |
 | AC-01.34 | E2E seed | — | `full` (CO, "Placa"); `cl › AC-01.34 …` (CL, "Patente", 5 tipos) | 0.1, 2.5 | Cubierto ✅ |
 | AC-01.35 | E2E intercepción | ✅ | `fch › AC-01.35 …` | — | Cubierto ✅ |
+| AC-01.36 (D14) | E2E seed | existe (`country-shell.spec.ts › AC-01.36 …`; su ejecución la reporta el Angular Developer) | `chg › AC-01.36 the "change country" link goes back to the country selection and the step 1 data is kept` (paso 1 completo, enlace por rol y nombre "Cambiar de país", `href="/"`, ≥ 24×24 px, activado con Enter, lista de países, vuelta a Colombia con los 8 valores); `chg › AC-01.36 the "change country" link is on the plans, summary and confirmation screens` | — | Cubierto ✅ (`80 passed (4.4m)`, pila reconstruida tras D14; `docs/qa/e2e-report.md`) |
 
 ## US-02 — Planes
 
@@ -98,6 +100,7 @@ Abreviaturas de archivo: `full` = `flow/co-full-flow.spec.ts`, `pay` = `flow/co-
 | AC-02.31 | E2E red | ✅ (cliente) | `net › AC-01.30 AC-02.31 …` + `networkGuard` | — | Cubierto ✅ |
 | AC-02.32 | E2E intercepción | ✅ | `pch › AC-02.32 …` (30 planes) | — | Cubierto ✅ |
 | AC-02.33 | E2E intercepción | ✅ | `cst › AC-02.33 …` (dos escenarios) | — | Cubierto ✅ |
+| AC-02.34 (D14) | E2E seed | existe (`plans-step-page.spec.ts › AC-02.34 …`; su ejecución la reporta el Angular Developer) | `chg › AC-02.34 clicking anywhere on a plan card selects the plan` (clic real con `page.mouse.click()` en el centro de la cobertura "Pérdida total y parcial por daños" de "Plan Total" → su radio `checked`; después, clic en la descripción de "Plan Esencial" → cambia la selección y llega al resumen) | — | Cubierto ✅ (`80 passed (4.4m)`, pila reconstruida tras D14; `docs/qa/e2e-report.md`) |
 
 ## US-03 — Resumen y pago
 
@@ -146,10 +149,10 @@ Ver recuento y salida real en [`e2e-report.md`](e2e-report.md). Cuenta como cubi
 
 | Historia | AC | Cubiertos por e2e en verde (total o parcial indicado) | Falla | Sin e2e (cubiertos por unit) |
 |---|---|---|---|---|
-| US-01 | 35 | 32 | 0 | 3 (AC-01.12, AC-01.15, AC-01.29) |
-| US-02 | 33 | 30 | 0 | 3 (AC-02.11, AC-02.12, AC-02.13) |
-| US-03 | 36 | 34 | 1 (AC-03.35 a 320 px; 375 y 1280 en verde) | 1 (AC-03.7) |
-| **Total** | **104** | **96** | **1** | **7** (todos con unit en verde según los informes de la Fase 4) |
+| US-01 | 36 | 33 | 0 | 3 (AC-01.12, AC-01.15, AC-01.29) |
+| US-02 | 34 | 31 | 0 | 3 (AC-02.11, AC-02.12, AC-02.13) |
+| US-03 | 36 | 35 | 0 (AC-03.35 a 320 px corregido en F-03.3) | 1 (AC-03.7) |
+| **Total** | **106** | **99** | **0** | **7** (todos con unit en verde según los informes de la Fase 4) |
 
 Pendientes que no dependen del e2e:
 

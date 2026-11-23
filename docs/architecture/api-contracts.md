@@ -105,7 +105,8 @@ GET /api/countries
         "step3Label": "Resumen y pago",
         "policyholderSectionLabel": "Datos del asegurado",
         "vehicleSectionLabel": "Datos del vehículo",
-        "genericErrorMessage": "No pudimos mostrar esta sección. Intenta más tarde."
+        "genericErrorMessage": "No pudimos mostrar esta sección. Intenta más tarde.",
+        "changeCountryLabel": "Cambiar de país"
       },
       "formStepTexts": { "id": 7, "title": "Tus datos y los de tu vehículo", "continueLabel": "Continuar", "emptyMessage": "El formulario no está disponible por ahora." },
       "plansStepTexts": { "id": 7, "title": "Elige tu plan", "groupLegend": "Planes disponibles", "recommendedLabel": "Recomendado", "coveragesHeading": "Coberturas", "benefitsHeading": "Beneficios", "backLabel": "Volver", "continueLabel": "Continuar", "choosePlanMessage": "Elige un plan para continuar.", "emptyMessage": "No hay planes disponibles.", "planUnavailableMessage": "El plan que elegiste ya no está disponible." },

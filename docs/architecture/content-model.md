@@ -174,6 +174,7 @@ Todos son `string` (o `text` cuando se indica), **obligatorios**, y se cargan un
 | `policyholderSectionLabel` | Leyenda de la sección asegurado (paso 1 y resumen) | REQ-01.12, REQ-03.2 |
 | `vehicleSectionLabel` | Leyenda de la sección vehículo (paso 1 y resumen) | REQ-01.12, REQ-03.2 |
 | `genericErrorMessage` (text) | Mensaje de error genérico del país | REQ-01.13, REQ-02.32, REQ-03.38 |
+| `changeCountryLabel` | Enlace para volver a la selección de país (añadido en D14) | REQ-01.36 |
 
 **`ui.form-step-texts`**: `title`, `continueLabel`, `emptyMessage` (text). REQ-01.5, REQ-01.13.
 

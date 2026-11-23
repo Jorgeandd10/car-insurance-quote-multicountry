@@ -77,6 +77,13 @@ export { expect };
 /** U+00A0 between "$" and the amount in es-CO (AC-02.8). Never normalised. */
 export const NBSP = ' ';
 
+/** `country-selection` single type of the seed (page `/`, REQ-01.2). */
+export const COUNTRY_SELECTION = {
+  countryListLabel: 'Países disponibles',
+  /** Published countries, alphabetical as shown at `/`. */
+  countries: ['Chile', 'Colombia'],
+} as const;
+
 export const CO = {
   code: 'co',
   formTitle: 'Tus datos y los de tu vehículo',
@@ -136,6 +143,10 @@ export const CO = {
     newQuote: 'Nueva cotización',
     genericError: 'No pudimos mostrar esta sección. Intenta más tarde.',
     termsStart: 'No constituye una oferta de seguro en Colombia.',
+    /** `wizardTexts.changeCountryLabel` (D14, REQ-01.36). */
+    changeCountry: 'Cambiar de país',
+    /** `plansStepTexts.coveragesHeading`: accessible name of each coverages list. */
+    coveragesHeading: 'Coberturas',
   },
 } as const;
 
