@@ -166,6 +166,24 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
 - **Motivo literal del humano:** "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
 - **Alcance no detallado por el humano:** dispositivo o viewport, versión del navegador y la parte 3 (lector de pantalla, opcional). F-00.14 sigue Accepted como limitación conocida; se documenta en el README.
 
+## Cierre de la Fase 5 — merge del PR #4 (2026-11-23)
+
+- **Evidencia:** [PR #4](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/4), 9 commits de `phase-5/validation` hacia `main`. Merge commit `95c2c0c` (padres `f69ae34` y `2daa00d`), hecho por el humano. Árbol de `main` idéntico al de la rama.
+- **Revisión humana** (review de GitHub, `COMMENTED`), texto preparado por el orquestador y pegado por el humano: "Phase 5 reviewed (validation): … G5 manual check done by me without AI … approved, no defects … OK to merge."
+
+## D12 — Estilo visual inspirado en SURA (2026-11-23)
+
+- **Propuesta del humano**, antes de la Fase 6: rediseñar los estilos de la app con un aspecto similar al sitio de SURA (https://www.sura.co/seguros/empresas-sura/tecnologia-y-transformacion-digital), porque la prueba es para SURA.
+- **Estado:** Aprobado (decisión del propio humano).
+- **Motivo literal del humano:** "la prueba tecnica es para sura tech, entonces si quisiera como que usaramos un estilo similar al q ellos tienen para venderles mi propuesta de prueba tecnica"
+- **Referencia medida por el orquestador** (estilos calculados del sitio con Claude in Chrome): azul primario `#2D6DF6`, azul oscuro `#0033A0`, texto de botón `#26328C`, acento amarillo `#E3E829`, superficie `#DFEAFF`, texto `#1C1C24` y `#3F3F41`, botones en píldora (radio 28 px), tarjetas con radio 8 px y sin sombra, fuente propietaria `SuraSans`.
+- **Límites que fija el orquestador** (no cambian ninguna decisión aprobada):
+  - Solo CSS y marcado de presentación; sin cambios de comportamiento, specs ni contenido de Strapi.
+  - Sin logotipos, imágenes ni la fuente `SuraSans` de SURA: no son nuestros. Se usa una pila de fuentes del sistema; la CSP (`font-src` por defecto `'self'`) no cambia.
+  - Ningún texto nuevo en código (G2-2) y ninguna dependencia nueva.
+  - Se mantienen los requisitos de accesibilidad de las specs: contraste AA (texto normal ≥ 4,5:1), foco visible, objetivos táctiles de 24 px o más, sin desplazamiento horizontal desde 320 px.
+- **Verificación prevista:** unit tests, build, e2e completos contra la pila reconstruida y capturas a 375 px y escritorio.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
