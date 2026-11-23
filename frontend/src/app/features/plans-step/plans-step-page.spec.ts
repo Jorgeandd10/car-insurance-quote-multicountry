@@ -287,6 +287,34 @@ describe('PlansStepPage', () => {
       expect(w.cms.callsTo('plans')).toHaveLength(2);
       expect(w.cms.calls.filter((c) => requestIdOf(c) === 'C6')).toHaveLength(2);
     });
+
+    /*
+     * The click on the coverages list reaches the label through a CSS pseudo-element that covers
+     * the card (REQ-02.34). jsdom has no layout nor hit testing, so that click is covered by the
+     * e2e of AC-02.34. Here: the preconditions of the technique, i.e. the radio is the only
+     * interactive element of the card (nothing else would capture the click) and a click on the
+     * label (what the overlay is) selects the plan.
+     */
+    it('AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan', async () => {
+      const w = await setup();
+      await w.open('/co/plans');
+      const cards = Array.from(w.root().querySelectorAll<HTMLElement>('.plan'));
+      expect(cards).toHaveLength(3);
+      for (const card of cards) {
+        const interactive = Array.from(
+          card.querySelectorAll(
+            'a, button, input, select, textarea, [tabindex], [contenteditable]',
+          ),
+        );
+        expect(interactive).toEqual([card.querySelector('input[type="radio"]')]);
+        expect(card.querySelectorAll('label')).toHaveLength(1);
+      }
+
+      w.root().querySelector<HTMLElement>(`label[for="plan-${TOTAL}"]`)?.click();
+      await w.settle();
+      expect(w.radio(TOTAL).checked).toBe(true);
+      expect(w.radio(TOTAL).closest('.plan')?.classList).toContain('plan--selected');
+    });
   });
 
   describe('accessibility', () => {

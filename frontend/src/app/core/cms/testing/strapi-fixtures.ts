@@ -45,6 +45,7 @@ const C3 = {
         step3Label: 'Resumen y pago',
         policyholderSectionLabel: 'Datos del asegurado',
         vehicleSectionLabel: 'Datos del vehículo',
+        changeCountryLabel: 'Cambiar de país',
         genericErrorMessage: 'No pudimos mostrar esta sección. Intenta más tarde.',
       },
       formStepTexts: {

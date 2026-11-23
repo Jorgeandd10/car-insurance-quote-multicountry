@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
 import { CountryContext } from '../../core/country/country-context';
 import { StatusMessage } from '../../shared/status-message';
 import { CountryNotAvailable } from '../country-selection/country-not-available';
@@ -16,14 +16,15 @@ import { WizardScreen, isWizardScreen, screenHeading, stepOf } from './wizard-sc
 
 /**
  * Component of `/:country` (ADR-0001). Resolves the country and shows "cargando", "error de carga"
- * + "reintentar", "país no disponible" with the published countries, or the wizard: the step
- * indicator (REQ-01.31) and the step routed below. Provides the `CountryContext` of its steps.
+ * + "reintentar", "país no disponible" with the published countries, or the wizard: the link back
+ * to the country selection on every screen (REQ-01.36), the step indicator (REQ-01.31) and the
+ * step routed below. Provides the `CountryContext` of its steps.
  */
 @Component({
   selector: 'app-country-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [CountryContext],
-  imports: [RouterOutlet, StatusMessage, StepIndicator, CountryNotAvailable],
+  imports: [RouterOutlet, RouterLink, StatusMessage, StepIndicator, CountryNotAvailable],
   template: `
     <div class="shell">
       @switch (context.state()) {
@@ -39,6 +40,9 @@ import { WizardScreen, isWizardScreen, screenHeading, stepOf } from './wizard-sc
         @case ('ready') {
           @let wizard = wizardTexts();
           @if (wizard) {
+            <div class="change-country hero-bleed">
+              <a class="change-country-link" routerLink="/">{{ wizard.changeCountryLabel }}</a>
+            </div>
             @if (currentStep(); as step) {
               <app-step-indicator
                 [label]="wizard.stepIndicatorLabel"
@@ -60,6 +64,43 @@ import { WizardScreen, isWizardScreen, screenHeading, stepOf } from './wizard-sc
       max-width: var(--container-max);
       margin: 0 auto;
       padding: 0 var(--gutter);
+    }
+    /*
+     * "Change country" link (REQ-01.36, D14) on the hero band, above the step indicator. Its only
+     * text is the Strapi label: the chevron is an empty pseudo-element drawn with borders, so it
+     * adds nothing to the accessible name. 44 px high target; #0033A0 on #DFEAFF is 8.76:1.
+     */
+    .change-country {
+      padding-top: 0.75rem;
+    }
+    .change-country-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 44px;
+      padding: 0 0.5rem 0 0.25rem;
+      margin-inline-start: -0.25rem;
+      border-radius: var(--radius-md);
+      color: var(--color-primary-dark);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .change-country-link::before {
+      content: '';
+      flex: none;
+      width: 0.55rem;
+      height: 0.55rem;
+      border: solid currentColor;
+      border-width: 0 0 2.5px 2.5px;
+      transform: translateX(2px) rotate(45deg);
+      transition: transform var(--duration-fast) ease;
+    }
+    .change-country-link:hover {
+      color: var(--color-on-accent);
+      text-decoration: underline;
+    }
+    .change-country-link:hover::before {
+      transform: translateX(-1px) rotate(45deg);
     }
   `,
 })

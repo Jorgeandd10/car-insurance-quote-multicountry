@@ -525,3 +525,108 @@ En la ejecución final no falla ningún test. Estas son las incidencias de la fa
 | 3 | `AC-01.1`, `AC-01.5` y `AC-02.22` fallaron por timeout (entre 5,2 y 6,1 s) en la suite completa, pero pasaban ejecutados solos | Son el primer test con router de cada archivo: cargan los chunks lazy, y con la suite entera en paralelo en Windows superan los 5 s por defecto de Vitest. Es tiempo de carga, no un bloqueo | `frontend/vitest-base.config.mts` con `testTimeout: 15_000`, referenciado en `angular.json` (`test.options.runnerConfig`), que es la opción que documenta el builder (`ng test --help`). Sin dependencias nuevas |
 
 **Control de los propios tests (mutación):** quitar `touched()` de `DynamicForm.errorVisible` (el error se vería mientras se escribe) hace fallar exactamente `REQ-01.16 the error is not shown while typing, only after leaving the field` y `AC-01.12 REQ-01.9 the help text is associated with aria-describedby`. Después restauré el código y volví a ejecutar la suite (salida de arriba).
+
+## D14 (2026-11-23)
+
+Alcance: REQ-01.36 / AC-01.36, el enlace "cambiar de país" en el shell del wizard. Su texto es `wizardTexts.changeCountryLabel`, obligatorio (G3-5): si falta, error de configuración con el mensaje genérico (G2-2).
+
+Commit probado: ninguno propio. Árbol de trabajo sobre `47443de` (rama `style/sura-visual-refresh`) con los cambios de D14 sin confirmar. Las salidas se pegan tal cual, salvo dos cosas: se han quitado los códigos ANSI y las líneas en blanco repetidas. En la ejecución verbose se filtran las líneas del spec de esta historia (`grep`), y lo indico donde se hace.
+
+### Build
+
+```text
+$ npm run build
+
+> car-insurance-quote@0.0.0 build
+> ng build
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names                  |  Raw size | Estimated transfer size
+main-SOBT4VEK.js    | main                   | 295.92 kB |                80.30 kB
+styles-NTDGXMFB.css | styles                 |   6.21 kB |                 1.91 kB
+
+                    | Initial total          | 302.13 kB |                82.22 kB
+
+Lazy chunk files    | Names                  |  Raw size | Estimated transfer size
+chunk-C8VTNn4N.js   | form-step-page         |  65.25 kB |                16.98 kB
+chunk-Bjw0i0Qb.js   | summary-step-page      |  23.19 kB |                 6.18 kB
+chunk-BYpa-ZCU.js   | plans-step-page        |  10.46 kB |                 3.17 kB
+chunk-Bsx2fnci.js   | country-shell          |   8.23 kB |                 2.64 kB
+chunk-Ce3_FM81.js   | -                      |   4.14 kB |                 1.71 kB
+chunk-DvNqx6U3.js   | confirmation-page      |   3.45 kB |                 1.37 kB
+chunk-B4DYgJbP.js   | country-selection-page |   3.37 kB |                 1.50 kB
+chunk-CXDbEDFl.js   | -                      |   3.08 kB |                 1.17 kB
+chunk-BvN-fAav.js   | -                      |   1.35 kB |               658 bytes
+chunk-FpvmFjhC.js   | -                      | 622 bytes |               622 bytes
+chunk-CGwJUSht.js   | -                      | 153 bytes |               153 bytes
+
+Application bundle generation complete. [21.507 seconds] - 2026-11-23T21:27:04.864Z
+
+Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
+```
+
+### Unit tests (suite completa)
+
+```text
+$ npx ng test --watch=false
+Using Vitest configuration file: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\vitest-base.config.mts
+❯ Building...
+✔ Building...
+Application bundle generation complete. [12.965 seconds] - 2026-11-23T21:31:08.878Z
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ Test Files  46 passed (46)
+      Tests  469 passed (469)
+   Start at  16:31:09
+   Duration  29.92s (environment 70%, tests 22%, setup 5%, import 2%, transform 1%)
+$ echo $?
+0
+```
+
+### Unit tests del cambio (reporter verbose, líneas del spec afectado)
+
+```text
+$ npx ng test --watch=false --reporters=verbose --include src/app/features/wizard-shell/country-shell.spec.ts --include src/app/features/plans-step/plans-step-page.spec.ts
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.3 AC-01.7 shows only the fixed "cargando" while the configuration loads 892ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.8 shows "error de carga" + "reintentar" and retrying shows the step 649ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.1 requests only the configuration of the country of the URL 153ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 AC-01.27 the step indicator marks the current step with aria-current="step" 266ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 the focus goes to the heading of the step and document.title follows it 298ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > D7 the confirmation is not a step: no step is marked as current 86ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > ADR-0001 "/co" and unknown sub-paths redirect to "/co/form" 123ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.6 an unknown code shows "país no disponible" and the published countries as links 74ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 a code that cannot be a country is not requested to Strapi 85ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 if the country list fails, "país no disponible" shows "error de carga" + "reintentar" 80ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.13 a missing step indicator text shows the generic error instead of the wizard 60ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/" 231ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country 190ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default 34ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-02.32 a missing step title shows the generic error of the country, never a default 48ms
+ Test Files  2 passed (2)
+      Tests  44 passed (44)
+   Start at  16:32:08
+   Duration  12.24s (tests 38%, environment 38%, setup 15%, import 4%, transform 4%, worker 1%)
+```
+
+Para no recortar la salida, aquí solo se filtran las líneas de `country-shell.spec.ts`. El total de la ejecución (44 tests en 2 archivos) incluye `plans-step-page.spec.ts`, que está en `US-02-test-report.md`.
+
+### Cobertura de AC-01.36
+
+| AC / REQ | Test (archivo › nombre) | Resultado |
+|---|---|---|
+| AC-01.36, REQ-01.36 | `features/wizard-shell/country-shell.spec.ts › AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/"` (pasos 1 a 3 y confirmación; `href="/"`, sin hijos en el DOM, así que el nombre accesible es solo el texto de Strapi) | ✅ Pass |
+| AC-01.36, REQ-01.36, D6 | `country-shell.spec.ts › AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country` (clic → `/` muestra la selección de país; `ciq.v1.co.step1` sigue guardado; al volver a `/co/form` el número de documento está relleno) | ✅ Pass |
+| REQ-01.36, REQ-01.13 | `country-shell.spec.ts › REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default` | ✅ Pass |
+| AC-01.36 contra el seed | — | ⏭ E2E (QA), según la tabla de verificación de la spec |
+
+Comprobación visual (script desechable de Playwright contra `ng serve` en el puerto 4300, con proxy al stack). Strapi aún no tenía el campo, así que el script lo añadió interceptando C3. El enlace mide 147×44 px a 375 px de ancho y 154×44 px a 1280, en `rgb(0, 51, 160)` sobre `#DFEAFF` (8,76:1). Recibe el foco con Tab y el anillo es visible. No hay scroll horizontal (`scrollWidth === clientWidth` a 375 y a 1280). Tras rellenar el paso 1, ir a `/` y volver a Colombia, se recuperan `1234567890`, `ABC123` y `2018`. En `/` no aparece nada anómalo: `CountryRouteReuseStrategy` solo actúa entre rutas `/:country`, y `/` es otra configuración de ruta.
+
+### Fallos y causa
+
+| # | Síntoma | Causa | Corrección |
+|---|---|---|---|
+| 1 | Primera ejecución de la suite: 7 archivos con `[vitest-pool]: Failed to start forks worker … Timeout waiting for worker to respond`; 333 tests ejecutados, todos en verde | Fue de entorno: los workers no arrancaron a tiempo con la máquina cargada (`environment 82%`), mientras otro agente trabajaba en paralelo en Strapi. Ninguna aserción falló | Ninguna en el código. La repetición ejecutó los 46 archivos |
+| 2 | `AC-01.36 … D6 going back to "/" keeps the step 1 data` falló por timeout (30 s) | Fallo del test. `/` pide C2 (`country-selection`) y el `seedHandler` del spec no contestaba C2, que caía en `pending()`. `whenStable()` esperaba un recurso que nunca terminaba | El `seedHandler` contesta C2 con `strapiC2()`. El test comprueba además que se ve el encabezado de la selección de país |

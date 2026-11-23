@@ -579,3 +579,119 @@ En la ejecución final no falla ningún test. Estas son las incidencias de la fa
 - Poner primero los planes sin `order` hace fallar `sort-plans.spec.ts › AC-02.6 …`.
 
 Después de cada mutación restauré el código y volví a ejecutar la suite completa (salida de arriba).
+
+## D14 (2026-11-23)
+
+Alcance: REQ-02.34 / AC-02.34, toda la tarjeta del plan selecciona el plan. Se hace con un pseudo-elemento `::after` del `label` que cubre la tarjeta; el control sigue siendo el `radio` nativo.
+
+Commit probado: ninguno propio. Árbol de trabajo sobre `47443de` (rama `style/sura-visual-refresh`) con los cambios de D14 sin confirmar. Las salidas se pegan tal cual, salvo dos cosas: se han quitado los códigos ANSI y las líneas en blanco repetidas. En la ejecución verbose se filtran las líneas del spec de esta historia (`grep`), y lo indico donde se hace.
+
+### Build
+
+```text
+$ npm run build
+
+> car-insurance-quote@0.0.0 build
+> ng build
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names                  |  Raw size | Estimated transfer size
+main-SOBT4VEK.js    | main                   | 295.92 kB |                80.30 kB
+styles-NTDGXMFB.css | styles                 |   6.21 kB |                 1.91 kB
+
+                    | Initial total          | 302.13 kB |                82.22 kB
+
+Lazy chunk files    | Names                  |  Raw size | Estimated transfer size
+chunk-C8VTNn4N.js   | form-step-page         |  65.25 kB |                16.98 kB
+chunk-Bjw0i0Qb.js   | summary-step-page      |  23.19 kB |                 6.18 kB
+chunk-BYpa-ZCU.js   | plans-step-page        |  10.46 kB |                 3.17 kB
+chunk-Bsx2fnci.js   | country-shell          |   8.23 kB |                 2.64 kB
+chunk-Ce3_FM81.js   | -                      |   4.14 kB |                 1.71 kB
+chunk-DvNqx6U3.js   | confirmation-page      |   3.45 kB |                 1.37 kB
+chunk-B4DYgJbP.js   | country-selection-page |   3.37 kB |                 1.50 kB
+chunk-CXDbEDFl.js   | -                      |   3.08 kB |                 1.17 kB
+chunk-BvN-fAav.js   | -                      |   1.35 kB |               658 bytes
+chunk-FpvmFjhC.js   | -                      | 622 bytes |               622 bytes
+chunk-CGwJUSht.js   | -                      | 153 bytes |               153 bytes
+
+Application bundle generation complete. [21.507 seconds] - 2026-11-23T21:27:04.864Z
+
+Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
+```
+
+### Unit tests (suite completa)
+
+```text
+$ npx ng test --watch=false
+Using Vitest configuration file: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\vitest-base.config.mts
+❯ Building...
+✔ Building...
+Application bundle generation complete. [12.965 seconds] - 2026-11-23T21:31:08.878Z
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ Test Files  46 passed (46)
+      Tests  469 passed (469)
+   Start at  16:31:09
+   Duration  29.92s (environment 70%, tests 22%, setup 5%, import 2%, transform 1%)
+$ echo $?
+0
+```
+
+### Unit tests del cambio (reporter verbose, líneas del spec afectado)
+
+```text
+$ npx ng test --watch=false --reporters=verbose --include src/app/features/wizard-shell/country-shell.spec.ts --include src/app/features/plans-step/plans-step-page.spec.ts
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.1 REQ-02.1 shows the active plans of the country in the configured order 1074ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.5 the plans of another country are never shown 121ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.2 AC-02.7 only the first recommended plan is highlighted, with a visible text label 143ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.9 AC-02.8 each plan shows its final price from the step 1 data, in COP without decimals 124ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.8 Chile shows CLP: "$21.589" (19 990 × 1.08, rounded once) 105ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.10 without price factors each plan shows its base price 138ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > REQ-02.3 shows description, coverages and benefits as lists; an empty list is not shown 103ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.14 a plan with another currency is not shown and a warning is logged 104ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.15 a plan without base price is not shown and the others are 103ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > list > AC-02.32 more plans than the default page size are all listed 155ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.3 a selected plan is checked and continue goes to the summary 285ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.17 REQ-02.14 selecting another plan replaces the selection (one radio group) 149ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > REQ-02.16 G2-9 only the documentId of the plan is stored 133ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.18 continue without a selection shows the Strapi message on the group and moves the focus to it 114ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > REQ-02.15 the message is removed once a plan is chosen 82ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.19 the selection survives a reload 73ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.20 the selection is kept per country 193ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.21 a stored plan that is no longer available is discarded with an announced notice 101ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.16 AC-02.30 after editing step 1 the price is recalculated and the selection is kept 670ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > REQ-02.23 the plans are requested again on every entry to the step 183ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan 122ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > AC-02.27 the group has a name and each option names the plan, price and recommendation 82ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > AC-02.28 the focus is on the heading of the step and the indicator marks step 2 63ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > REQ-02.26 the buttons are back (button) and continue (submit of the form) 65ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.4 AC-02.22 with no active plans shows the empty message, no continue, and back to step 1 106ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.23 REQ-02.20 while loading shows the fixed "cargando" as status and no continue 56ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.24 REQ-02.21 a failure shows "error de carga" and "reintentar"; retrying lists the plans 86ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > REQ-02.21 a failure of the price factors is also "error de carga" (no partial prices) 45ms
+ ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.33 a missing continue text shows the generic error, no plans, and no plan request 34ms
+ Test Files  2 passed (2)
+      Tests  44 passed (44)
+   Start at  16:32:08
+   Duration  12.24s (tests 38%, environment 38%, setup 15%, import 4%, transform 4%, worker 1%)
+```
+
+Para no recortar la salida, aquí solo se filtran las líneas de `plans-step-page.spec.ts`. El total de la ejecución (44 tests en 2 archivos) incluye `country-shell.spec.ts`, que está en `US-01-test-report.md`.
+
+### Cobertura de AC-02.34
+
+| AC / REQ | Test (archivo › nombre) | Resultado |
+|---|---|---|
+| AC-02.34, REQ-02.34 (precondiciones) | `features/plans-step/plans-step-page.spec.ts › AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan` | ✅ Pass |
+| AC-02.34 (clic en la lista de coberturas) | — | ⏭ No cubierto por unit. jsdom no tiene layout ni *hit testing*, así que un clic en el `li` no llega al pseudo-elemento del `label`. Lo cubre el E2E (QA) |
+
+El unit test comprueba lo que la técnica necesita: en cada tarjeta el único elemento interactivo es el `radio` (ningún otro elemento capturaría el clic) y un clic en el `label`, que es lo que pinta el pseudo-elemento, selecciona el plan.
+
+Comprobación visual (script desechable de Playwright contra `ng serve` en el puerto 4300). Un clic real del ratón en el primer elemento de coberturas de "Plan Total" lo selecciona (`checked=true`), y un clic en la descripción del primer plan también, tanto a 375 como a 1280 px. No hay scroll horizontal.
+
+**Nota para el E2E de AC-02.34:** `locator('li').click()` de Playwright no hace el clic: su comprobación de accionabilidad informa de `<label class="plan-label"> intercepts pointer events` y reintenta hasta el timeout. Es lo esperado, porque el `label` cubre la tarjeta a propósito. Usa `click({ force: true })` en el `li` o `page.mouse.click()` en sus coordenadas: es el mismo clic real en ese punto, sin la comprobación de interceptación.
+
+**Contrapartida aceptada:** el texto de la tarjeta no se puede seleccionar con el ratón, porque la capa del `label` lo cubre. Es contenido de solo lectura y el humano pidió que toda la tarjeta fuera pulsable. El teclado y el nombre accesible no cambian (REQ-02.26, REQ-02.27).

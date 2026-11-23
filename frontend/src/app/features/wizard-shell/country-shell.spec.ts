@@ -14,6 +14,7 @@ import {
 } from '../../core/cms/testing/fake-cms-client';
 import {
   strapiC1,
+  strapiC2,
   strapiC3,
   strapiC4Complete,
   strapiC5,
@@ -33,6 +34,8 @@ const seedHandler =
     switch (requestIdOf(call)) {
       case 'C1':
         return strapiC1().data;
+      case 'C2':
+        return strapiC2().data;
       case 'C3': {
         if (countryOf(call) !== 'co') {
           return [];
@@ -232,6 +235,61 @@ describe('CountryShell', () => {
     expect(text('[role="alert"]')).toBe('No pudimos mostrar esta sección. Intenta más tarde.');
     expect(root().querySelector('nav')).toBeNull();
     expect(root().querySelector('h1')).toBeNull();
+  });
+
+  describe('change country link (REQ-01.36)', () => {
+    const changeCountryLink = () =>
+      Array.from(root().querySelectorAll('a')).find(
+        (a) => a.textContent?.trim() === 'Cambiar de país',
+      ) ?? null;
+
+    it('AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/"', async () => {
+      completeStep1();
+      storage.setItem(
+        'ciq.v1.co.confirmation',
+        JSON.stringify({
+          quoteNumber: 'CO-20261122-AAAAAA',
+          planName: 'Plan Esencial',
+          finalPrice: 935000,
+          currency: 'COP',
+          paidAt: '2026-11-22T17:00:00.000Z',
+        }),
+      );
+      for (const url of ['/co/form', '/co/plans', '/co/summary', '/co/confirmation']) {
+        await open(url);
+        expect(TestBed.inject(Router).url).toBe(url);
+        const link = changeCountryLink();
+        expect(link, url).not.toBeNull();
+        expect(link?.getAttribute('href')).toBe('/');
+        // The chevron is a CSS pseudo-element: the accessible name is only the Strapi text.
+        expect(link?.children).toHaveLength(0);
+      }
+    });
+
+    it('AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country', async () => {
+      completeStep1();
+      await open('/co/form');
+      changeCountryLink()?.click();
+      await harness.fixture.whenStable();
+      expect(TestBed.inject(Router).url).toBe('/');
+      expect(text('h1')).toBe('Cotiza el seguro de tu auto');
+      expect(storage.getItem('ciq.v1.co.step1')).toContain('1234567890');
+
+      await open('/co/form');
+      const documentNumber = root().querySelector<HTMLInputElement>('#f-co_documentNumber');
+      expect(documentNumber?.value).toBe('1234567890');
+    });
+
+    it('REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default', async () => {
+      cms.handler = seedHandler((country) => {
+        country.wizardTexts.changeCountryLabel = ' ';
+      });
+      await open('/co/form');
+      expect(text('[role="alert"]')).toBe('No pudimos mostrar esta sección. Intenta más tarde.');
+      expect(root().querySelector('a')).toBeNull();
+      expect(root().querySelector('nav')).toBeNull();
+      expect(root().querySelector('h1')).toBeNull();
+    });
   });
 
   it('REQ-02.32 a missing step title shows the generic error of the country, never a default', async () => {

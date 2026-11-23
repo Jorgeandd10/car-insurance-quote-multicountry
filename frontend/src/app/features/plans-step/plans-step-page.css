@@ -29,6 +29,7 @@ legend {
 .plan {
   position: relative;
   display: grid;
+  cursor: pointer;
   grid-template-columns: auto 1fr;
   align-content: start;
   column-gap: 0.75rem;
@@ -89,12 +90,32 @@ input[type='radio'] {
   cursor: pointer;
 }
 
+/* The radio stays above the card overlay, so a click on it hits the native control itself. */
+.plan input[type='radio'] {
+  position: relative;
+  z-index: 1;
+}
+
 .plan-label {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.375rem 0.625rem;
   cursor: pointer;
+}
+
+/*
+ * The whole card selects the plan (REQ-02.34, D14): an empty pseudo-element of the label covers
+ * the card (its containing block is `.plan`), so a click on the description, coverages or
+ * benefits is a click on the label, which checks the native radio. Nothing is added to the DOM
+ * or to the accessible name; the radio is the only interactive element of the card. Trade-off:
+ * the card text cannot be selected with the mouse (it is read-only plan content).
+ */
+.plan-label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--radius-lg) - 2px);
 }
 
 .plan-name {
