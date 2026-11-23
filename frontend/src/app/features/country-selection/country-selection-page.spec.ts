@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
-import { Router, provideRouter } from '@angular/router';
+import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { routes } from '../../app.routes';
+import { provideAppRouting } from '../../app.routes';
 import { CmsClient } from '../../core/cms/cms-client';
 import { CmsRequestError } from '../../core/cms/cms-error';
 import {
@@ -41,7 +41,7 @@ describe('CountrySelectionPage', () => {
     cms = new FakeCmsClient();
     cms.handler = seedHandler;
     TestBed.configureTestingModule({
-      providers: [provideRouter(routes), { provide: CmsClient, useValue: cms }],
+      providers: [...provideAppRouting(), { provide: CmsClient, useValue: cms }],
     });
     harness = await RouterTestingHarness.create();
   });

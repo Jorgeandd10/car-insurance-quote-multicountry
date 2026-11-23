@@ -1,7 +1,6 @@
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
+import { provideAppRouting } from './app.routes';
 
 /**
  * Zoneless by default in Angular 22 (no zone.js, D2). `HttpClient` has no interceptors: requests
@@ -10,7 +9,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    ...provideAppRouting(),
     provideHttpClient(withFetch()),
   ],
 };

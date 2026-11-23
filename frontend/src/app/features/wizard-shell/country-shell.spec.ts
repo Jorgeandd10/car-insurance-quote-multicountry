@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
-import { Router, provideRouter } from '@angular/router';
+import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { routes } from '../../app.routes';
+import { provideAppRouting } from '../../app.routes';
 import { CmsClient } from '../../core/cms/cms-client';
 import { CmsRequestError } from '../../core/cms/cms-error';
 import {
@@ -13,6 +13,9 @@ import {
   requestIdOf,
 } from '../../core/cms/testing/fake-cms-client';
 import { strapiC1, strapiC3, strapiC4Complete } from '../../core/cms/testing/strapi-fixtures';
+import { CLOCK } from '../../core/clock/clock';
+import { WIZARD_STORAGE } from '../../core/storage/wizard-storage';
+import { InMemoryStorage } from '../../core/storage/testing/in-memory-storage';
 
 type C3Country = ReturnType<typeof strapiC3>['data'][number];
 
@@ -41,12 +44,19 @@ const seedHandler =
 describe('CountryShell', () => {
   let cms: FakeCmsClient;
   let harness: RouterTestingHarness;
+  let storage: InMemoryStorage;
 
   beforeEach(async () => {
     cms = new FakeCmsClient();
     cms.handler = seedHandler();
+    storage = new InMemoryStorage();
     TestBed.configureTestingModule({
-      providers: [provideRouter(routes), { provide: CmsClient, useValue: cms }],
+      providers: [
+        ...provideAppRouting(),
+        { provide: CmsClient, useValue: cms },
+        { provide: WIZARD_STORAGE, useValue: storage },
+        { provide: CLOCK, useValue: () => new Date(2026, 10, 22, 12) },
+      ],
     });
     harness = await RouterTestingHarness.create();
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -56,6 +66,19 @@ describe('CountryShell', () => {
 
   const root = () => harness.fixture.nativeElement as HTMLElement;
   const text = (selector: string) => root().querySelector(selector)?.textContent?.trim() ?? null;
+  /** Valid step 1 for the fields of `strapiC4Complete`: steps 2 and 3 require it (REQ-02.19). */
+  const completeStep1 = () =>
+    storage.setItem(
+      'ciq.v1.co.step1',
+      JSON.stringify({
+        values: {
+          co_documentType: 'cc',
+          co_documentNumber: '1234567890',
+          co_birthDate: '2000-05-10',
+          co_vehicleYear: 2018,
+        },
+      }),
+    );
   const open = async (url: string) => {
     await harness.navigateByUrl(url);
     await harness.fixture.whenStable();
@@ -97,6 +120,7 @@ describe('CountryShell', () => {
   });
 
   it('REQ-01.31 AC-01.27 the step indicator marks the current step with aria-current="step"', async () => {
+    completeStep1();
     await open('/co/form');
     const nav = root().querySelector('nav');
     expect(nav?.getAttribute('aria-label')).toBe('Progreso de la cotización');
@@ -114,6 +138,7 @@ describe('CountryShell', () => {
   });
 
   it('REQ-01.31 the focus goes to the heading of the step and document.title follows it', async () => {
+    completeStep1();
     await open('/co/form');
     const heading = root().querySelector('h1');
     expect(heading?.getAttribute('tabindex')).toBe('-1');
@@ -178,6 +203,7 @@ describe('CountryShell', () => {
   });
 
   it('REQ-02.32 a missing step title shows the generic error of the country, never a default', async () => {
+    completeStep1();
     cms.handler = seedHandler((country) => {
       country.plansStepTexts.title = ' ';
     });
