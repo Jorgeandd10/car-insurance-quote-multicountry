@@ -98,6 +98,26 @@ El humano aprobó G1 en bloque, sin motivo específico por decisión.
 
 Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que es un hecho verificado y no una decisión.
 
+## G3 — ADRs y arquitectura (Fase 3)
+
+- Fecha: 2026-11-22
+- Aprobador: Jorge (humano)
+- Presentado: `docs/adr/0001`–`0007` (Proposed, commit `2b21fdc`), `docs/architecture/` y la revisión del orquestador [`reviews/001-G3-architecture-check.md`](../reviews/001-G3-architecture-check.md) (F-00.8–F-00.11).
+- Antes de decidir, el humano preguntó por el avance y el tiempo restante y pidió una recomendación sobre G3-3. El orquestador **cambió su recomendación** de 3a (token manual) a 3c (intercepción + comprobación manual en G5), porque el token manual dejaba 5 AC "No ejecutados" para quien clone el repositorio.
+
+| # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
+|---|---|---|---|---|
+| G3-1 | ADR-0001 a 0007 | Aceptados, con el ajuste de G3-3 en ADR-0003 y ADR-0007 | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-2 | Permisos del rol público (precisa D4, F-00.8) | Solo `find`, sin `findOne` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-3 | e2e con cambios de contenido (F-00.9) | **Opción 3c: solo intercepción (`page.route`)**. Sin token de escritura. El cambio real en Strapi (campo nuevo, plan desactivado) se comprueba a mano en G5 y se registra en `docs/qa/manual-check.md` | Modificada (recomendación inicial: 3a) | "Apruebo G3 con G3-3 en intercepción" |
+| G3-4 | Unicidad de `key` | `unique` de Strapi + prefijo de país | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-5 | Textos de interfaz obligatorios en Strapi | Sí; los AC de texto ausente se prueban por intercepción | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-6 | Términos | Atributo de `Country` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-7 | Factores de precio | Componente repetible de `Country` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-8 | Formato de términos | Blocks de Strapi + render propio | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-9 | Guards | Funcionales + indicador global "cargando" | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-10 | Huecos funcionales cubiertos por el arquitecto | Se acepta su lectura (contenido global ausente → "error de carga" + "reintentar"; banda con rol/operando incompatibles se descarta; error en vivo tras el primer blur; "—" desde Strapi; mismas leyendas de sección en paso 1 y resumen) | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
