@@ -25,11 +25,21 @@
 | F-00.10 | Minor | ADR-0003 · `CLAUDE.md` §5 | nginx en `infra/nginx/`, carpeta que no figura en la estructura de `CLAUDE.md` §5. | Actualizar `CLAUDE.md` §5 tras G3. |
 | F-00.11 | Minor | `.claude/skills/country-content/SKILL.md` | La Skill sigue en esqueleto; el arquitecto deja los nombres concretos en `overview.md` §4. | Completar la Skill tras G3 (orquestador). |
 
-## Resolución (se completa tras G3)
+## Resolución
+
+Decisiones humanas de G3 en [`docs/decision-log.md`](../docs/decision-log.md) (motivo literal: "Apruebo G3 con G3-3 en intercepción").
 
 | ID | Decisión humana | Estado | Commit / motivo |
 |---|---|---|---|
-| F-00.8 | | | |
-| F-00.9 | | | |
-| F-00.10 | | | |
-| F-00.11 | | | |
+| F-00.8 | G3-2: solo `find` | Fixed | `content-model.md` §4 y ADR-0003 §1 dicen "solo `find`" como precisión de D4; el arquitecto añadió routers con `only: ['find']` (coherente con G3-2) |
+| F-00.9 | G3-3: opción 3c (intercepción) + comprobación manual en G5 | Fixed | ADR-0003 §5 y ADR-0007 reescritos sin token de escritura; specs US-01 y US-02 v0.3 (`5a28ea2`, `e5ad6b6`) |
+| F-00.10 | — (consecuencia de G1-d) | Fixed | `CLAUDE.md` §5 incluye `infra/nginx/` y `scripts/` (`2dc7d25`) |
+| F-00.11 | — | Fixed | Skill `country-content` completada con los nombres de G3 (`61e8466`) |
+
+## Re-review (2026-11-22)
+
+- Búsqueda de `E2E_STRAPI|cms-admin|Bearer` en `docs/adr/` y `docs/architecture/`: 1 coincidencia, `0003:174`. Es el propio comando `grep` de la confirmación, que comprueba la ausencia de cabeceras de autorización: correcta.
+- Cambios añadidos por el arquitecto sin pedírselos, aceptados por el orquestador por encajar en decisiones aprobadas: routers `only: ['find']` (G3-2) y AC-01.11 verificado contra un campo en borrador del seed, sin intercepción, lo que además prueba el middleware `published-only`.
+- ADR-0001 a ADR-0007 pasan a `Accepted (2026-11-22, G3)`. Las cabeceras de las specs enlazan los ADRs aceptados.
+
+Veredicto final: **Aprobado**.

@@ -6,7 +6,7 @@
 | Versión | 0.3 |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
-| ADRs relacionados | Pendientes (Software Architect, G3): estrategia multipaís (D3), regla de precio (D8), persistencia del wizard (D6), acceso a Strapi (D4) |
+| ADRs relacionados | ADR-0001 (multipaís), ADR-0003 (acceso y seguridad), ADR-0004 (estado y navegación), ADR-0005 (regla de precio), ADR-0007 (pruebas); `docs/architecture/pricing-rule.md`, `content-model.md`, `api-contracts.md` (Accepted, G3) |
 | Decisiones relacionadas | D3, D4, D6, D7, D8 · G2-1, G2-2, G2-4, G2-5, G2-8, G2-9, G2-10, G2-11, G2-13 (`docs/decision-log.md`, sección G2) |
 | Specs relacionadas | `specs/US-01/spec.md` (entrega los datos del paso 1), `specs/US-03/spec.md` (recibe el plan elegido y su precio final) |
 

@@ -6,7 +6,7 @@
 | Versión | 0.3 |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
-| ADRs relacionados | Pendientes (Fase 3): ADR multipaís (D3), ADR de formularios (D5), ADR de persistencia (D6). Modelo de contenido en `docs/architecture/content-model.md` (pendiente G3) |
+| ADRs relacionados | ADR-0001 (multipaís), ADR-0002 (Signal Forms), ADR-0003 (acceso y seguridad), ADR-0004 (estado y navegación), ADR-0007 (pruebas); `docs/architecture/content-model.md`, `api-contracts.md` (Accepted, G3) |
 | Decisiones relacionadas | D3, D4, D5, D6, D7, D10 · G2-1, G2-2, G2-3, G2-4, G2-5, G2-6, G2-7, G2-10, G2-13 · `CLAUDE.md` §8 y §11 |
 
 > Convenciones de esta spec:

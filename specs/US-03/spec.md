@@ -6,7 +6,7 @@
 | Versión | 0.2 |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
-| ADRs relacionados | Pendientes (G3): estrategia multipaís (D3), persistencia en `sessionStorage` (D6), pasarela de pago simulada (D9), regla de precio (D8), modelo de contenido (`docs/architecture/content-model.md`, aún no existe) |
+| ADRs relacionados | ADR-0001 (multipaís), ADR-0003 (acceso y seguridad), ADR-0004 (estado, navegación y pago simulado), ADR-0005 (regla de precio), ADR-0006 (términos), ADR-0007 (pruebas); `docs/architecture/content-model.md`, `api-contracts.md` (Accepted, G3) |
 | Decisiones relacionadas | D3, D4, D6, D7, D8, D9, D10 · G2-1, G2-2, G2-5, G2-6, G2-8, G2-9, G2-10, G2-11, G2-12, G2-13 |
 | Specs relacionadas | `specs/US-01/spec.md` y `specs/US-02/spec.md` (dependencias en la sección 6.3) |
 | Revisión relacionada | `reviews/000-G2-specs-cross-consistency.md` (F-00.1, F-00.3, F-00.4, F-00.5) |

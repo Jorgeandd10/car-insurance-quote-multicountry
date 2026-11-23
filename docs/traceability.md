@@ -6,11 +6,11 @@ Estados: `Spec` → `Designed` → `Implemented` → `Tested` → `Reviewed` →
 
 | US | REQ | AC | ADR | Código | Tests | Review | Estado |
 |---|---|---|---|---|---|---|---|
-| US-01 | REQ-01.1–REQ-01.35 | AC-01.1–AC-01.35 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) F-00.3, F-00.5 Fixed | Spec (Approved, G2) |
-| US-02 | REQ-02.1–REQ-02.33 | AC-02.1–AC-02.33 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) F-00.2–F-00.7 Fixed | Spec (Approved, G2) |
-| US-03 | REQ-03.1–REQ-03.38 | AC-03.1–AC-03.36 | — | — | — | [000](../reviews/000-G2-specs-cross-consistency.md) F-00.1, F-00.3–F-00.5, F-00.7 Fixed | Spec (Approved, G2) |
+| US-01 | REQ-01.1–REQ-01.35 | AC-01.1–AC-01.35 | ADR-0001, 0002, 0003, 0004, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
+| US-02 | REQ-02.1–REQ-02.33 | AC-02.1–AC-02.33 | ADR-0001, 0003, 0004, 0005, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
+| US-03 | REQ-03.1–REQ-03.38 | AC-03.1–AC-03.36 | ADR-0001, 0003, 0004, 0005, 0006, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
 
-La matriz se desglosa en una fila por `REQ` cuando el Software Architect asigne ADRs (G3); hasta entonces cada historia ocupa una fila con sus rangos de IDs.
+El detalle REQ → ADR o sección de arquitectura está en [`docs/architecture/overview.md`](architecture/overview.md) §3. La matriz se desglosa en una fila por `REQ` al implementar cada historia (Fase 4), cuando existan código y tests que enlazar.
 
 ## Decisiones humanas relacionadas
 
