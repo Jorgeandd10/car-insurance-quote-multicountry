@@ -15,6 +15,8 @@ import { loadStateOf } from '../../core/ui-state/view-state';
 import { priceInputsFrom } from '../../domain/pricing/price-inputs';
 import { StatusMessage } from '../../shared/status-message';
 import { StepHeading } from '../../shared/step-heading';
+import { Step1Result } from '../form-step/validation/evaluate-step1';
+import { step1Backstop } from '../form-step/validation/step1-backstop';
 import { Step1ResultReader } from '../form-step/validation/step1-result-reader';
 import { restorePlanSelection } from './plan-selection';
 import { PlanView, buildPlanViews } from './plan-views';
@@ -62,11 +64,20 @@ export class PlansStepPage {
     return group?.status === 'ok' ? group.texts : null;
   });
 
-  /** No request is made while a text of the step is missing (AC-02.33: no plans are shown). */
+  /** Step 1 with the current configuration; recomputed when it arrives, also after a retry. */
+  private readonly step1 = computed<Step1Result | null>(() => {
+    const config = this.context.config();
+    return config ? this.reader.read(config) : null;
+  });
+
+  /**
+   * No request is made while a text of the step is missing (AC-02.33) nor while step 1 is not
+   * complete (REQ-02.19, review 002 F-02.1): the backstop is then taking the user to step 1.
+   */
   protected readonly data = resource({
     params: () => {
       const config = this.context.config();
-      return config && this.texts() ? config : undefined;
+      return config && this.texts() && this.step1()?.isComplete ? config : undefined;
     },
     loader: async ({ params, abortSignal }) => {
       const data = await this.plansData.load(params.country, abortSignal);
@@ -84,6 +95,10 @@ export class PlansStepPage {
     if (!texts) {
       return { kind: 'configError', message: config.genericErrorMessage };
     }
+    const step1 = this.step1();
+    if (!step1?.isComplete) {
+      return { kind: 'loading', texts }; // Going back to step 1 (F-02.1).
+    }
     const load = loadStateOf(this.data.status());
     if (load !== 'ready' || !this.data.hasValue()) {
       return load === 'error' ? { kind: 'error', texts } : { kind: 'loading', texts };
@@ -92,7 +107,6 @@ export class PlansStepPage {
     if (!data || data.plans.length === 0) {
       return { kind: 'empty', texts };
     }
-    const step1 = this.reader.read(config);
     const plans = buildPlanViews(
       data,
       priceInputsFrom(step1),
@@ -101,6 +115,10 @@ export class PlansStepPage {
     );
     return { kind: 'ready', texts, plans };
   });
+
+  constructor() {
+    step1Backstop(this.step1, () => this.context.code());
+  }
 
   protected select(planId: string): void {
     const code = this.context.code();

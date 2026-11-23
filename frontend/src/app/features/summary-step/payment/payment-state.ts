@@ -7,6 +7,11 @@ export type PaymentOutcome = 'approved' | 'rejected';
 export interface PayConditions {
   /** Step 1 data shown (texts present). */
   readonly dataReady: boolean;
+  /**
+   * `Step1Result.isComplete` with the current configuration: data present and valid (REQ-03.19,
+   * review 002 F-03.1). Texts alone are not enough.
+   */
+  readonly step1Complete: boolean;
   /** The chosen plan is loaded, still available and its price is computed. */
   readonly planReady: boolean;
   /** Terms loaded with text (not loading, not failed, not unavailable). */
@@ -25,6 +30,7 @@ export interface PayConditions {
 export function canPay(c: PayConditions): boolean {
   return (
     c.dataReady &&
+    c.step1Complete &&
     c.planReady &&
     c.termsReady &&
     c.termsAccepted &&

@@ -667,3 +667,296 @@ En la ejecución final no falla ningún test. Estas son las incidencias de la fa
 - No borrar `ciq.v1.{cc}.step1` tras el pago hace fallar `AC-03.3 AC-03.27 AC-03.28 …` y `AC-03.29 …`.
 
 Después de cada mutación restauré el código y volví a ejecutar la suite completa (salida de arriba).
+
+## Correcciones G4
+
+| Campo | Valor |
+|---|---|
+| Fecha | 2026-11-23 |
+| Hallazgos | F-03.1 (Major) y F-02.1 (Minor) de [`reviews/002-phase-4-implementation.md`](../../reviews/002-phase-4-implementation.md), aprobados en G4 (`docs/decision-log.md`, "G4 — Triage de la review 002") |
+| Base | `91cb85a` (rama `phase-4/implementation`), cambios sin confirmar. El commit lo hace el orquestador |
+
+### Causa
+
+ADR-0004 hace que `step1CompleteGuard` deje pasar la navegación cuando falla la configuración del país, para que el shell muestre "error de carga". El mismo ADR exige un respaldo: tras un "reintentar" con éxito, la página vuelve a evaluar `isComplete` y redirige si hace falta. Ninguna página lo hacía. Tras el reintento, el shell pintaba el `router-outlet` y:
+
+- en `/plans` (F-02.1) se pedían y mostraban planes con precios calculados sobre un paso 1 incompleto;
+- en `/summary` (F-03.1) se mostraba el resumen y, como `canPay` recibía `dataReady = sections !== null` ("hay textos"), se podía pagar con un paso 1 incompleto o inválido.
+
+### Corrección
+
+- `features/form-step/validation/step1-backstop.ts` (nuevo): `step1Backstop(step1, code)`. Es un `effect` que, cuando hay `Step1Result` y `isComplete` es falso, navega a `/:cc/form` con `replaceUrl` y conserva los datos. Lo usan las páginas de los pasos 2 y 3.
+- `features/plans-step/plans-step-page.ts`: un `step1 = computed(() => reader.read(config))` que se recalcula cuando llega la configuración, también tras el reintento. Los `params` del `resource` de planes exigen `step1.isComplete`, así que no se pide C5 ni C6 (REQ-02.19), y mientras se redirige la vista es "cargando". El precio usa ese mismo `Step1Result`.
+- `features/summary-step/summary-step-page.ts`: el mismo `step1` alimenta la sección de datos, el respaldo, los `params` de los `resource` de plan y términos (no se pide C5, C6 ni C7 con un paso 1 incompleto) y `canPay`.
+- `features/summary-step/payment/payment-state.ts`: `PayConditions.step1Complete` (`Step1Result.isComplete` con la configuración vigente), exigida por `canPay` además de `dataReady` (REQ-03.19).
+
+### Reproducción: los tests fallan sin la corrección
+
+Tests nuevos en `features/form-step/validation/step1-backstop.spec.ts`: fallo de C3 y C4 → "error de carga" → "reintentar" con éxito. Ejecutados contra el código **sin** la corrección:
+
+```text
+$ npx ng test --watch=false --reporters=verbose --include "src/app/features/form-step/validation/step1-backstop.spec.ts"
+Using Vitest configuration file: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\vitest-base.config.mts
+❯ Building...
+✔ Building...
+Application bundle generation complete. [24.351 seconds] - 2026-11-23T06:55:28.711Z
+
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ ×  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans 11499ms
+   → expected '/co/plans' to be '/co/form' // Object.is equality
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 on /plans, a complete step 1 shows the plans after the retry 3111ms
+ ×  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms 1808ms
+   → expected '/co/summary' to be '/co/form' // Object.is equality
+ ×  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept 542ms
+   → expected '/co/summary' to be '/co/form' // Object.is equality
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 on /summary, a complete step 1 shows the summary after the retry 922ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL   car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans
+AssertionError: expected '/co/plans' to be '/co/form' // Object.is equality
+
+Expected: "/co/form"
+Received: "/co/plans"
+
+ ❯ src/app/features/form-step/validation/step1-backstop.spec.ts:59:26
+     57|     await failConfigThenRetry(w, '/co/plans');
+     58|
+     59|     expect(w.router.url).toBe('/co/form');
+       |                          ^
+     60|     expect(w.cms.callsTo('plans')).toEqual([]);
+     61|     expect(w.root().querySelector('input[type="radio"]')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL   car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms
+AssertionError: expected '/co/summary' to be '/co/form' // Object.is equality
+
+Expected: "/co/form"
+Received: "/co/summary"
+
+ ❯ src/app/features/form-step/validation/step1-backstop.spec.ts:81:26
+     79|     await failConfigThenRetry(w, '/co/summary');
+     80|
+     81|     expect(w.router.url).toBe('/co/form');
+       |                          ^
+     82|     expect(w.cms.callsTo('plans')).toEqual([]);
+     83|     expect(w.cms.calls.filter((c) => requestIdOf(c) === 'C7')).toEqual…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL   car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept
+AssertionError: expected '/co/summary' to be '/co/form' // Object.is equality
+
+Expected: "/co/form"
+Received: "/co/summary"
+
+ ❯ src/app/features/form-step/validation/step1-backstop.spec.ts:94:26
+     92|     await failConfigThenRetry(w, '/co/summary');
+     93|
+     94|     expect(w.router.url).toBe('/co/form');
+       |                          ^
+     95|     expect(w.control('co_plate').value).toBe('ABC123');
+     96|     expect(w.storedPlan('co')).toEqual({ planDocumentId: 'plan-co-plus…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 2 passed (5)
+   Start at  01:55:32
+   Duration  28.07s (tests 66%, environment 20%, setup 6%, transform 4%, import 3%)
+```
+
+Fallan los tres casos que reproducen los hallazgos (se quedan en `/co/plans` y `/co/summary`). Los dos casos de control, con el paso 1 completo, pasan.
+
+Para el test de `canPay` (`payment-state.spec.ts › REQ-03.19 is false with F-03.1 …`), "sin la corrección" significa quitar `c.step1Complete &&` de `canPay`: sin ella, el campo no existe. Mutación, ejecución y restauración:
+
+```text
+$ # mutación: se quita `    c.step1Complete &&` de payment-state.ts, se ejecuta y se restaura
+$ npx ng test --watch=false --reporters=verbose --include "src/app/features/summary-step/payment/payment-state.spec.ts"
+0
+exit=1
+1
+ ×  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded 39ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 8 passed (9)
+```
+
+(`0` = ocurrencias de `c.step1Complete` durante la mutación; `exit=1` = código de salida de `ng test`; `1` = la línea restaurada.)
+
+### Con la corrección
+
+```text
+$ npx ng test --watch=false --reporters=verbose --include "src/app/features/form-step/validation/step1-backstop.spec.ts" --include "src/app/features/summary-step/payment/payment-state.spec.ts"
+Using Vitest configuration file: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\vitest-base.config.mts
+❯ Building...
+✔ Building...
+Application bundle generation complete. [50.801 seconds] - 2026-11-23T06:59:23.443Z
+
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is true only when data, plan and terms are ready and the terms are accepted 16ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with terms not accepted 3ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with terms not loaded or unavailable 1ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with plan not loaded 1ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with data texts missing 1ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded 1ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with payment texts missing 2ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with a payment in progress 2ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.30 a rejected payment can be retried 2ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans 7992ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 on /plans, a complete step 1 shows the plans after the retry 1902ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms 837ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept 577ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 on /summary, a complete step 1 shows the summary after the retry 328ms
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  01:59:30
+   Duration  38.79s (environment 52%, setup 22%, tests 21%, transform 3%, import 2%, worker 1%)
+```
+
+### Build
+
+```text
+$ npx ng build
+❯ Building...
+✔ Building...
+Initial chunk files | Names                  |  Raw size | Estimated transfer size
+main-WNT4FFUG.js    | main                   | 293.67 kB |                79.71 kB
+styles-32OBUCRH.css | styles                 | 583 bytes |               583 bytes
+
+                    | Initial total          | 294.25 kB |                80.29 kB
+
+Lazy chunk files    | Names                  |  Raw size | Estimated transfer size
+chunk-B4h97oQM.js   | form-step-page         |  61.70 kB |                16.14 kB
+chunk-C3zm4PY5.js   | summary-step-page      |  21.70 kB |                 5.88 kB
+chunk-D17iimgY.js   | plans-step-page        |   8.36 kB |                 2.69 kB
+chunk-Fg5lnIHp.js   | country-shell          |   5.89 kB |                 2.07 kB
+chunk-B0Lfoba0.js   | -                      |   4.14 kB |                 1.71 kB
+chunk-CIX02WLP.js   | country-selection-page |   2.51 kB |                 1.17 kB
+chunk-CVoP3PEC.js   | confirmation-page      |   2.39 kB |                 1.05 kB
+chunk-YlCd5oaD.js   | -                      |   1.35 kB |               656 bytes
+chunk-B8t0ubzI.js   | -                      |   1.28 kB |               639 bytes
+chunk-BC6ZiPuJ.js   | -                      | 625 bytes |               625 bytes
+chunk-CGwJUSht.js   | -                      | 153 bytes |               153 bytes
+
+Application bundle generation complete. [26.545 seconds] - 2026-11-23T07:01:36.756Z
+
+Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
+```
+
+Código de salida: `0`, sin avisos.
+
+### Unit tests (suite completa)
+
+La salida completa tiene una línea por test. Aquí van, sin editar, las líneas de los tests de estas correcciones y el resumen final:
+
+```text
+$ npx ng test --watch=false --reporters=verbose
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans 2550ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-02.1 on /plans, a complete step 1 shows the plans after the retry 303ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms 575ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept 517ms
+ ✓  car-insurance-quote  src/app/features/form-step/validation/step1-backstop.spec.ts > step 1 backstop after a configuration retry (review 002) > F-03.1 on /summary, a complete step 1 shows the summary after the retry 501ms
+ ✓  car-insurance-quote  src/app/features/summary-step/payment/payment-state.spec.ts > canPay > REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded 0ms
+
+ Test Files  46 passed (46)
+      Tests  463 passed (463)
+   Start at  02:08:06
+   Duration  18.06s (environment 76%, tests 15%, setup 6%, import 2%, transform 1%)
+```
+
+Código de salida: `0`. Resumen: **46 archivos, 463 tests, 463 pasan, 0 fallan (457 de la fase 4d y 6 nuevos: 5 en el archivo nuevo `step1-backstop.spec.ts` y 1 en `payment-state.spec.ts`)**.
+
+**Incidencia durante la verificación.** Una primera ejecución de la suite completa salió con código `1`: dos tests superaron el timeout de 15 s (`step1-backstop.spec.ts › F-02.1 REQ-02.19 …` con 18 811 ms y `confirmation-page.spec.ts › AC-03.30 …` con 19 591 ms), sin ninguna aserción fallida.
+
+- *Causa:* los dos son el primer test con router de su archivo, que carga los chunks lazy en frío. Esa ejecución tardó 98,25 s en lugar de los 18-30 s habituales, porque la pila e2e del `qa-engineer` corría en la misma máquina. Los demás tests de esos archivos pasaron en menos de 1 s, y F-02.1 aislado tardó 7,99 s.
+- *Corrección:* `testTimeout` de 15 000 a 30 000 ms en `frontend/vitest-base.config.mts`, con el motivo documentado. La salida de arriba es la de la ejecución posterior, ya con ese cambio.
+
+### Formato
+
+```text
+$ npx prettier --check "src/**/*.{ts,html,css}" vitest-base.config.mts
+Checking formatting...
+All matched files use Prettier code style!
+```
+
+### `grep` de reglas
+
+```text
+$ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>|\$any\(" src --include="*.ts" --include="*.html"
+(sin resultados)
+
+$ grep -rnE "\*ngIf|\*ngFor|\*ngSwitch" src
+(sin resultados)
+
+$ grep -rnE "NgModule|CommonModule|ReactiveFormsModule|FormGroup|FormControl|NgModel|FormsModule" src
+(sin resultados)
+
+$ grep -rnE "innerHTML|outerHTML|bypassSecurityTrust|DomSanitizer|insertAdjacentHTML" src --exclude="*.spec.ts"
+src/app/features/summary-step/terms/terms-blocks.ts:7: * lists only, built with `@if`/`@for` and interpolation. No `innerHTML`, no `DomSanitizer`, no
+src/app/features/summary-step/terms/terms-blocks.ts:8: * `bypassSecurityTrust*` (REQ-03.16, AC-03.14). A Strapi heading of level n becomes `h(n+2)`,
+
+$ grep -rln "sessionStorage" src
+src/app/core/storage/wizard-storage.ts
+
+$ grep -rnE "http\.(post|put|patch|delete)\(" src --include="*.ts"
+(sin resultados)
+
+$ grep -rLE "ChangeDetectionStrategy.OnPush" $(grep -rlE "@Component\(" src/app --include="*.ts" | grep -v "spec.ts")
+(sin resultados)
+
+$ grep -rn "isComplete" src/app --include="*.ts" | grep -v "spec.ts"
+src/app/features/form-step/step1-schema.ts:15: *   `evaluateStep1` uses for `isComplete`. Text is checked trimmed, which the built-in
+src/app/features/form-step/validation/evaluate-step1.ts:27:  readonly isComplete: boolean;
+src/app/features/form-step/validation/evaluate-step1.ts:53:    isComplete: form.status === 'ready' && fields.length > 0 && fields.every((f) => f.valid),
+src/app/features/form-step/validation/step1-backstop.ts:10: * successful "reintentar"), the page itself evaluates step 1 and, if `isComplete` is false, goes to
+src/app/features/form-step/validation/step1-backstop.ts:20:    if (result !== null && !result.isComplete) {
+src/app/features/form-step/validation/step1-complete-guard.ts:12: * it. If `isComplete` is false the navigation goes to `/:country/form`, before the step is
+src/app/features/form-step/validation/step1-complete-guard.ts:31:  if (reader.read(result.config).isComplete) {
+src/app/features/form-step/validation/step1-result-reader.ts:12: * nothing is cached and `isComplete` is never stored.
+src/app/features/form-step/validation/validator-registry.ts:50: * live errors of the form and `isComplete` (REQ-01.27), so both always agree.
+src/app/features/plans-step/plans-step-page.ts:80:      return config && this.texts() && this.step1()?.isComplete ? config : undefined;
+src/app/features/plans-step/plans-step-page.ts:99:    if (!step1?.isComplete) {
+src/app/features/summary-step/payment/payment-state.ts:11:   * `Step1Result.isComplete` with the current configuration: data present and valid (REQ-03.19,
+src/app/features/summary-step/summary-step-page.ts:96:  private readonly step1Complete = computed(() => this.step1()?.isComplete === true);
+src/app/features/summary-step/summary-step-page.ts:134:    if (!config || !texts || !wizard || !step1?.isComplete) {
+
+$ grep -rn "step1Backstop\|step1Complete" src/app --include="*.ts" | grep -v "spec.ts"
+src/app/app.routes.ts:5:import { step1CompleteGuard } from './features/form-step/validation/step1-complete-guard';
+src/app/app.routes.ts:13: * Routes (ADR-0001), all lazy loaded. Steps 2 and 3 require a complete step 1 (`step1CompleteGuard`,
+src/app/app.routes.ts:42:        canActivate: [step1CompleteGuard],
+src/app/app.routes.ts:49:        canActivate: [step1CompleteGuard, planSelectedGuard],
+src/app/features/form-step/validation/step1-backstop.ts:8: * `step1CompleteGuard` lets the navigation through when the country configuration fails, so the
+src/app/features/form-step/validation/step1-backstop.ts:16:export function step1Backstop(step1: Signal<Step1Result | null>, countryCode: () => string): void {
+src/app/features/form-step/validation/step1-complete-guard.ts:18:export const step1CompleteGuard: CanActivateFn = async (route) => {
+src/app/features/plans-step/plans-step-page.ts:19:import { step1Backstop } from '../form-step/validation/step1-backstop';
+src/app/features/plans-step/plans-step-page.ts:120:    step1Backstop(this.step1, () => this.context.code());
+src/app/features/summary-step/payment/payment-state.ts:14:  readonly step1Complete: boolean;
+src/app/features/summary-step/payment/payment-state.ts:33:    c.step1Complete &&
+src/app/features/summary-step/plan-selected-guard.ts:9: * goes to `/:country/plans`. It runs together with `step1CompleteGuard`, which is declared first,
+src/app/features/summary-step/summary-step-page.ts:26:import { step1Backstop } from '../form-step/validation/step1-backstop';
+src/app/features/summary-step/summary-step-page.ts:96:  private readonly step1Complete = computed(() => this.step1()?.isComplete === true);
+src/app/features/summary-step/summary-step-page.ts:150:    params: () => (this.step1Complete() ? (this.config() ?? undefined) : undefined),
+src/app/features/summary-step/summary-step-page.ts:158:      return config && this.termsTexts() && this.step1Complete() ? config.country.code : undefined;
+src/app/features/summary-step/summary-step-page.ts:194:      step1Complete: this.step1Complete(),
+src/app/features/summary-step/summary-step-page.ts:220:    step1Backstop(this.step1, () => this.context.code());
+```
+
+Lectura:
+
+- Las reglas siguen limpias: sin `any`, `*ngIf`/`*ngFor`, NgModules ni `innerHTML` fuera de los tests; `sessionStorage` solo en `core/storage/`; solo `GET`; todos los componentes `OnPush`.
+- `isComplete` lo evalúan ahora el guard, el respaldo y las dos páginas (`step1Complete` en el resumen y `step1()?.isComplete` en los planes), como pide ADR-0004.
+
+### Cobertura añadida
+
+| Hallazgo | Test (archivo › nombre) | Resultado |
+|---|---|---|
+| F-02.1 | `features/form-step/validation/step1-backstop.spec.ts › F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans` (control: `› F-02.1 on /plans, a complete step 1 shows the plans after the retry`) | ✅ Pass (falla sin la corrección) |
+| F-03.1 | `step1-backstop.spec.ts › F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms`, `› F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept` (control: `› F-03.1 on /summary, a complete step 1 shows the summary after the retry`) | ✅ Pass (fallan sin la corrección) |
+| F-03.1 (`canPay`) | `features/summary-step/payment/payment-state.spec.ts › REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded` | ✅ Pass (falla sin la corrección, por mutación) |
