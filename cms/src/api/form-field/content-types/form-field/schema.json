@@ -1,0 +1,84 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_fields",
+  "info": {
+    "singularName": "form-field",
+    "pluralName": "form-fields",
+    "displayName": "Form field",
+    "description": "A step 1 field of a country (content-model 2.2). key: global unique with country prefix (G3-4)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "key": {
+      "type": "string",
+      "unique": true,
+      "regex": "^[a-z][a-zA-Z0-9_]{0,49}$",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "maxLength": 120,
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "text",
+        "number",
+        "select",
+        "date",
+        "checkbox"
+      ],
+      "required": true
+    },
+    "required": {
+      "type": "boolean",
+      "default": false
+    },
+    "helpText": {
+      "type": "text"
+    },
+    "errorMessage": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "order": {
+      "type": "integer"
+    },
+    "section": {
+      "type": "enumeration",
+      "enum": [
+        "policyholder",
+        "vehicle"
+      ],
+      "required": true
+    },
+    "role": {
+      "type": "enumeration",
+      "enum": [
+        "documentNumber",
+        "birthDate",
+        "vehicleYear"
+      ]
+    },
+    "options": {
+      "type": "component",
+      "repeatable": true,
+      "component": "form.select-option"
+    },
+    "validations": {
+      "type": "component",
+      "repeatable": true,
+      "component": "form.validation-rule"
+    },
+    "country": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::country.country",
+      "inversedBy": "formFields"
+    }
+  }
+}

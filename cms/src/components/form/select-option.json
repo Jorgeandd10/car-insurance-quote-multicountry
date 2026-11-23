@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_form_select_options",
+  "info": {
+    "displayName": "Select option",
+    "description": "Option of a select field (content-model 3.1). The value is stable and persisted; the label is shown."
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "string",
+      "required": true,
+      "regex": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "label": {
+      "type": "string",
+      "required": true,
+      "maxLength": 120
+    }
+  }
+}

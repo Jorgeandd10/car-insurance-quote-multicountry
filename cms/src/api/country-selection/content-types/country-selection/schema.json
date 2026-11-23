@@ -1,0 +1,27 @@
+{
+  "kind": "singleType",
+  "collectionName": "country_selections",
+  "info": {
+    "singularName": "country-selection",
+    "pluralName": "country-selections",
+    "displayName": "Country selection",
+    "description": "Global texts of the / page, not tied to a country (content-model 2.4)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "required": true
+    },
+    "intro": {
+      "type": "text"
+    },
+    "countryListLabel": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

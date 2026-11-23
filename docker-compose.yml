@@ -1,0 +1,44 @@
+# Whole project with a single command: `docker compose up --build` (PDF: Environment).
+#
+#   web  nginx :80 -> host :8080. Angular build + /api proxy GET/HEAD-only with an exact
+#        allowlist, Authorization/Cookie stripped, Cache-Control: no-store (ADR-0003).
+#   cms  Strapi 5.63 + SQLite. Public role: only `find` on 4 types. Seed and permissions
+#        are applied idempotently on every start. Port published ONLY on 127.0.0.1 for
+#        the business admin (http://127.0.0.1:1337/admin); the browser app never calls it.
+name: car-insurance-quote
+
+services:
+  cms:
+    build:
+      context: ./cms
+    image: car-insurance-quote/cms:local
+    env_file:
+      - path: ./.env.example
+        required: true
+      - path: ./.env
+        required: false
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "1337"
+      STRAPI_TELEMETRY_DISABLED: "true"
+    volumes:
+      - cms-data:/opt/app/.tmp
+    ports:
+      - "127.0.0.1:1337:1337"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/nginx/Dockerfile
+    image: car-insurance-quote/web:local
+    depends_on:
+      cms:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  cms-data:

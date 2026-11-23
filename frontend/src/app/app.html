@@ -1,0 +1,8 @@
+<div class="global-loading" role="status">
+  @if (navigating()) {
+    <span>{{ loadingText }}</span>
+  }
+</div>
+<main>
+  <router-outlet />
+</main>

@@ -1,0 +1,82 @@
+{
+  "collectionName": "components_ui_summary_step_texts",
+  "info": {
+    "displayName": "Summary step texts",
+    "description": "Step 3 texts (REQ-03.38). All texts are required (G3-5)."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "editDataLabel": {
+      "type": "string",
+      "required": true
+    },
+    "yesLabel": {
+      "type": "string",
+      "required": true
+    },
+    "noLabel": {
+      "type": "string",
+      "required": true
+    },
+    "emptyValueLabel": {
+      "type": "string",
+      "required": true
+    },
+    "planHeading": {
+      "type": "string",
+      "required": true
+    },
+    "changePlanLabel": {
+      "type": "string",
+      "required": true
+    },
+    "finalPriceLabel": {
+      "type": "string",
+      "required": true
+    },
+    "termsHeading": {
+      "type": "string",
+      "required": true
+    },
+    "acceptTermsLabel": {
+      "type": "string",
+      "required": true
+    },
+    "acceptTermsHint": {
+      "type": "string",
+      "required": true
+    },
+    "termsUnavailableMessage": {
+      "type": "text",
+      "required": true
+    },
+    "gatewayLegend": {
+      "type": "string",
+      "required": true
+    },
+    "approvedOptionLabel": {
+      "type": "string",
+      "required": true
+    },
+    "rejectedOptionLabel": {
+      "type": "string",
+      "required": true
+    },
+    "payLabel": {
+      "type": "string",
+      "required": true
+    },
+    "processingMessage": {
+      "type": "string",
+      "required": true
+    },
+    "rejectedMessage": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

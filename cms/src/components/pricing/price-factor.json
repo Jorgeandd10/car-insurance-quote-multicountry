@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_pricing_price_factors",
+  "info": {
+    "displayName": "Price factor",
+    "description": "Price band (ADR-0005, pricing-rule.md). Inclusive [min, max]; empty bound = no limit. Order = array order."
+  },
+  "options": {},
+  "attributes": {
+    "role": {
+      "type": "enumeration",
+      "required": true,
+      "enum": ["vehicleYear", "birthDate"]
+    },
+    "operand": {
+      "type": "enumeration",
+      "required": true,
+      "enum": ["vehicleAge", "ageInYears"]
+    },
+    "min": {
+      "type": "integer"
+    },
+    "max": {
+      "type": "integer"
+    },
+    "multiplier": {
+      "type": "decimal",
+      "required": true
+    }
+  }
+}

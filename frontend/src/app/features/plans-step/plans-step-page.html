@@ -1,0 +1,95 @@
+@if (view(); as v) {
+  @if (v.kind === 'configError') {
+    <app-status-message kind="message" [message]="v.message" />
+  } @else {
+    <app-step-heading [text]="v.texts.title" />
+
+    @if (v.kind === 'loading') {
+      <app-status-message kind="loading" />
+    } @else if (v.kind === 'error') {
+      <app-status-message kind="error" (retry)="retry()" />
+    } @else {
+      @if (planUnavailable()) {
+        <p class="notice" role="alert">{{ v.texts.planUnavailableMessage }}</p>
+      }
+
+      @if (v.kind === 'empty') {
+        <app-status-message kind="message" [message]="v.texts.emptyMessage" />
+        <div class="actions">
+          <button type="button" (click)="back()">{{ v.texts.backLabel }}</button>
+        </div>
+      } @else {
+        <form (submit)="onContinue($event)" novalidate>
+          <fieldset
+            class="plans-group"
+            [attr.aria-describedby]="choosePlanShown() ? 'choose-plan-message' : null"
+          >
+            <legend>{{ v.texts.groupLegend }}</legend>
+
+            <div class="plans">
+              @for (item of v.plans; track item.plan.id) {
+                <div
+                  class="plan"
+                  [class.plan--recommended]="item.highlighted"
+                  [class.plan--selected]="selected() === item.plan.id"
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    [id]="'plan-' + item.plan.id"
+                    [value]="item.plan.id"
+                    [checked]="selected() === item.plan.id"
+                    (change)="select(item.plan.id)"
+                  />
+                  <label class="plan-label" [for]="'plan-' + item.plan.id">
+                    <!-- &ngsp; keeps a space between the parts of the accessible name (whitespace is removed). -->
+                    <span class="plan-name">{{ item.plan.name }}</span>&ngsp;
+                    @if (item.highlighted) {
+                      <span class="badge">{{ v.texts.recommendedLabel }}</span>&ngsp;
+                    }
+                    <span class="plan-price">{{ item.formattedPrice }}</span>
+                  </label>
+
+                  @if (item.plan.shortDescription) {
+                    <p class="plan-description">{{ item.plan.shortDescription }}</p>
+                  }
+                  @if (item.plan.coverages.length > 0) {
+                    <p class="list-title" [id]="'coverages-' + item.plan.id">
+                      {{ v.texts.coveragesHeading }}
+                    </p>
+                    <ul [attr.aria-labelledby]="'coverages-' + item.plan.id">
+                      @for (coverage of item.plan.coverages; track $index) {
+                        <li>{{ coverage }}</li>
+                      }
+                    </ul>
+                  }
+                  @if (item.plan.benefits.length > 0) {
+                    <p class="list-title" [id]="'benefits-' + item.plan.id">
+                      {{ v.texts.benefitsHeading }}
+                    </p>
+                    <ul [attr.aria-labelledby]="'benefits-' + item.plan.id">
+                      @for (benefit of item.plan.benefits; track $index) {
+                        <li>{{ benefit }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (choosePlanShown()) {
+              <p id="choose-plan-message" class="error" role="alert">
+                {{ v.texts.choosePlanMessage }}
+              </p>
+            }
+          </fieldset>
+
+          <div class="actions">
+            <button type="button" (click)="back()">{{ v.texts.backLabel }}</button>
+            <button type="submit">{{ v.texts.continueLabel }}</button>
+          </div>
+        </form>
+      }
+    }
+  }
+}

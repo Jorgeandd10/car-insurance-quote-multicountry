@@ -1,0 +1,89 @@
+<form [formRoot]="f" class="step1-form">
+  @for (section of sections; track section.id) {
+    <fieldset>
+      <legend>{{ section.legend }}</legend>
+
+      @for (field of section.fields; track field.key) {
+        <div class="field" [class.field--checkbox]="field.type === 'checkbox'">
+          @switch (field.type) {
+            @case ('checkbox') {
+              <input
+                type="checkbox"
+                [id]="'f-' + field.key"
+                [formField]="asBoolean(field.key)"
+                [attr.aria-invalid]="errorVisible(field.key) ? 'true' : null"
+                [attr.aria-describedby]="describedBy(field)"
+              />
+              <label [for]="'f-' + field.key">
+                {{ field.label }}
+                @if (isRequired(field)) {
+                  <span class="required-mark" aria-hidden="true">*</span>
+                }
+              </label>
+            }
+            @default {
+              <label [for]="'f-' + field.key">
+                {{ field.label }}
+                @if (isRequired(field)) {
+                  <span class="required-mark" aria-hidden="true">*</span>
+                }
+              </label>
+              @switch (field.type) {
+                @case ('text') {
+                  <input
+                    type="text"
+                    [id]="'f-' + field.key"
+                    [formField]="asText(field.key)"
+                    (blur)="trimText(field.key)"
+                    [attr.aria-invalid]="errorVisible(field.key) ? 'true' : null"
+                    [attr.aria-describedby]="describedBy(field)"
+                  />
+                }
+                @case ('number') {
+                  <input
+                    type="number"
+                    [id]="'f-' + field.key"
+                    [formField]="asNumber(field.key)"
+                    [attr.aria-invalid]="errorVisible(field.key) ? 'true' : null"
+                    [attr.aria-describedby]="describedBy(field)"
+                  />
+                }
+                @case ('date') {
+                  <input
+                    type="date"
+                    [id]="'f-' + field.key"
+                    [formField]="asText(field.key)"
+                    [attr.aria-invalid]="errorVisible(field.key) ? 'true' : null"
+                    [attr.aria-describedby]="describedBy(field)"
+                  />
+                }
+                @case ('select') {
+                  <select
+                    [id]="'f-' + field.key"
+                    [formField]="asText(field.key)"
+                    [attr.aria-invalid]="errorVisible(field.key) ? 'true' : null"
+                    [attr.aria-describedby]="describedBy(field)"
+                  >
+                    <option value=""></option>
+                    @for (option of field.options; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                }
+              }
+            }
+          }
+
+          @if (field.helpText) {
+            <p class="help" [id]="'help-' + field.key">{{ field.helpText }}</p>
+          }
+          @if (errorVisible(field.key)) {
+            <p class="error" [id]="'err-' + field.key">{{ errorMessage(field) }}</p>
+          }
+        </div>
+      }
+    </fieldset>
+  }
+
+  <button type="submit" class="continue">{{ view().continueLabel }}</button>
+</form>

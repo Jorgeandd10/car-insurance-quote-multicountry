@@ -1,0 +1,9 @@
+# Build context is the repository root: send only what the web image needs.
+*
+!frontend/
+frontend/node_modules
+frontend/dist
+frontend/.angular
+frontend/coverage
+!infra/nginx/default.conf
+!infra/nginx/snippets/

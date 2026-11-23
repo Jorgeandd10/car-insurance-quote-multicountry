@@ -1,0 +1,13 @@
+# Never send host artefacts into the image (node_modules is installed inside it).
+node_modules
+.tmp
+.cache
+.strapi
+dist
+build
+types/generated
+.env
+.env.*
+*.log
+Dockerfile
+.dockerignore

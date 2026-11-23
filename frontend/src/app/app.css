@@ -1,0 +1,8 @@
+.global-loading:empty {
+  display: none;
+}
+
+.global-loading {
+  padding: 0.5rem 1rem;
+  background: #eef3fd;
+}

@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_ui_confirmation_texts",
+  "info": {
+    "displayName": "Confirmation texts",
+    "description": "Confirmation page texts (REQ-03.27). All texts are required (G3-5)."
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "quoteNumberLabel": {
+      "type": "string",
+      "required": true
+    },
+    "planLabel": {
+      "type": "string",
+      "required": true
+    },
+    "paidPriceLabel": {
+      "type": "string",
+      "required": true
+    },
+    "newQuoteLabel": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

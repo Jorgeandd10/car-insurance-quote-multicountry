@@ -1,0 +1,93 @@
+{
+  "kind": "collectionType",
+  "collectionName": "countries",
+  "info": {
+    "singularName": "country",
+    "pluralName": "countries",
+    "displayName": "Country",
+    "description": "Market data, UI texts, price factors and terms of a country (ADR-0001, content-model 2.1)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string",
+      "unique": true,
+      "regex": "^[a-z]{2}$",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 60,
+      "required": true
+    },
+    "intlLocale": {
+      "type": "string",
+      "regex": "^[a-z]{2}-[A-Z]{2}$",
+      "required": true
+    },
+    "currency": {
+      "type": "string",
+      "regex": "^[A-Z]{3}$",
+      "required": true
+    },
+    "minimumAge": {
+      "type": "integer",
+      "min": 0,
+      "max": 120,
+      "required": true
+    },
+    "wizardTexts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "ui.wizard-texts",
+      "required": true
+    },
+    "formStepTexts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "ui.form-step-texts",
+      "required": true
+    },
+    "plansStepTexts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "ui.plans-step-texts",
+      "required": true
+    },
+    "summaryStepTexts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "ui.summary-step-texts",
+      "required": true
+    },
+    "confirmationTexts": {
+      "type": "component",
+      "repeatable": false,
+      "component": "ui.confirmation-texts",
+      "required": true
+    },
+    "priceFactors": {
+      "type": "component",
+      "repeatable": true,
+      "component": "pricing.price-factor"
+    },
+    "termsAndConditions": {
+      "type": "blocks"
+    },
+    "formFields": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::form-field.form-field",
+      "mappedBy": "country"
+    },
+    "plans": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::plan.plan",
+      "mappedBy": "country"
+    }
+  }
+}
