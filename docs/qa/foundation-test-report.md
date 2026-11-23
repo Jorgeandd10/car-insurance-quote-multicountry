@@ -1,0 +1,432 @@
+# Informe de pruebas — Fase 4a: base del frontend y funciones de dominio
+
+| Campo | Valor |
+|---|---|
+| Autor | Angular Developer (subagente) |
+| Fecha | 2026-11-22 |
+| Commit probado | Sin commit propio: árbol de trabajo sobre `12e355b` (rama `phase-4/implementation`) con `frontend/` sin confirmar. El commit lo hace el orquestador |
+| Entorno | Node 24.22.3 · npm 11.19.1 · Angular CLI/core 22.3.0 · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). Sin Strapi ni Docker: los mappers se prueban con los DTOs de ejemplo de `docs/architecture/api-contracts.md` (`frontend/src/app/core/cms/testing/strapi-fixtures.ts`) |
+
+Alcance: `core/` (cms, country, storage, clock, ui-state), `domain/` (dates, pricing, masking, quote-number), rutas con lazy loading, `countryCaseGuard`, indicador global "cargando", `features/country-selection` y `features/wizard-shell`, con las páginas de cada paso como componentes provisionales que solo tienen su encabezado. Las pantallas de US-01, US-02 y US-03 quedan para las fases 4b a 4d. El proyecto generado por el CLI no trae lint: se ejecutó `prettier --check` (Prettier viene con el CLI).
+
+Las salidas se pegan tal cual. Solo se han quitado los códigos de color ANSI (`sed 's/\x1b\[[0-9;]*m//g'`). Los códigos de salida se capturaron con `set -o pipefail`.
+
+## Comando y salida real
+
+### Build
+
+```text
+$ npx ng build
+❯ Building...
+✔ Building...
+Initial chunk files | Names                  |  Raw size | Estimated transfer size
+main-FCETFAUW.js    | main                   | 262.33 kB |                71.37 kB
+styles-32OBUCRH.css | styles                 | 583 bytes |               583 bytes
+
+                    | Initial total          | 262.91 kB |                71.95 kB
+
+Lazy chunk files    | Names                  |  Raw size | Estimated transfer size
+chunk-D69ipyr-.js   | -                      |   8.07 kB |                 2.98 kB
+chunk-CQyz8xmW.js   | -                      |   7.01 kB |                 2.55 kB
+chunk-Dl2a64dj.js   | country-shell          |   5.38 kB |                 1.91 kB
+chunk-D-zTX2V6.js   | country-selection-page |   2.50 kB |                 1.16 kB
+chunk-CvE9wz8K.js   | -                      |   1.51 kB |               686 bytes
+chunk-BxQpneaK.js   | confirmation-page      | 439 bytes |               439 bytes
+chunk-G0dIw3z3.js   | summary-step-page      | 433 bytes |               433 bytes
+chunk-CpDKXkMk.js   | plans-step-page        | 427 bytes |               427 bytes
+chunk-DssGuKyn.js   | form-step-page         | 424 bytes |               424 bytes
+
+Application bundle generation complete. [3.756 seconds] - 2026-11-23T02:11:44.222Z
+
+Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
+```
+
+Código de salida: `0`.
+
+### Unit tests
+
+```text
+$ npx ng test --watch=false --reporters=verbose
+❯ Building...
+✔ Building...
+Application bundle generation complete. [3.149 seconds] - 2026-11-23T02:11:49.878Z
+
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C1 published countries > AC-01.5 maps the published countries with the names from Strapi, in the received order 20ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C1 published countries > REQ-01.7 drops items with an invalid code or without name, and duplicated codes 7ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C2 country selection texts > REQ-01.2 maps the texts of "/" from Strapi 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C2 country selection texts > REQ-01.2 intro is optional 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C2 country selection texts > REQ-01.13 a missing heading or list label is not interpretable (null → error state) 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.1 maps market data and texts of the requested country 203ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > AC-01.6 no country with that code → notAvailable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 more than one country with the code is not interpretable 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (minimumAge is not an integer) is not interpretable 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (minimumAge is negative) is not interpretable 3ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (minimumAge is missing) is not interpretable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (currency is not ISO 4217) is not interpretable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (intlLocale is empty) is not interpretable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.4 invalid market data (code does not match) is not interpretable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.13 without genericErrorMessage the configuration is not interpretable 4ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > AC-01.35 a blank continue text marks the form step as configError, without defaults 12ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-03.38 a missing summary text only breaks its own section 4ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > C3 country configuration > REQ-01.13 texts are trimmed 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > CountryConfig (C3 + C4) > REQ-01.1 a complete configuration is ready 9ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > CountryConfig (C3 + C4) > REQ-01.13 a missing step 1 text makes the form configError before empty or unavailable 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > CountryConfig (C3 + C4) > REQ-01.13 a missing section legend (wizard texts) also makes the form configError 2ms
+ ✓  car-insurance-quote  src/app/core/cms/country-mapper.spec.ts > country mapper > CountryConfig (C3 + C4) > AC-01.20 the documented C4 example lacks birthDate and documentNumber → unavailable 3ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.35 sends a GET to the relative /api URL, without Authorization nor credentials 146ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-02.21 each request has a 10 000 ms timeout 18ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.6 the query is encoded by HttpParams and carries no status parameter 15ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > AC-02.32 REQ-02.24 walks every page in series and concatenates the data 53ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-02.24 a single page is not requested again 13ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.4 an HTTP 500 is a request error 22ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.4 a network error (or timeout) is a request error 14ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.4 an unexpected collection shape (data missing) is a contract error 26ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.4 an unexpected collection shape (data is not an array) is a contract error 14ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.4 an unexpected collection shape (body is not an object) is a contract error 14ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > REQ-01.2 a single type must have an object in data; a 404 is an error 29ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-client.spec.ts > CmsClient > ADR-0004 aborting (resource cancelled) cancels the HTTP request 13ms
+ ✓  car-insurance-quote  src/app/shared/status-message.spec.ts > StatusMessage > REQ-01.32 loading is announced as status with the fixed "cargando" 340ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > REQ-01.1 requests C3 and C4 only for the country of the URL and builds a ready config 292ms
+ ✓  car-insurance-quote  src/app/shared/status-message.spec.ts > StatusMessage > REQ-01.32 REQ-01.4 error is an alert with "error de carga" and a "reintentar" button that emits 134ms
+ ✓  car-insurance-quote  src/app/shared/status-message.spec.ts > StatusMessage > REQ-01.32 a Strapi message is announced as an alert 60ms
+ ✓  car-insurance-quote  src/app/app.spec.ts > App > ADR-0004 G3-9 shows the global "cargando" while a guard keeps the navigation pending 624ms
+ ✓  car-insurance-quote  src/app/core/country/country-case-guard.spec.ts > countryCaseGuard > AC-01.6 "/CO" is redirected to "/co" (and then to its first step) 471ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > AC-01.6 an unknown country gives notAvailable 99ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > Q-01.20 the configuration is requested once per app load and country 49ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > ADR-0004 keys are ciq.v1.{cc}.{kind} 15ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.25 a key is only built from a validated lower-case country code 13ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.23 stores only the step 1 values, without any completed flag 11ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > AC-01.22 REQ-01.25 data of one country is never read from another 13ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.26 corrupt JSON is discarded with a warning and the key is removed 10ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.26 an unexpected shape is discarded 27ms
+ ✓  car-insurance-quote  src/app/core/country/country-case-guard.spec.ts > countryCaseGuard > REQ-01.2 only the case of the country segment changes: "/CO/plans?x=1" → "/co/plans?x=1" 111ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > REQ-01.4 a failure puts the resource in error and "reintentar" requests it again 144ms
+ ✓  car-insurance-quote  src/app/core/country/country-case-guard.spec.ts > countryCaseGuard > REQ-01.2 a lower-case code passes, even if it is unknown (the shell shows "país no disponible") 100ms
+ ✓  car-insurance-quote  src/app/core/country/country-case-guard.spec.ts > countryCaseGuard > REQ-01.2 lowercaseFirstSegment leaves the rest of the URL untouched 7ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/wizard-screens.spec.ts > wizard screens > D7 form, plans and summary are steps 1-3; the confirmation is not a step 6ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/wizard-screens.spec.ts > wizard screens > REQ-01.13 the heading of each screen is its Strapi title 140ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/wizard-screens.spec.ts > wizard screens > REQ-01.13 any missing text of the screen gives the generic error, never a default 6ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.26 a value of an unexpected type is dropped on its own, without logging the value 19ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-01.26 a non-finite number is not a valid stored value 7ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-02.16 the plan stores only its documentId 35ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-02.17 an invalid stored plan is discarded 17ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-03.28 the confirmation round-trips and an incomplete one is discarded 11ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > REQ-03.28 remove deletes only the given key of the given country 18ms
+ ✓  car-insurance-quote  src/app/core/storage/wizard-storage.spec.ts > WizardStorage > ADR-0004 a storage that throws does not break the app 29ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/step-indicator.spec.ts > StepIndicator > REQ-01.31 shows the 3 steps (D7) in an ordered list inside a named nav 264ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > REQ-01.7 logs a warning for each skipped field, without user data 56ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/step-indicator.spec.ts > StepIndicator > REQ-01.31 only the current step has aria-current="step" 68ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/step-indicator.spec.ts > StepIndicator > REQ-01.31 the step number is decorative for assistive technologies 54ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > ADR-0004 whenSettled resolves with the result for the step guards, or null on error 105ms
+ ✓  car-insurance-quote  src/app/core/country/country-config-store.spec.ts > CountryConfigStore > ADR-0004 whenSettled resolves immediately when the configuration is already loaded 56ms
+ ✓  car-insurance-quote  src/app/domain/quote-number/create-quote-number.spec.ts > createQuoteNumber > AC-03.27 matches ^CO-20261122-[A-HJ-NP-Z2-9]{6}$ with a fixed clock 6ms
+ ✓  car-insurance-quote  src/app/domain/quote-number/create-quote-number.spec.ts > createQuoteNumber > AC-03.27 the same random source always gives the same number 2ms
+ ✓  car-insurance-quote  src/app/domain/quote-number/create-quote-number.spec.ts > createQuoteNumber > REQ-03.26 uses the UTC date of the payment 1ms
+ ✓  car-insurance-quote  src/app/domain/quote-number/create-quote-number.spec.ts > createQuoteNumber > REQ-03.26 the alphabet has 32 symbols without 0, O, 1 or I, for every byte value 8ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.8 maps the documented C4 example to the domain 3ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.28 a configuration with the three roles is ready 3ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > AC-01.20 without a field with role birthDate the form is unavailable and warns 6ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.5 no valid field → empty 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > AC-01.25 a field with an unknown type and a field without label are skipped with one warning each 6ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.7 an element that is not an object, an invalid key or an unknown section is skipped 5ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.8 orders by fixed section, then order ascending, empty order last, ties by key 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > AC-01.10 swapping order in Strapi swaps the fields on screen 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.8 a repeated key keeps the first by order and warns 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > AC-01.13 select options keep the Strapi order; invalid and repeated values are dropped 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.11 a select without valid options is skipped 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.14 required is true only when Strapi says exactly true 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.9 empty help text and error message become null 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.15 keeps the validations of the catalog for each type, with decimal values as strings 3ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > AC-01.15 the pattern is anchored to the whole value 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.15 validations of another type or with invalid parameters are ignored, the field stays 4ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.28 a role on an incompatible type is ignored with a warning (and G2-5 applies) 3ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.22 several fields with the same role keep it on all of them 2ms
+ ✓  car-insurance-quote  src/app/core/cms/form-field-mapper.spec.ts > mapFormFields > REQ-01.7 a non-integer order is treated as empty with a warning 10ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.3 AC-01.7 shows only the fixed "cargando" while the configuration loads 753ms
+ ✓  car-insurance-quote  src/app/domain/pricing/format-price.spec.ts > formatPrice > AC-02.8 Colombia: "$ 1.320.000" with U+00A0 between "$" and the number 123ms
+ ✓  car-insurance-quote  src/app/domain/pricing/format-price.spec.ts > formatPrice > AC-02.8 Chile: "$38.985" without separator after "$" 8ms
+ ✓  car-insurance-quote  src/app/domain/pricing/format-price.spec.ts > formatPrice > AC-02.8 the price has no decimal part 4ms
+ ✓  car-insurance-quote  src/app/domain/pricing/format-price.spec.ts > formatPrice > REQ-02.6 locale and currency come from the arguments (Strapi), not from code 4ms
+ ✓  car-insurance-quote  src/app/core/clock/clock.spec.ts > clock > REQ-01.21 todayLocal gives the local calendar date as YYYY-MM-DD 4ms
+ ✓  car-insurance-quote  src/app/core/clock/clock.spec.ts > clock > AC-01.19 dates are not shifted by the time zone (America/Bogota, 20:00 local = 01:00 UTC next day) 13ms
+ ✓  car-insurance-quote  src/app/core/clock/clock.spec.ts > clock > REQ-01.21 control: changing TZ really changes the local date (Asia/Tokyo is a day ahead) 3ms
+ ✓  car-insurance-quote  src/app/core/clock/clock.spec.ts > clock > REQ-01.21 CLOCK is injectable and can be replaced in tests 10ms
+ ✓  car-insurance-quote  src/app/core/clock/clock.spec.ts > clock > REQ-01.21 the default CLOCK returns the current date 8ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E1 final price is 1320000 5ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E2 final price is 1440000 2ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E3 final price is 1221875 2ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E4 final price is 38985 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E5 final price is 25990 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 E6 final price is 21589 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.9 reports the multiplier applied for each role (E3: both limits inclusive) 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.10 without price factors the final price is the base price 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.11 without a value for birthDate its factor is 1 and vehicleYear still applies 2ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.10 a value that cannot be interpreted gives factor 1 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.12 a vehicle from next year uses vehicle age 0 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > AC-02.13 a band with multiplier 0 is ignored and the remaining valid bands apply 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.12 bands with a negative or non-finite multiplier or min > max are discarded 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.12 with overlapping bands the first in the configured order wins 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.12 a band with an incompatible role and operand is discarded (G3-10) 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.11 rounds once at the end, not after each factor 1ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.8 is pure: same inputs give the same output and the rules are not modified 2ms
+ ✓  car-insurance-quote  src/app/domain/pricing/compute-final-price.spec.ts > computeFinalPrice > REQ-02.8 depends on the reference date passed in, not on the clock 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.9 maps the documented C6 example in the configured order 3ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > AC-02.10 null or empty priceFactors → no rules (final price = base price) 2ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > AC-02.13 a band with multiplier 0 is discarded with a warning 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with min > max is discarded 2ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with negative multiplier is discarded 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with non numeric multiplier is discarded 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with non-integer limit is discarded 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with unknown role is discarded 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with unknown operand is discarded 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.12 a band with incompatible role and operand (G3-10) is discarded 2ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.9 a decimal multiplier serialised as a string is accepted (ADR-0005) 1ms
+ ✓  car-insurance-quote  src/app/core/cms/price-factor-mapper.spec.ts > mapPriceFactors > REQ-02.21 a country unpublished between steps (no data) is an error 2ms
+ ✓  car-insurance-quote  src/app/domain/dates/age-in-years.spec.ts > ageInYears > REQ-01.20 the birthday counts as completed 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/age-in-years.spec.ts > ageInYears > REQ-01.20 someone born on 29 February has the birthday on 1 March in non-leap years 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/age-in-years.spec.ts > ageInYears > REQ-02.8 gives the ages of the price examples E1-E6 (reference 2026-11-22) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/age-in-years.spec.ts > ageInYears > REQ-01.20 a future birth date gives a negative age 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/age-in-years.spec.ts > ageInYears > REQ-01.21 returns null for values that are not calendar dates 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.15 maps the documented C7 example: paragraph and unordered list with bold 4ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.16 supports ordered lists, headings, quotes, marks and links (text only) 3ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > AC-03.14 HTML inside the text is kept as literal text, never as a node 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.16 unknown, code and image nodes are degraded to plain text or omitted, with a warning 2ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.18 terms that are null → unavailable 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.18 terms that are an empty list → unavailable 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.18 terms that are blocks without text → unavailable 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.18 more than one country record → unavailable 1ms
+ ✓  car-insurance-quote  src/app/core/cms/terms-mapper.spec.ts > mapTerms > REQ-03.32 no country (unpublished between steps) is an error 1ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.3 maps the documented C5 example to the domain 4ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > AC-01.18 today 2026-11-22, birth date 2008-11-22 → valid=true (minimum age 18) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > AC-01.18 today 2026-11-22, birth date 2008-11-23 → valid=false (minimum age 18) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > AC-01.18 today 2026-11-22, birth date 2026-11-23 → valid=false (minimum age 18) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > AC-01.18 today 2026-02-28, birth date 2008-02-29 → valid=false (minimum age 18) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > AC-01.18 today 2026-03-01, birth date 2008-02-29 → valid=true (minimum age 18) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > REQ-01.20 a future birth date is invalid even with minimum age 0 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > REQ-01.20 uses the minimum age of the country from Strapi 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/legal-age.spec.ts > isOfLegalAge > REQ-01.21 a value that is not a calendar date is invalid 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 parses a YYYY-MM-DD calendar date without time zone 2ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2026-02-30" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2025-02-29" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2026-13-01" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2026-00-10" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2026-1-1" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "2026-11-22T00:00" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 rejects "" as a calendar date 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.20 knows leap years (29 February rule) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/calendar-date.spec.ts > calendar dates > REQ-01.21 compares calendar dates by day 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.2 a plan that is not active (false or null) is discarded 8ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > AC-02.14 a plan with another currency is discarded with a warning 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > AC-02.15 a plan without base price is discarded and the others are kept 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a malformed plan (empty name) is discarded with a warning 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a malformed plan (base price 0) is discarded with a warning 1ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a malformed plan (negative base price) is discarded with a warning 1ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a malformed plan (non numeric base price) is discarded with a warning 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a malformed plan (empty documentId) is discarded with a warning 1ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.25 a numeric string base price is accepted 1ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.3 null coverages or benefits are empty lists and blank labels are omitted 2ms
+ ✓  car-insurance-quote  src/app/core/cms/plan-mapper.spec.ts > mapPlans > REQ-02.4 empty or non-integer order is null; recommended is true only when exactly true 2ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "1234567890" → "******7890" 3ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "12.345.678-5" → "**.***.678-5" 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "E-123456" → "*-***456" 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "12345" → "***45" 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "1234" → "**34" 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.7 "7" → "*" 0ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.5 the full Colombian document does not appear in the masked value 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > AC-03.6 the full RUT does not appear and separators are kept 1ms
+ ✓  car-insurance-quote  src/app/domain/masking/mask-document.spec.ts > maskDocument > REQ-03.7 spaces are separators and never more than half is shown 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-01.17 today 2026-11-22, year 2005 → valid=false 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-01.17 today 2026-11-22, year 2006 → valid=true 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-01.17 today 2026-11-22, year 2026 → valid=true 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-01.17 today 2026-11-22, year 2027 → valid=true 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-01.17 today 2026-11-22, year 2028 → valid=false 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > REQ-01.19 only integers are valid 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > REQ-01.19 the current year comes from the reference date, limits inclusive 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > AC-02.12 a vehicle from next year has vehicle age 0, not -1 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > REQ-02.8 vehicle age is the difference of years (E1, E3, E4) 1ms
+ ✓  car-insurance-quote  src/app/domain/dates/vehicle-year.spec.ts > vehicle year > REQ-02.10 a non-integer year has no vehicle age 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C1 never asks for drafts: no status nor publicationFilter 3ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C2 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C3 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C4 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C5 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C6 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.6 C7 never asks for drafts: no status nor publicationFilter 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-01.1 country requests filter only by the country of the URL 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-02.24 collections that can grow ask for an explicit page size of 100 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-02.2 plans are filtered by active = true 1ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > api-contracts C3 asks for the five text components and pageSize 2 to detect duplicates 2ms
+ ✓  car-insurance-quote  src/app/core/cms/cms-queries.spec.ts > CMS queries > REQ-02.9 price factors are requested without texts 3ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status idle → loading 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status loading → loading 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status reloading → loading 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status error → error 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status resolved → ready 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.3 REQ-01.4 resource status local → ready 1ms
+ ✓  car-insurance-quote  src/app/core/ui-state/view-state.spec.ts > ui state > REQ-01.13 G2-2 there are exactly the four fixed texts, in Spanish 1ms
+ ✓  car-insurance-quote  src/app/features/country-selection/country-selection-page.spec.ts > CountrySelectionPage > AC-01.5 lists the published countries with their Strapi names, and Chile goes to "/cl" 1410ms
+ ✓  car-insurance-quote  src/app/features/country-selection/country-selection-page.spec.ts > CountrySelectionPage > REQ-01.2 every text of "/" comes from Strapi (country-selection) 62ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.8 shows "error de carga" + "reintentar" and retrying shows the step 732ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.1 requests only the configuration of the country of the URL 77ms
+ ✓  car-insurance-quote  src/app/features/country-selection/country-selection-page.spec.ts > CountrySelectionPage > REQ-01.3 shows the fixed "cargando" while loading 58ms
+ ✓  car-insurance-quote  src/app/features/country-selection/country-selection-page.spec.ts > CountrySelectionPage > REQ-01.4 if country-selection is not published (404) shows "error de carga" and retries 67ms
+ ✓  car-insurance-quote  src/app/features/country-selection/country-selection-page.spec.ts > CountrySelectionPage > G3-10 a missing required text of "/" is shown as "error de carga", without defaults 33ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 AC-01.27 the step indicator marks the current step with aria-current="step" 99ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 the focus goes to the heading of the step and document.title follows it 72ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > D7 the confirmation is not a step: no step is marked as current 40ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > ADR-0001 "/co" and unknown sub-paths redirect to "/co/form" 46ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.6 an unknown code shows "país no disponible" and the published countries as links 49ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 a code that cannot be a country is not requested to Strapi 22ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 if the country list fails, "país no disponible" shows "error de carga" + "reintentar" 49ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.13 a missing step indicator text shows the generic error instead of the wizard 30ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-02.32 a missing step title shows the generic error of the country, never a default 36ms
+
+ Test Files  26 passed (26)
+      Tests  229 passed (229)
+   Start at  21:11:50
+   Duration  11.63s (environment 72%, setup 18%, tests 5%, import 2%, transform 2%)
+```
+
+Código de salida: `0`. Resumen: **26 archivos, 229 tests, 229 pasan, 0 fallan**.
+
+### Formato
+
+```text
+$ npx prettier --check "src/**/*.{ts,html,css}"
+Checking formatting...
+All matched files use Prettier code style!
+```
+
+### `grep` del criterio de terminado y de las confirmaciones de los ADR
+
+Ejecutados en `frontend/`. Cada bloque es el comando exacto seguido de su salida.
+
+```text
+$ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>" src --include="*.ts"
+(sin resultados)
+
+$ grep -rnwE "any" src --include="*.ts"
+src/app/core/cms/country-mapper.ts:72:/** Reads a group of required texts; any missing or blank text makes the group `configError`. */
+src/app/core/cms/strapi-dto.ts:4: * Responses are `unknown` at the boundary (CLAUDE.md §8: no `any`) and are narrowed here. A DTO
+src/app/core/cms/strapi-dto.ts:81:  // Safe: every attribute of `Dto<K>` is optional and `unknown`, so any object fits.
+src/app/core/cms/terms-mapper.ts:116:    // `link` and any other inline node: keep only its text (no `<a>`, ADR-0006).
+src/app/core/storage/wizard-storage.spec.ts:35:  it('REQ-01.23 stores only the step 1 values, without any completed flag', () => {
+src/app/domain/terms/terms-document.ts:3: * bound as raw HTML, so any HTML inside the CMS text is shown as literal text (REQ-03.16, AC-03.14).
+src/app/features/wizard-shell/wizard-screens.spec.ts:42:  it('REQ-01.13 any missing text of the screen gives the generic error, never a default', () => {
+
+$ grep -rnE "\*ngIf|\*ngFor|\*ngSwitch" src
+(sin resultados)
+
+$ grep -rnE "NgModule|CommonModule|ReactiveFormsModule|FormGroup|FormControl|NgModel" src
+(sin resultados)
+
+$ grep -rnE "LOCALE_ID|registerLocaleData|environment\.(co|cl)" src
+(sin resultados)
+
+$ grep -rnE "innerHTML|bypassSecurityTrust|DomSanitizer" src
+(sin resultados)
+
+$ grep -rnE "localStorage|serviceWorker|isComplete.*setItem" src
+(sin resultados)
+
+$ grep -rln "sessionStorage" src
+src/app/core/storage/wizard-storage.ts
+
+$ grep -rn "Math.round" src/app --include="*.ts" | grep -v "spec.ts"
+src/app/domain/pricing/compute-final-price.ts:68: * `finalPrice = Math.round(basePrice × Π factor(role, operand))`, where each factor is the
+src/app/domain/pricing/compute-final-price.ts:109:  return { finalPrice: Math.round(price), appliedFactors };
+
+$ grep -rnE "today=|__TEST__|isE2E" src
+(sin resultados)
+
+$ grep -rnE "http\.(post|put|patch|delete)\(" src --include="*.ts"
+(sin resultados)
+
+$ grep -rLE "ChangeDetectionStrategy.OnPush" $(grep -rlE "@Component\(" src/app --include="*.ts" | grep -v "spec.ts")
+(sin resultados)
+
+$ grep -n "zone" package.json angular.json
+(sin resultados)
+```
+
+Cómo leer los resultados:
+
+- `any`: el primer `grep` busca usos como tipo (`: any`, `<any`, `as any`, `any[]`) y no encuentra ninguno. El segundo busca la palabra completa y solo encuentra el inglés "any" en comentarios y nombres de test.
+- No aparecen `*ngIf`, `*ngFor`, NgModules ni formularios reactivos.
+- `sessionStorage` solo está en `core/storage/` (ADR-0004), y `Math.round` solo en `domain/pricing/` (ADR-0005).
+- Todos los componentes son `OnPush` y no hay `zone.js` (aplicación zoneless, D2).
+
+## Cobertura de criterios
+
+Solo se listan los AC y REQ que se pueden verificar con unit tests en esta fase. Las rutas son relativas a `frontend/src/app/`.
+
+| AC / REQ | Test (archivo › nombre) | Resultado |
+|---|---|---|
+| AC-01.17 | `domain/dates/vehicle-year.spec.ts › AC-01.17 today 2026-11-22, year …` (2005, 2006, 2026, 2027 y 2028) | ✅ Pass |
+| REQ-01.19 | `vehicle-year.spec.ts › REQ-01.19 only integers are valid`, `› REQ-01.19 the current year comes from the reference date, limits inclusive` | ✅ Pass |
+| AC-01.18 | `domain/dates/legal-age.spec.ts › AC-01.18 today …, birth date …` (las 5 filas, incluido el 29 de febrero) | ✅ Pass |
+| REQ-01.20 | `age-in-years.spec.ts › REQ-01.20 …` (3), `legal-age.spec.ts › REQ-01.20 …` (2), `calendar-date.spec.ts › REQ-01.20 knows leap years …` | ✅ Pass |
+| AC-01.19 | `core/clock/clock.spec.ts › AC-01.19 dates are not shifted by the time zone (America/Bogota, 20:00 local = 01:00 UTC next day)` | ✅ Pass |
+| REQ-01.21 | `clock.spec.ts › REQ-01.21 control: changing TZ really changes the local date (Asia/Tokyo is a day ahead)` y 3 más; `calendar-date.spec.ts › REQ-01.21 …` (9) | ✅ Pass |
+| AC-02.9 (E1–E6) | `domain/pricing/compute-final-price.spec.ts › AC-02.9 E1 … E6 final price is …`, `› AC-02.9 reports the multiplier applied for each role (E3: both limits inclusive)` | ✅ Pass |
+| AC-02.10 | `compute-final-price.spec.ts › AC-02.10 …`; `core/cms/price-factor-mapper.spec.ts › AC-02.10 null or empty priceFactors …` | ✅ Pass |
+| AC-02.11 | `compute-final-price.spec.ts › AC-02.11 without a value for birthDate its factor is 1 and vehicleYear still applies` | ✅ Pass |
+| AC-02.12 | `compute-final-price.spec.ts › AC-02.12 …`; `vehicle-year.spec.ts › AC-02.12 …` | ✅ Pass |
+| AC-02.13 | `compute-final-price.spec.ts › AC-02.13 …`; `price-factor-mapper.spec.ts › AC-02.13 …` | ✅ Pass |
+| REQ-02.8, REQ-02.10, REQ-02.11, REQ-02.12 | `compute-final-price.spec.ts › REQ-02.8 …` (2), `› REQ-02.10 …`, `› REQ-02.11 rounds once at the end, not after each factor`, `› REQ-02.12 …` (3, incluida la combinación incompatible de G3-10) | ✅ Pass |
+| AC-02.8 | `domain/pricing/format-price.spec.ts › AC-02.8 Colombia: … with U+00A0 …` (cadena exacta con `\u00A0` y bytes `24 a0 31 2e …`), `› AC-02.8 Chile: "$38.985" …`, `› AC-02.8 the price has no decimal part` | ✅ Pass |
+| AC-03.7 | `domain/masking/mask-document.spec.ts › AC-03.7 "…" → "…"` (los 6 ejemplos) | ✅ Pass |
+| AC-03.5, AC-03.6 (parte unit) | `mask-document.spec.ts › AC-03.5 …`, `› AC-03.6 …` (el valor completo no aparece) | ✅ Pass |
+| AC-03.27, REQ-03.26 | `domain/quote-number/create-quote-number.spec.ts › AC-03.27 …` (2), `› REQ-03.26 …` (2) | ✅ Pass |
+| AC-01.25, REQ-01.7 | `core/cms/form-field-mapper.spec.ts › AC-01.25 a field with an unknown type and a field without label are skipped with one warning each`, `› REQ-01.7 …` (2); `country-config-store.spec.ts › REQ-01.7 logs a warning for each skipped field, without user data` | ✅ Pass |
+| AC-01.20, REQ-01.22, REQ-01.28 | `form-field-mapper.spec.ts › AC-01.20 …`, `› REQ-01.22 …`, `› REQ-01.28 …` (2); `country-mapper.spec.ts › AC-01.20 the documented C4 example lacks birthDate and documentNumber → unavailable` | ✅ Pass |
+| REQ-01.8, AC-01.10 | `form-field-mapper.spec.ts › REQ-01.8 …` (3), `› AC-01.10 swapping order in Strapi swaps the fields on screen` | ✅ Pass |
+| AC-01.13 (parte unit), REQ-01.11 | `form-field-mapper.spec.ts › AC-01.13 select options keep the Strapi order; …`, `› REQ-01.11 a select without valid options is skipped` | ✅ Pass |
+| AC-01.15 (parte mapper), REQ-01.15 | `form-field-mapper.spec.ts › AC-01.15 the pattern is anchored to the whole value`, `› REQ-01.15 …` (2) | ✅ Pass |
+| REQ-01.5, REQ-01.9, REQ-01.14 | `form-field-mapper.spec.ts › REQ-01.5 …`, `› REQ-01.9 …`, `› REQ-01.14 …` | ✅ Pass |
+| AC-01.35, REQ-01.13 | `country-mapper.spec.ts › AC-01.35 a blank continue text marks the form step as configError, without defaults`, `› REQ-01.13 …` (5); `wizard-screens.spec.ts › REQ-01.13 …` (2); `country-shell.spec.ts › REQ-01.13 …` | ✅ Pass |
+| REQ-03.38 (parte mapper), REQ-02.32 | `country-mapper.spec.ts › REQ-03.38 a missing summary text only breaks its own section`; `country-shell.spec.ts › REQ-02.32 a missing step title shows the generic error of the country, never a default` | ✅ Pass |
+| AC-02.14, AC-02.15, REQ-02.2, REQ-02.3, REQ-02.4 (mapper), REQ-02.25 | `core/cms/plan-mapper.spec.ts › AC-02.14 …`, `› AC-02.15 …`, `› REQ-02.2 …`, `› REQ-02.3 …` (2), `› REQ-02.4 …`, `› REQ-02.25 …` (6) | ✅ Pass |
+| REQ-02.9, REQ-02.12 (mapper C6) | `price-factor-mapper.spec.ts › REQ-02.9 …` (2), `› REQ-02.12 a band with … is discarded` (7) | ✅ Pass |
+| AC-03.14 (parte mapper), REQ-03.15, REQ-03.16, REQ-03.18, REQ-03.32 | `core/cms/terms-mapper.spec.ts › AC-03.14 HTML inside the text is kept as literal text, never as a node`, `› REQ-03.15 …`, `› REQ-03.16 …` (2), `› REQ-03.18 …` (4), `› REQ-03.32 …` | ✅ Pass |
+| AC-02.32, REQ-02.24 | `core/cms/cms-client.spec.ts › AC-02.32 REQ-02.24 walks every page in series and concatenates the data` (30 planes en 3 páginas), `› REQ-02.24 a single page is not requested again`; `cms-queries.spec.ts › REQ-02.24 …` | ✅ Pass |
+| REQ-01.35 | `cms-client.spec.ts › REQ-01.35 sends a GET to the relative /api URL, without Authorization nor credentials` | ✅ Pass |
+| REQ-01.6 | `cms-queries.spec.ts › REQ-01.6 C1 … C7 never asks for drafts …` (7); `cms-client.spec.ts › REQ-01.6 the query is encoded by HttpParams and carries no status parameter` | ✅ Pass |
+| REQ-02.21 (timeout, mapper C6) | `cms-client.spec.ts › REQ-02.21 each request has a 10 000 ms timeout`; `price-factor-mapper.spec.ts › REQ-02.21 …` | ✅ Pass |
+| REQ-01.4 | `cms-client.spec.ts › REQ-01.4 …` (5); `country-mapper.spec.ts › REQ-01.4 …` (7); `country-config-store.spec.ts › REQ-01.4 a failure puts the resource in error and "reintentar" requests it again`; `country-selection-page.spec.ts › REQ-01.4 …` | ✅ Pass |
+| AC-01.8 (parte unit) | `features/wizard-shell/country-shell.spec.ts › AC-01.8 shows "error de carga" + "reintentar" and retrying shows the step` | ✅ Pass |
+| AC-01.7, REQ-01.3 | `country-shell.spec.ts › REQ-01.3 AC-01.7 shows only the fixed "cargando" while the configuration loads`; `country-selection-page.spec.ts › REQ-01.3 …`; `view-state.spec.ts › REQ-01.3 REQ-01.4 …` (6) | ✅ Pass |
+| REQ-01.32 | `shared/status-message.spec.ts › REQ-01.32 …` (3: `role="status"`, `role="alert"` y "reintentar") | ✅ Pass |
+| REQ-01.1 | `country-shell.spec.ts › REQ-01.1 …`; `country-config-store.spec.ts › REQ-01.1 …`; `cms-queries.spec.ts › REQ-01.1 …`; `country-mapper.spec.ts › REQ-01.1 …` (2) | ✅ Pass |
+| AC-01.5 (parte unit), REQ-01.2 | `country-selection-page.spec.ts › AC-01.5 lists the published countries with their Strapi names, and Chile goes to "/cl"`, `› REQ-01.2 …`, `› G3-10 …`; `country-mapper.spec.ts › AC-01.5 …`, `› REQ-01.2 …` (2); `cms-client.spec.ts › REQ-01.2 …` | ✅ Pass |
+| AC-01.6 (parte unit) | `core/country/country-case-guard.spec.ts › AC-01.6 "/CO" is redirected to "/co" …`, `› REQ-01.2 …` (3); `country-shell.spec.ts › AC-01.6 an unknown code shows "país no disponible" and the published countries as links`, `› REQ-01.2 …` (2); `country-config-store.spec.ts › AC-01.6 …`; `country-mapper.spec.ts › AC-01.6 …` | ✅ Pass |
+| Q-01.20 | `country-config-store.spec.ts › Q-01.20 the configuration is requested once per app load and country` | ✅ Pass |
+| REQ-01.31, AC-01.27 (parte unit) | `country-shell.spec.ts › REQ-01.31 AC-01.27 the step indicator marks the current step with aria-current="step"`, `› REQ-01.31 the focus goes to the heading of the step and document.title follows it`; `step-indicator.spec.ts › REQ-01.31 …` (3) | ✅ Pass |
+| D7, ADR-0001 (rutas) | `country-shell.spec.ts › D7 the confirmation is not a step …`, `› ADR-0001 "/co" and unknown sub-paths redirect to "/co/form"`; `wizard-screens.spec.ts › D7 …` | ✅ Pass |
+| ADR-0004 (indicador global, `whenSettled`, cancelación, claves) | `app.spec.ts › ADR-0004 G3-9 shows the global "cargando" while a guard keeps the navigation pending`; `country-config-store.spec.ts › ADR-0004 whenSettled …` (2); `cms-client.spec.ts › ADR-0004 aborting …`; `wizard-storage.spec.ts › ADR-0004 …` (2) | ✅ Pass |
+| AC-01.22, REQ-01.23, REQ-01.25, REQ-01.26 (parte storage) | `core/storage/wizard-storage.spec.ts › AC-01.22 REQ-01.25 …`, `› REQ-01.23 stores only the step 1 values, without any completed flag`, `› REQ-01.25 …`, `› REQ-01.26 …` (4) | ✅ Pass |
+| REQ-02.16, REQ-02.17, REQ-03.28 (parte storage) | `wizard-storage.spec.ts › REQ-02.16 …`, `› REQ-02.17 …`, `› REQ-03.28 …` (2) | ✅ Pass |
+| G2-2 | `core/ui-state/view-state.spec.ts › REQ-01.13 G2-2 there are exactly the four fixed texts, in Spanish` | ✅ Pass |
+
+**Fuera del alcance de 4a (sin test todavía):** el formulario dinámico y sus validadores (AC-01.2, AC-01.12, AC-01.14 a AC-01.16, AC-01.23, AC-01.24, AC-01.26, AC-01.29 y AC-01.33; fase 4b); el orden de planes y el recomendado único (AC-02.6, AC-02.7), la selección y su guard (AC-02.17 a AC-02.22; fase 4c); el resumen, los términos, el pago y la confirmación (fase 4d). Los AC de e2e los cubre el QA Engineer en `e2e/`.
+
+## Fallos y causa
+
+En la ejecución final no falla ningún test. Estas son las incidencias de la fase, con su causa y su corrección:
+
+| # | Síntoma | Causa | Corrección |
+|---|---|---|---|
+| 1 | La sustitución en `tsconfig.json` no tuvo efecto | El CLI generó los archivos con CRLF en Windows y el patrón buscaba `\n` | Patrón `\r?\n`. Después todo `frontend/` se pasó a LF (Prettier y un script), como exige `.gitattributes` (`eol=lf`) |
+| 2 | `ng build`: TS2322 en `wizard-screens.ts` | `TextGroup<K>` es covariante en `K` por `missing: readonly K[]`, así que un grupo con más claves no es asignable a `TextGroup<'title'>` | Helper genérico `titleOf<K>(group: TextGroup<K \| 'title'>)` |
+| 3 | `ng build`: TS2322 en `strapi-dto.ts` (`asDto`) | TS no puede demostrar que `Readonly<Record<string, unknown>>` encaja en el tipo mapeado `Dto<K>` con `K` genérico | Aserción documentada: es segura porque todos los atributos de `Dto<K>` son opcionales y `unknown` |
+| 4 | `ng build`: TS2345 en `create-quote-number.ts` | Con TypeScript 6, `crypto.getRandomValues` exige `ArrayBufferView<ArrayBuffer>`, y `Uint8Array` sin parámetro es `Uint8Array<ArrayBufferLike>` | `RandomFill = (target: Uint8Array<ArrayBuffer>) => void` |
+| 5 | Al generar las páginas provisionales con sed, cada línea empezaba por un acento grave | En GNU sed, `` \` `` es el ancla de inicio de buffer, no un acento grave literal | Archivos reescritos sin sed |
+| 6 | El test de AC-02.8 tenía un U+00A0 literal en lugar del escape `\u00A0` | La escritura inicial del archivo dejó el carácter real, que es invisible y frágil (no fue Prettier: `prettier --check` acepta el escape) | Escape explícito restaurado. `grep` de los bytes `c2 a0` en `src/`: sin resultados |
+
+**Controles de los propios tests** (para que el verde a la primera no esconda tests que no comprueban nada):
+
+- Mutación: cambiar en `age-in-years.ts` el cumpleaños del 29 de febrero de `{ month: 3, day: 1 }` a `{ month: 2, day: 28 }` hace fallar exactamente `age-in-years.spec.ts › REQ-01.20 someone born on 29 February …` y `legal-age.spec.ts › AC-01.18 today 2026-02-28, birth date 2008-02-29 → valid=false`. Después se restauró el código y se volvió a ejecutar toda la suite (resultado de arriba).
+- Zona horaria: el equipo podría estar ya en `America/Bogota`, así que el test de control con `Asia/Tokyo` demuestra que `vi.stubEnv('TZ', …)` cambia de verdad la fecha local en el *pool* de Vitest. Queda cerrado el riesgo que ADR-0007 dejaba abierto ("no se ha ejecutado todavía").
