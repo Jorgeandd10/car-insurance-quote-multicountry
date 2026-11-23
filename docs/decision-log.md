@@ -213,6 +213,21 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
   - US-02 v0.4: REQ-02.34 y AC-02.34, toda la tarjeta del plan selecciona el plan. El control sigue siendo el `radio` nativo.
 - **Tercera cuestión (pasarela de pago):** no cambia nada. Ver la respuesta al humano: el PDF dice "a button that leads to a confirmation screen or a mock gateway. Do not integrate real payment gateways or use real card data", y D9 y REQ-03.20 excluyen los campos de tarjeta.
 
+## D15 — Favicon de marca y alcance del cierre (2026-11-23)
+
+- **Propuestas del orquestador:**
+  - Extras: review 003; un país nuevo solo con contenido, con un e2e; CI con GitHub Actions.
+  - Pulido de experiencia de uso: favicon; botones fijos en móvil; animaciones de pago y confirmación; ilustraciones en los estados de error.
+- **Decisión del humano, literal:**
+  - Sobre los extras: "de lo unico q propusiste solo aprobaria el extra 1 del review 003, de resto no".
+  - Sobre el pulido: "te adjunto la imagen del favicon, muy buena propuesta esa. De hecho es la unica q apruebo de todas esas. Entonces haz eso y ya podemos proceder con el review 003".
+- **Estado:** Aprobado. Solo el favicon y la review 003; el resto se rechaza (motivo del humano: el tiempo hasta el envío).
+- **Implementación** (orquestador, cambio de dos archivos y assets):
+  - `frontend/public/favicon.ico` (PNG de 32 px incrustado en un ICO).
+  - `frontend/public/brand/icon-32.png`, `icon-192.png` y `apple-touch-icon.png`, generados con el canvas de Chrome a partir de la imagen del humano.
+  - `<link>` en `src/index.html` y `theme-color`.
+  - Verificado: build OK, y la pila reconstruida sirve los tres iconos con 200.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
