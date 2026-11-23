@@ -52,6 +52,8 @@ docs/decision-log.md   decisiones y rechazos humanos
 reviews/               informes de code review y su resolución
 logs/sessions/         transcripciones originales (NO EDITAR)
 frontend/  cms/  e2e/
+infra/nginx/           proxy GET-only y build de Angular (Strapi Developer, G1-d)
+scripts/               utilidades del flujo (export-session-logs.ps1)
 ```
 
 ## 6. Reglas no negociables
@@ -135,3 +137,5 @@ Un rechazo devuelve el trabajo al agente productor con el motivo registrado en `
 ## 11. Idioma
 
 Documentación y comunicación con el humano en **español**. Código, identificadores, nombres de archivo y mensajes de commit en **inglés**. Los textos visibles al usuario final vienen de Strapi.
+
+**Única excepción (G2-2):** un conjunto mínimo de textos fijos en código, en español, para cuando aún no hay configuración o Strapi no responde: "cargando", "error de carga", "reintentar" y "país no disponible". Si falta un texto en Strapi, se trata como error de configuración y se muestra el mensaje genérico; no se añaden textos por defecto en código.

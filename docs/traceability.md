@@ -6,9 +6,11 @@ Estados: `Spec` → `Designed` → `Implemented` → `Tested` → `Reviewed` →
 
 | US | REQ | AC | ADR | Código | Tests | Review | Estado |
 |---|---|---|---|---|---|---|---|
-| US-01 | — | — | — | — | — | — | Sin spec |
-| US-02 | — | — | — | — | — | — | Sin spec |
-| US-03 | — | — | — | — | — | — | Sin spec |
+| US-01 | REQ-01.1–REQ-01.35 | AC-01.1–AC-01.35 | ADR-0001, 0002, 0003, 0004, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
+| US-02 | REQ-02.1–REQ-02.33 | AC-02.1–AC-02.33 | ADR-0001, 0003, 0004, 0005, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
+| US-03 | REQ-03.1–REQ-03.38 | AC-03.1–AC-03.36 | ADR-0001, 0003, 0004, 0005, 0006, 0007 | — | — | [000](../reviews/000-G2-specs-cross-consistency.md), [001](../reviews/001-G3-architecture-check.md) | Designed (G3) |
+
+El detalle REQ → ADR o sección de arquitectura está en [`docs/architecture/overview.md`](architecture/overview.md) §3. La matriz se desglosa en una fila por `REQ` al implementar cada historia (Fase 4), cuando existan código y tests que enlazar.
 
 ## Decisiones humanas relacionadas
 
