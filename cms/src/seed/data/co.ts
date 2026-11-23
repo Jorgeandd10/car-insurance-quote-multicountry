@@ -19,6 +19,7 @@ export const co: CountrySeed = {
       policyholderSectionLabel: 'Datos del asegurado',
       vehicleSectionLabel: 'Datos del vehículo',
       genericErrorMessage: 'No pudimos mostrar esta sección. Intenta más tarde.',
+      changeCountryLabel: 'Cambiar de país',
     },
     formStepTexts: {
       title: 'Tus datos y los de tu vehículo',

@@ -33,6 +33,10 @@
     "genericErrorMessage": {
       "type": "text",
       "required": true
+    },
+    "changeCountryLabel": {
+      "type": "string",
+      "required": true
     }
   }
 }

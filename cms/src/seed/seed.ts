@@ -8,6 +8,9 @@
  *   - plan              → looked up by `name` within the country;
  *   - country-selection → single type, created only if it has no document.
  *
+ * Only exception: an existing country gets the wizard texts added after its first seed
+ * (BACKFILLED_WIZARD_TEXTS, D14) filled in, and only where they are empty (see backfillWizardTexts).
+ *
  * Lookups use the draft version (Document Service default): in Strapi 5 every document
  * keeps a draft version, published or not, so a document is found whatever its state.
  * Items flagged `publish: false` are created as drafts and never published.
@@ -107,6 +110,57 @@ interface Counters {
 
 const log = (strapi: Core.Strapi, message: string) => strapi.log.info(`[seed] ${message}`);
 
+const WIZARD_TEXTS = 'ui.wizard-texts';
+
+/**
+ * `ui.wizard-texts` attributes added after the first seed. A database seeded before they
+ * existed has them empty, and the app treats an empty text as a configuration error (G3-5).
+ *   - changeCountryLabel → D14, REQ-01.36.
+ */
+const BACKFILLED_WIZARD_TEXTS = ['changeCountryLabel'] as const;
+
+const isBlank = (value: unknown): boolean =>
+  value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+
+/**
+ * Idempotent backfill of an already seeded country: fills each attribute of
+ * BACKFILLED_WIZARD_TEXTS only where it is empty, with the seed value.
+ *
+ * In Strapi 5 the draft and the published version of a document are two rows, each with its
+ * own component instance. Both are updated in place through the Query Engine, so:
+ *   - nothing is republished: pending draft edits made in the admin stay unpublished;
+ *   - no other attribute is touched, and a value already set (e.g. in the admin) is kept;
+ *   - once filled, later starts find nothing to do.
+ * A version without the component (not expected: it is required) is left as is and logged.
+ */
+async function backfillWizardTexts(strapi: Core.Strapi, seed: CountrySeed) {
+  const { code } = seed.country;
+  const versions = (await strapi.db.query(COUNTRY).findMany({
+    where: { code },
+    populate: { wizardTexts: true },
+  })) as Array<{ id: number; publishedAt: string | null; wizardTexts: Record<string, unknown> | null }>;
+
+  for (const version of versions) {
+    const label = `country ${code} (${version.publishedAt ? 'published' : 'draft'} row ${version.id})`;
+    const texts = version.wizardTexts;
+    if (!texts || typeof texts.id !== 'number') {
+      log(strapi, `${label}: no wizardTexts component, backfill skipped`);
+      continue;
+    }
+    const data: Record<string, string> = {};
+    for (const key of BACKFILLED_WIZARD_TEXTS) {
+      if (isBlank(texts[key])) {
+        data[key] = seed.country.wizardTexts[key];
+      }
+    }
+    const keys = Object.keys(data);
+    if (keys.length > 0) {
+      await strapi.db.query(WIZARD_TEXTS).update({ where: { id: texts.id }, data });
+      log(strapi, `${label}: wizardTexts backfilled [${keys.join(', ')}]`);
+    }
+  }
+}
+
 async function seedCountry(strapi: Core.Strapi, seed: CountrySeed, counters: Counters) {
   const countries = strapi.documents(COUNTRY);
   const { code } = seed.country;
@@ -114,7 +168,8 @@ async function seedCountry(strapi: Core.Strapi, seed: CountrySeed, counters: Cou
   let country = await countries.findFirst({ filters: { code } });
   if (country) {
     counters.existing += 1;
-    log(strapi, `country ${code}: exists (documentId ${country.documentId}), not modified`);
+    log(strapi, `country ${code}: exists (documentId ${country.documentId}), content kept`);
+    await backfillWizardTexts(strapi, seed);
   } else {
     country = await countries.create({ data: seed.country });
     await countries.publish({ documentId: country.documentId });
