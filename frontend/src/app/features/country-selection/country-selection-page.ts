@@ -46,7 +46,7 @@ interface CountrySelectionContent {
               <p>{{ page.texts.intro }}</p>
             }
             <nav [attr.aria-label]="page.texts.countryListLabel">
-              <ul class="countries">
+              <ul class="countries country-links">
                 @for (country of page.countries; track country.code) {
                   <li>
                     <a [routerLink]="['/', country.code]">{{ country.name }}</a>
@@ -60,24 +60,17 @@ interface CountrySelectionContent {
     </div>
   `,
   styles: `
+    /* Central container; the h1 paints the hero band (D12). Country pills: .country-links. */
     .page {
-      max-width: 60rem;
+      max-width: var(--container-max);
       margin: 0 auto;
-      padding: 1rem;
+      padding: 0 var(--gutter);
     }
-    .countries {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      list-style: none;
-      padding: 0;
-    }
-    .countries a {
-      display: inline-block;
-      min-height: 44px;
-      padding: 0.75rem 1.25rem;
-      border: 2px solid currentColor;
-      border-radius: 0.5rem;
+    h1 + p {
+      max-width: 40rem;
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 1.125rem;
     }
   `,
 })

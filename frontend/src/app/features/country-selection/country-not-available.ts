@@ -29,7 +29,7 @@ import { StatusMessage } from '../../shared/status-message';
       }
       @case ('ready') {
         <nav aria-labelledby="country-not-available-heading">
-          <ul>
+          <ul class="country-links">
             @for (country of countries.value(); track country.code) {
               <li>
                 <a [routerLink]="['/', country.code]">{{ country.name }}</a>

@@ -1,8 +1,33 @@
+/*
+ * Decorative brand band (D12): primary blue with a thin dark-blue line below. It is a
+ * pseudo-element without text, so assistive technologies ignore it.
+ */
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+:host::before {
+  content: '';
+  display: block;
+  height: clamp(3rem, 7vw, 6rem);
+  border-bottom: 0.5rem solid var(--color-primary-dark);
+  background:
+    radial-gradient(circle at 88% 160%, rgb(255 255 255 / 0.14) 0 38%, transparent 38.5%),
+    var(--color-primary);
+}
+
 .global-loading:empty {
   display: none;
 }
 
 .global-loading {
-  padding: 0.5rem 1rem;
-  background: #eef3fd;
+  padding: 0.5rem var(--gutter);
+  background: var(--color-surface-soft);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+main {
+  padding-bottom: 3rem;
 }

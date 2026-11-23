@@ -1,4 +1,50 @@
-/* Global styles: base typography, visible focus and no horizontal scroll from 320 px (REQ-01.33). */
+/*
+ * Global styles (D12: visual style inspired by the SURA site, without its logo, images or font).
+ * Palette and shapes live in custom properties; components reuse them.
+ * Contrast (WCAG AA) of each text/background pair is noted next to the token.
+ * No horizontal scroll from 320 px (REQ-01.33, REQ-02.29, REQ-03.36).
+ */
+
+:root {
+  /* Brand */
+  --color-primary: #2d6df6; /* 4.54:1 on white; 3.75:1 on surface (large text / UI only) */
+  --color-primary-dark: #0033a0; /* 10.6:1 on white; 8.76:1 on surface */
+  --color-accent: #e3e829; /* CTA background */
+  --color-accent-hover: #d2d714;
+  --color-on-accent: #26328c; /* 8.26:1 on accent; 10.95:1 on white */
+  --color-surface: #dfeaff; /* hero, selected plan, highlighted blocks */
+  --color-surface-soft: #f5f8ff;
+
+  /* Text and lines */
+  --color-text: #1c1c24; /* 16.9:1 on white; 13.98:1 on surface */
+  --color-text-muted: #3f3f41; /* 10.5:1 on white; 8.68:1 on surface */
+  --color-link: #0b5fff; /* 5.13:1 on white */
+  --color-border: #e7e7e7; /* decorative card borders */
+  --color-border-strong: #6b6b70; /* inputs and UI boundaries: 5.3:1 on white, 4.38:1 on surface */
+  --color-focus: #0033a0; /* focus ring: 10.6:1 on white, 8.76:1 on surface, 8:1 on accent */
+
+  /* States */
+  --color-error: #b3261e; /* 6.54:1 on white; 5.92:1 on error surface */
+  --color-error-surface: #fdf1f0;
+  --color-disabled-bg: #f2f2f2;
+  --color-disabled-text: #5c5c61; /* 5.94:1 on disabled background */
+
+  /* Shapes and layout */
+  --radius-md: 0.5rem;
+  --radius-pill: 1.75rem;
+  --container-max: 72rem;
+  --gutter: 1rem;
+  --card-padding: 1rem;
+  --font-family:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 1.5rem;
+    --card-padding: 1.5rem;
+  }
+}
 
 *,
 *::before,
@@ -7,15 +53,11 @@
 }
 
 html {
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-family);
   line-height: 1.5;
-  color: #1a1a1a;
+  color: var(--color-text);
   background: #ffffff;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -28,8 +70,38 @@ svg {
   max-width: 100%;
 }
 
+/* Headings: primary blue, bold (SURA reference). */
+h1,
+h2 {
+  color: var(--color-primary);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/*
+ * Every screen heading sits on a full-width light-blue hero band. The band is painted with
+ * border-image outset, which is ink overflow: it never adds horizontal scroll.
+ * h1 is at least 28 px bold, so #2D6DF6 on the hero (3.75:1) is large text (>= 3:1).
+ */
+h1,
+.hero-bleed {
+  border-image: linear-gradient(var(--color-surface), var(--color-surface)) fill 0 / 0 / 0 100vmax;
+}
+
+h1 {
+  margin: 0 0 1.5rem;
+  padding: 1.5rem 0;
+  font-size: clamp(1.75rem, 1.25rem + 2.2vw, 2.75rem);
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+/* Visible focus everywhere, dark blue so it keeps >= 3:1 on white, hero and yellow. */
 :focus-visible {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -38,19 +110,90 @@ h1:focus {
 }
 
 h1:focus-visible {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--color-focus);
 }
 
+/* Buttons: secondary pill by default; `.btn-primary` is the yellow call to action. */
 button {
   font: inherit;
+  font-weight: 600;
+  line-height: 1.25;
   min-height: 44px;
   min-width: 44px;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.75rem;
+  border: 1px solid var(--color-on-accent);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-on-accent);
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+button:hover {
+  background: var(--color-surface);
+}
+
+.btn-primary {
+  padding-inline: 2rem;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.btn-primary:hover {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+
+/* Disabled (native or aria-disabled): grey, dashed border, still readable (5.94:1). */
+button:is(:disabled, [aria-disabled='true']),
+button:is(:disabled, [aria-disabled='true']):hover {
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
+
+button[aria-disabled='true'] {
+  cursor: progress;
 }
 
 a {
-  color: #0b57d0;
+  color: var(--color-link);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Country links (selection page and "país no disponible"): secondary pills. */
+.country-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.country-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0.75rem 2rem;
+  border: 1px solid var(--color-on-accent);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-on-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.country-links a:hover {
+  background: var(--color-surface);
 }
 
 .visually-hidden {
@@ -63,4 +206,14 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

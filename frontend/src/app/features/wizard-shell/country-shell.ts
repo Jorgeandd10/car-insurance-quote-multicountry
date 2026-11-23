@@ -55,10 +55,11 @@ import { WizardScreen, isWizardScreen, screenHeading, stepOf } from './wizard-sc
     </div>
   `,
   styles: `
+    /* Central container; no top padding so the hero band touches the brand band (D12). */
     .shell {
-      max-width: 60rem;
+      max-width: var(--container-max);
       margin: 0 auto;
-      padding: 1rem;
+      padding: 0 var(--gutter);
     }
   `,
 })

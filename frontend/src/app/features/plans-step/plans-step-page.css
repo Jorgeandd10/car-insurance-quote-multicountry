@@ -7,36 +7,51 @@
 }
 
 legend {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0;
+  color: var(--color-text);
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .plans {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
 }
 
+/* Plan cards: white with a soft border; 2 px borders keep the content from shifting. */
 .plan {
   display: grid;
   grid-template-columns: auto 1fr;
   align-content: start;
   column-gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #8a8a8a;
-  border-radius: 0.5rem;
+  padding: var(--card-padding);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.plan:hover {
+  border-color: var(--color-border-strong);
 }
 
 .plan > :not(input) {
   grid-column: 2;
 }
 
-.plan--recommended {
-  border: 3px solid #0b57d0;
+.plan--recommended,
+.plan--recommended:hover {
+  border-color: var(--color-primary);
 }
 
-.plan--selected {
-  background: #eef3fd;
+.plan--selected,
+.plan--selected:hover {
+  border-color: var(--color-primary-dark);
+  background: var(--color-surface);
 }
 
 input[type='radio'] {
@@ -45,42 +60,49 @@ input[type='radio'] {
   width: 24px;
   height: 24px;
   margin: 0.125rem 0 0;
+  accent-color: var(--color-primary);
 }
 
 .plan-label {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.5rem;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
   cursor: pointer;
 }
 
 .plan-name {
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .plan-price {
   flex-basis: 100%;
-  font-size: 1.25rem;
+  margin-top: 0.25rem;
+  color: var(--color-primary-dark);
+  font-size: 1.5rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Recommended is shown as text, not only by colour (REQ-02.5, WCAG 1.4.1). */
 .badge {
-  padding: 0 0.5rem;
-  border-radius: 1rem;
-  background: #0b57d0;
-  color: #ffffff;
-  font-size: 0.875rem;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .plan-description {
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
+  color: var(--color-text-muted);
 }
 
 .list-title {
-  margin: 0.75rem 0 0.25rem;
-  font-weight: 600;
+  margin: 1rem 0 0.25rem;
+  font-weight: 700;
 }
 
 ul {
@@ -88,19 +110,29 @@ ul {
   padding-left: 1.25rem;
 }
 
+li::marker {
+  color: var(--color-primary);
+}
+
 .notice,
 .error {
   margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-surface-soft);
   font-weight: 600;
 }
 
 .error {
-  color: #b3261e;
+  border-left-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
 }

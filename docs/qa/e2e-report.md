@@ -230,3 +230,11 @@ $ cd e2e && npx playwright test --reporter=line
 ```
 
 D-E2E-1 queda corregido (AC-03.35 a 320 px en verde). AC-03.6 con RUT con puntos sigue cubierto solo por unit tests de `maskDocument`; el seed ya admite ese formato (F-03.2).
+
+## Re-ejecución tras D12 (estilo visual inspirado en SURA, 2026-11-23)
+
+- **Cambio:** solo presentación en `frontend/` (D12 en `docs/decision-log.md`), implementado por `angular-developer` en la rama `style/sura-visual-refresh`.
+- **Pila:** `docker compose up -d --build web` con el frontend nuevo; `curl http://localhost:8080/` → 200.
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 463 passed (463)`.
+- **E2E:** `npx playwright test --reporter=line` → `77 passed (4.0m)`. Incluye las comprobaciones de sin scroll horizontal y objetivos de 24×24 a 320, 375 y 1280 px (AC-01.28, AC-02.29, AC-03.35).
+- **Capturas** (Chrome, flujo CO): `docs/assets/screenshots/`.
