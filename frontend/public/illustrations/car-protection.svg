@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 440" width="560" height="440" aria-hidden="true" focusable="false">
+  <!-- D13: original decorative illustration (car + protection shield). No text. Palette of D12. -->
+
+  <!-- Organic background bubble and floating shapes -->
+  <path fill="#ffffff" fill-opacity=".72" d="M296 34c98-8 196 46 224 142 26 90-14 190-112 222-92 30-196 26-282-18C52 346 22 262 48 182 76 98 186 42 296 34z"/>
+  <path fill="#9ee0e8" d="M118 64c32-4 56 18 54 46-2 26-26 44-54 40-26-4-42-26-36-50 4-20 18-34 36-36z"/>
+  <circle cx="520" cy="58" r="16" fill="#2d6df6" fill-opacity=".18"/>
+  <circle cx="512" cy="300" r="12" fill="#00aec7"/>
+  <circle cx="60" cy="236" r="8" fill="#e3e829"/>
+  <circle cx="196" cy="58" r="6" fill="#00aec7"/>
+
+  <!-- Road and shadow -->
+  <ellipse cx="286" cy="360" rx="214" ry="12" fill="#0033a0" fill-opacity=".14"/>
+  <g fill="#2d6df6" fill-opacity=".28">
+    <rect x="96" y="384" width="56" height="8" rx="4"/>
+    <rect x="196" y="384" width="56" height="8" rx="4"/>
+    <rect x="296" y="384" width="56" height="8" rx="4"/>
+    <rect x="396" y="384" width="56" height="8" rx="4"/>
+  </g>
+
+  <!-- Speed lines -->
+  <g fill="none" stroke="#2d6df6" stroke-linecap="round" stroke-width="7" stroke-opacity=".45">
+    <path d="M30 262h36"/>
+    <path d="M14 286h52"/>
+    <path d="M38 310h30"/>
+  </g>
+
+  <!-- Protection halo behind the shield -->
+  <circle cx="430" cy="134" r="72" fill="#dfeaff"/>
+  <circle cx="430" cy="134" r="72" fill="none" stroke="#2d6df6" stroke-opacity=".25" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+
+  <!-- Car body (side view, facing right) with wheel arches -->
+  <path fill="#2d6df6" d="M92 316v-34c0-15 9-26 24-30l46-8c16-32 38-58 76-61l78-1c36 1 62 22 86 52l52 10c16 4 24 16 24 32v24c0 9-7 16-16 16h-29a48 48 0 0 0-96 0H223a48 48 0 0 0-96 0z"/>
+  <!-- Lower body shade -->
+  <path fill="#0033a0" fill-opacity=".22" d="M92 292h386v8c0 9-7 16-16 16h-29a48 48 0 0 0-96 0H223a48 48 0 0 0-96 0H92z"/>
+  <!-- Roof highlight -->
+  <path fill="#ffffff" fill-opacity=".18" d="M180 236c14-26 32-44 60-46l74-1c26 1 46 16 64 38z"/>
+
+  <!-- Windows -->
+  <path fill="#dfeaff" d="M180 244c12-26 30-42 58-44h34v44z"/>
+  <path fill="#dfeaff" d="M288 200h28c26 1 46 16 66 44h-94z"/>
+  <path fill="#ffffff" fill-opacity=".75" d="M206 244l30-44h14l-30 44z"/>
+  <path fill="#ffffff" fill-opacity=".75" d="M306 244l30-44h12l-30 44z"/>
+  <path fill="#9ee0e8" d="M182 244h200v4H180z"/>
+
+  <!-- Character line and side mirror -->
+  <path fill="none" stroke="#ffffff" stroke-opacity=".3" stroke-width="4" stroke-linecap="round" d="M114 282h350"/>
+  <path fill="#0033a0" d="M386 234h12c5 0 8 4 6 8l-2 5h-16z"/>
+
+  <!-- Door seam and handles -->
+  <path stroke="#0033a0" stroke-opacity=".35" stroke-width="3" stroke-linecap="round" d="M280 252v50"/>
+  <rect x="244" y="262" width="22" height="7" rx="3.5" fill="#0033a0" fill-opacity=".5"/>
+  <rect x="352" y="262" width="22" height="7" rx="3.5" fill="#0033a0" fill-opacity=".5"/>
+
+  <!-- Lights and bumpers -->
+  <path fill="#e3e829" d="M458 262c8 0 16 4 18 12h-20c-5 0-8-3-8-6s4-6 10-6z"/>
+  <rect x="88" y="262" width="12" height="18" rx="5" fill="#00aec7"/>
+  <rect x="452" y="300" width="30" height="10" rx="5" fill="#0033a0"/>
+  <rect x="84" y="300" width="28" height="10" rx="5" fill="#0033a0"/>
+
+  <!-- Wheels -->
+  <g>
+    <circle cx="175" cy="318" r="38" fill="#1e2a78"/>
+    <circle cx="175" cy="318" r="20" fill="#dfeaff"/>
+    <circle cx="175" cy="318" r="8" fill="#2d6df6"/>
+    <circle cx="385" cy="318" r="38" fill="#1e2a78"/>
+    <circle cx="385" cy="318" r="20" fill="#dfeaff"/>
+    <circle cx="385" cy="318" r="8" fill="#2d6df6"/>
+  </g>
+
+  <!-- Shield with check -->
+  <path fill="#0033a0" d="M430 70c18 12 36 18 54 20v40c0 34-22 60-54 74-32-14-54-40-54-74V90c18-2 36-8 54-20z"/>
+  <path fill="#2d6df6" d="M430 84c14 9 28 14 42 16v30c0 27-17 48-42 60z"/>
+  <path fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="M406 136l16 16 32-34"/>
+
+  <!-- Sparkles -->
+  <path fill="#e3e829" d="M350 70l5 13 13 5-13 5-5 13-5-13-13-5 13-5z"/>
+  <path fill="#e3e829" d="M506 178l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/>
+</svg>

@@ -7,10 +7,10 @@
 }
 
 legend {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   padding: 0;
   color: var(--color-text);
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
@@ -18,34 +18,59 @@ legend {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  align-items: stretch;
 }
 
-/* Plan cards: white with a soft border; 2 px borders keep the content from shifting. */
+/*
+ * Plan cards (D13): white, soft shadow, 2 px border so states never shift the content.
+ * Hover lifts the card; recommended has a yellow top accent and a primary border; selected is
+ * dark blue on the light-blue surface. The card shows the focus of its radio as a halo.
+ */
 .plan {
+  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   align-content: start;
   column-gap: 0.75rem;
   padding: var(--card-padding);
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: #ffffff;
+  box-shadow: var(--shadow-sm);
   transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
+    border-color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
 }
 
 .plan:hover {
-  border-color: var(--color-border-strong);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.plan:has(input:focus-visible) {
+  box-shadow: var(--focus-halo), var(--shadow-md);
 }
 
 .plan > :not(input) {
   grid-column: 2;
 }
 
-.plan--recommended,
-.plan--recommended:hover {
+.plan--recommended {
   border-color: var(--color-primary);
+}
+
+.plan--recommended::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 0.3125rem;
+  border-radius: 0 0 0.3125rem 0.3125rem;
+  background: var(--color-accent);
 }
 
 .plan--selected,
@@ -60,7 +85,8 @@ input[type='radio'] {
   width: 24px;
   height: 24px;
   margin: 0.125rem 0 0;
-  accent-color: var(--color-primary);
+  accent-color: var(--color-primary-dark);
+  cursor: pointer;
 }
 
 .plan-label {
@@ -72,16 +98,17 @@ input[type='radio'] {
 }
 
 .plan-name {
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
 .plan-price {
   flex-basis: 100%;
-  margin-top: 0.25rem;
+  margin-top: 0.375rem;
   color: var(--color-primary-dark);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -101,11 +128,16 @@ input[type='radio'] {
 }
 
 .list-title {
-  margin: 1rem 0 0.25rem;
+  margin: 1.25rem 0 0.375rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(0 51 160 / 0.12);
+  font-size: 0.9375rem;
   font-weight: 700;
 }
 
 ul {
+  display: grid;
+  gap: 0.25rem;
   margin: 0;
   padding-left: 1.25rem;
 }
@@ -135,4 +167,16 @@ li::marker {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 2rem;
+}
+
+@media (max-width: 30rem) {
+  .actions button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan:hover {
+    transform: none;
+  }
 }

@@ -41,36 +41,88 @@ interface CountrySelectionContent {
         }
         @case ('ready') {
           @if (content.value(); as page) {
-            <h1>{{ page.texts.heading }}</h1>
-            @if (page.texts.intro) {
-              <p>{{ page.texts.intro }}</p>
-            }
-            <nav [attr.aria-label]="page.texts.countryListLabel">
-              <ul class="countries country-links">
-                @for (country of page.countries; track country.code) {
-                  <li>
-                    <a [routerLink]="['/', country.code]">{{ country.name }}</a>
-                  </li>
+            <div class="hero hero-bleed">
+              <div class="hero-text view-enter">
+                <h1>{{ page.texts.heading }}</h1>
+                @if (page.texts.intro) {
+                  <p class="intro">{{ page.texts.intro }}</p>
                 }
-              </ul>
-            </nav>
+                <nav [attr.aria-label]="page.texts.countryListLabel">
+                  <ul class="countries country-links">
+                    @for (country of page.countries; track country.code) {
+                      <li>
+                        <a [routerLink]="['/', country.code]">{{ country.name }}</a>
+                      </li>
+                    }
+                  </ul>
+                </nav>
+              </div>
+              <div class="hero-art view-enter">
+                <img
+                  src="illustrations/car-protection.svg"
+                  alt=""
+                  width="560"
+                  height="440"
+                  decoding="async"
+                />
+              </div>
+            </div>
           }
         }
       }
     </div>
   `,
   styles: `
-    /* Central container; the h1 paints the hero band (D12). Country pills: .country-links. */
+    /*
+     * Hero (D13): light-blue full-width band (.hero-bleed) with the Strapi texts and the country
+     * cards (.country-links, global) on the left and the decorative illustration on the right;
+     * stacked in one column on mobile. The h1 does not paint its own band here.
+     */
     .page {
       max-width: var(--container-max);
       margin: 0 auto;
       padding: 0 var(--gutter);
     }
-    h1 + p {
-      max-width: 40rem;
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: center;
+      padding: 2rem 0 2.5rem;
+    }
+    .hero h1 {
       margin: 0;
+      padding: 0;
+      border-image: none;
+      font-size: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);
+    }
+    .intro {
+      max-width: 34rem;
+      margin: 1rem 0 0;
       color: var(--color-text-muted);
-      font-size: 1.125rem;
+      font-size: 1.1875rem;
+    }
+    .hero-art {
+      justify-self: center;
+      width: min(100%, 26rem);
+      animation-delay: 60ms;
+    }
+    .hero-art img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    @media (min-width: 56rem) {
+      .hero {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        gap: 2.5rem;
+        min-height: max(30rem, calc(100svh - 10rem));
+        padding: 3.5rem 0 4rem;
+      }
+      .hero-art {
+        width: 100%;
+        max-width: 34rem;
+      }
     }
   `,
 })

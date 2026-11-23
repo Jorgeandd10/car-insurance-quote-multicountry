@@ -1,6 +1,21 @@
+<!-- D13: decorative brand band (logo with empty alt, hidden from assistive technologies). -->
+<header class="brand-bar" aria-hidden="true">
+  <div class="brand-bar-inner">
+    <img
+      class="brand-logo"
+      src="brand/sura-logo-white.png"
+      alt=""
+      width="640"
+      height="118"
+      decoding="async"
+    />
+  </div>
+</header>
 <div class="global-loading" role="status">
   @if (navigating()) {
-    <span>{{ loadingText }}</span>
+    <div class="global-loading-inner">
+      <span class="global-loading-label">{{ loadingText }}</span>
+    </div>
   }
 </div>
 <main>

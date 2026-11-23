@@ -238,3 +238,13 @@ D-E2E-1 queda corregido (AC-03.35 a 320 px en verde). AC-03.6 con RUT con puntos
 - **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 463 passed (463)`.
 - **E2E:** `npx playwright test --reporter=line` → `77 passed (4.0m)`. Incluye las comprobaciones de sin scroll horizontal y objetivos de 24×24 a 320, 375 y 1280 px (AC-01.28, AC-02.29, AC-03.35).
 - **Capturas** (Chrome, flujo CO): `docs/assets/screenshots/`.
+
+## Re-ejecución tras D13 (logo, Figtree, ilustración y animaciones, 2026-11-23)
+
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 465 passed (465)` (2 tests nuevos: banda decorativa y esqueleto de carga).
+- **Pila:** `docker compose up -d --build web`; logo (`/brand/sura-logo-white.png`) e ilustración (`/illustrations/car-protection.svg`) → 200.
+- **E2E, primera pasada:** `75 passed`, `2 failed` (7.6m): AC-01.19 (`date-rules`) y AC-01.8 (`config-states`). Con `--last-failed` → `2 passed`; con `--repeat-each=4` de esos dos archivos → `60 passed (6.2m)`.
+- **E2E, segunda pasada:** `76 passed`, `1 failed` (7.6m): AC-03.20 (`plans-changes`). La captura del fallo muestra "error de carga".
+- **Causa:** la suite pasó de 4.0 a 7.6 min con las animaciones de D13 (entrada de vistas y esqueleto en bucle), en el mismo equipo de 8 GB donde ya se había documentado que, con carga, Strapi supera el timeout de 10 s de la app. Los fallos cambian de test en cada pasada y todos son "error de carga" o esperas agotadas, no aserciones de presentación.
+- **Corrección:** `reducedMotion: 'reduce'` en `e2e/playwright.config.ts`. La app ya desactiva sus animaciones con `prefers-reduced-motion`, y la suite verifica comportamiento, no movimiento.
+- **E2E tras la corrección:** `npx playwright test --reporter=line` → `77 passed (4.4m)`.

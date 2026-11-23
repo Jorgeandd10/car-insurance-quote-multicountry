@@ -7,6 +7,20 @@ import { App } from './app';
 class PageStub {}
 
 describe('App', () => {
+  it('D13 G2-2 the brand band is decorative: hidden, outside main, logo with empty alt and no text', async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const band = el.querySelector('header.brand-bar');
+    expect(band?.getAttribute('aria-hidden')).toBe('true');
+    expect(band?.closest('main')).toBeNull();
+    expect(band?.textContent?.trim()).toBe('');
+    const logo = band?.querySelector('img');
+    expect(logo?.getAttribute('alt')).toBe('');
+    expect(logo?.hasAttribute('width') && logo?.hasAttribute('height')).toBe(true);
+  });
+
   it('ADR-0004 G3-9 shows the global "cargando" while a guard keeps the navigation pending', async () => {
     let release: (value: boolean) => void = () => undefined;
     const guardResult = new Promise<boolean>((resolve) => (release = resolve));

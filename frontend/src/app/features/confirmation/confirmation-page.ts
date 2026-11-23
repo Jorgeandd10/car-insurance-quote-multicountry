@@ -55,8 +55,9 @@ import { StepHeading } from '../../shared/step-heading';
       margin: 0 0 2rem;
       padding: 4.5rem var(--card-padding) var(--card-padding);
       border-top: 6px solid var(--color-primary);
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-lg);
       background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
     }
     .success-card::before {
       content: '';

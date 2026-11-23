@@ -25,6 +25,7 @@
               }
             ],
             "styles": [
+              "@fontsource-variable/figtree/wght.css",
               "src/styles.css"
             ]
           },
