@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Estado | Approved (2026-11-22, G2) |
-| Versión | 0.2 |
+| Versión | 0.3 |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
 | ADRs relacionados | Pendientes (Fase 3): ADR multipaís (D3), ADR de formularios (D5), ADR de persistencia (D6). Modelo de contenido en `docs/architecture/content-model.md` (pendiente G3) |
@@ -68,19 +68,19 @@
 | REQ-01.3 | Mientras se obtiene la configuración se muestra el texto fijo "cargando" (G2-2); no se muestra un formulario parcial ni el botón de continuar. | Criterios de evaluación ("loading and error state handling"); `CLAUDE.md` §8; Q-01.6 → G2-2 | Código | Unit · E2E |
 | REQ-01.4 | Si la obtención de la configuración falla (sin red, timeout, HTTP 4xx/5xx o respuesta no interpretable) se muestran los textos fijos "error de carga" y "reintentar" (G2-2); la acción reintentar repite la petición. No se muestra el formulario ni se puede avanzar. | Criterios de evaluación; `CLAUDE.md` §8; Q-01.6 → G2-2 | Código | Unit · E2E (interceptando la red) |
 | REQ-01.5 | Si el país no tiene ningún campo publicado y válido, se muestra un estado vacío con el mensaje de estado vacío configurado para el país en Strapi y no se puede avanzar. Si ese mensaje falta en Strapi, es un error de configuración y se muestra el mensaje genérico del país (REQ-01.13). | Q-01.12 → G2-13, ajustada por G2-2 | Mensaje: Strapi | Unit · E2E |
-| REQ-01.6 | La configuración se lee de Strapi en cada carga de la aplicación, sin caché persistente en el navegador (ni `localStorage`, ni `sessionStorage`, ni service worker). Solo se usan entradas **publicadas**; los borradores no aparecen. | AC del PDF "Configuration change without deployment"; scope rule 2; Q-01.20 → G2-13 | Código | E2E · Manual · Review |
+| REQ-01.6 | La configuración se lee de Strapi en cada carga de la aplicación, sin caché persistente en el navegador (ni `localStorage`, ni `sessionStorage`, ni service worker). Solo se usan entradas **publicadas**; los borradores no aparecen. | AC del PDF "Configuration change without deployment"; scope rule 2; Q-01.20 → G2-13 | Código | E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) · Review |
 | REQ-01.7 | La configuración mal formada se trata según la tabla de 5.3: un campo inválido se omite con un aviso en consola; una validación inválida se ignora sin perder el campo. La app no falla por un dato inesperado de Strapi. | Lista de huecos §3 ("datos vacíos, nulos o mal formados"); Q-01.11 → G2-13 | Código | Unit (mapper) |
 
 ### B. Render del formulario
 
 | ID | Requisito verificable | Origen | Config. | Verificación |
 |---|---|---|---|---|
-| REQ-01.8 | Se muestran solo los campos publicados del país activo, en orden ascendente por `order` dentro de cada sección (REQ-01.12). Los empates y los `order` vacíos se resuelven de forma determinista: vacíos al final, desempate por identificador (5.3). | Regla 1; AC del PDF "Form configured by country"; contexto ("add, remove or reorder"); Q-01.11 → G2-13 | Strapi | Unit · E2E |
+| REQ-01.8 | Se muestran solo los campos publicados del país activo, en orden ascendente por `order` dentro de cada sección (REQ-01.12). Los empates y los `order` vacíos se resuelven de forma determinista: vacíos al final, desempate por identificador (5.3). | Regla 1; AC del PDF "Form configured by country"; contexto ("add, remove or reorder"); Q-01.11 → G2-13 | Strapi | Unit · E2E (seed) · E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) |
 | REQ-01.9 | Cada campo muestra el label y, si existe, el help text configurados. Ningún label ni help text de campo está en el código. | Regla 1; paso 1 ("copy [...] configured in Strapi") | Strapi | Unit · E2E |
 | REQ-01.10 | Tipos soportados: `text`, `number`, `select`, `date` y `checkbox`. Cada tipo usa un control con la semántica nativa equivalente (detalle de implementación pendiente del ADR de formularios, D5). El catálogo de tipos es fijo en código; el tipo de cada campo se configura en Strapi. | Regla 1; requisito técnico Forms | Strapi + Código | Unit · E2E |
-| REQ-01.11 | Los campos `select` muestran las opciones configuradas en Strapi para ese campo y país, en el orden configurado. Se guarda el **valor** estable de la opción, no su etiqueta; la etiqueta se resuelve con la configuración vigente. | Regla 2 | Strapi | Unit · E2E |
+| REQ-01.11 | Los campos `select` muestran las opciones configuradas en Strapi para ese campo y país, en el orden configurado. Se guarda el **valor** estable de la opción, no su etiqueta; la etiqueta se resuelve con la configuración vigente. | Regla 2 | Strapi | Unit · E2E (seed) · E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) |
 | REQ-01.12 | Cada campo pertenece a una sección `policyholder` (asegurado) o `vehicle` (vehículo) asignada en Strapi. Las secciones se muestran como grupos con leyenda accesible, en orden fijo: asegurado y luego vehículo. La leyenda de cada sección es un texto del país en Strapi. | Paso 1 ("policyholder and vehicle data"); US-03 regla 1; Q-01.4 → G2-6 | Sección del campo y leyenda: Strapi. Catálogo y orden de secciones: Código | Unit · E2E |
-| REQ-01.13 | Todos los textos de interfaz del paso 1 vienen de Strapi por país: título del paso, botón continuar, mensaje de estado vacío, mensaje de error genérico, leyendas de sección y textos del indicador de pasos. Los únicos textos fijos en código son "cargando", "error de carga", "reintentar" y "país no disponible" (G2-2). Si falta en Strapi un texto obligatorio, es un error de configuración: en lugar del formulario se muestra el mensaje genérico del país y no se puede avanzar. No hay textos por defecto en código. Si falta el propio mensaje genérico, la configuración se trata como no interpretable (REQ-01.4). | Paso 1 ("copy"); `CLAUDE.md` §11; Q-01.6 → G2-2 | Strapi (los 4 textos fijos: Código) | Unit · E2E · Review |
+| REQ-01.13 | Todos los textos de interfaz del paso 1 vienen de Strapi por país: título del paso, botón continuar, mensaje de estado vacío, mensaje de error genérico, leyendas de sección y textos del indicador de pasos. Los únicos textos fijos en código son "cargando", "error de carga", "reintentar" y "país no disponible" (G2-2). Si falta en Strapi un texto obligatorio, es un error de configuración: en lugar del formulario se muestra el mensaje genérico del país y no se puede avanzar. No hay textos por defecto en código. Si falta el propio mensaje genérico, la configuración se trata como no interpretable (REQ-01.4). | Paso 1 ("copy"); `CLAUDE.md` §11; Q-01.6 → G2-2 | Strapi (los 4 textos fijos: Código) | Unit · E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) · Review |
 
 ### C. Validación y avance
 
@@ -604,12 +604,13 @@ Las rutas exactas dependen de la estructura que fije G3; se indica la ubicación
 | AC-01.23, AC-01.24, AC-01.29 (REQ-01.26 a REQ-01.28) | Unit de la reconciliación y del contrato expuesto (incluido que no se persiste ninguna señal de completado) | `frontend/**/*.spec.ts` (store) |
 | AC-01.7, AC-01.8, AC-01.9 (REQ-01.3 a REQ-01.5, REQ-01.32) | Unit de componente (DOM) + E2E interceptando la red | `frontend/**/*.spec.ts`, `e2e/` |
 | AC-01.1, AC-01.2, AC-01.4, AC-01.12, AC-01.13, AC-01.16, AC-01.32, AC-01.34 | E2E sobre el seed de CO y CL (el flujo completo de un país es obligatorio en el PDF) | `e2e/` |
-| AC-01.3, AC-01.10, AC-01.11, AC-01.13 (segunda parte), AC-01.31, AC-01.35 | E2E que prepara el cambio con la API de administración de Strapi **desde el proceso Node de Playwright** (credencial en `.env`, nunca en el navegador). Si G3 no lo habilita: Manual en la demo | `e2e/` o `docs/qa/manual-check.md` |
+| AC-01.3, AC-01.10, AC-01.11, AC-01.13 (segunda parte), AC-01.31 (REQ-01.6, REQ-01.8, REQ-01.11, REQ-01.13) | E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) (G3-3) | `e2e/`, `docs/qa/manual-check.md` |
+| AC-01.35 (REQ-01.13) | E2E (intercepción con `page.route`) con un texto obligatorio vacío en la respuesta (G3-5) | `e2e/` |
 | AC-01.5, AC-01.6, AC-01.21, AC-01.22 | E2E | `e2e/` |
 | AC-01.26, AC-01.27 | E2E (consultas por rol y label, solo teclado) + Manual G5 | `e2e/`, `docs/qa/manual-check.md` |
 | AC-01.28 | E2E con viewport 320 y 1280 + Manual G5 en móvil | `e2e/`, `docs/qa/manual-check.md` |
 | AC-01.30 | E2E (inspección de peticiones) + Review con checklist de seguridad | `e2e/`, `reviews/` |
-| REQ-01.6 (sin caché persistente) | Review + E2E (AC-01.3) | `reviews/` |
+| REQ-01.6 (sin caché persistente) | Review + E2E (intercepción con `page.route`, AC-01.3) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) | `reviews/`, `e2e/`, `docs/qa/manual-check.md` |
 
 ## 9. Historial
 
@@ -617,3 +618,4 @@ Las rutas exactas dependen de la estructura que fije G3; se indica la ubicación
 |---|---|---|---|
 | 0.1 | 2026-11-22 | Borrador inicial | Fase 3, procedimiento 2.1 de `sdd-traceability` |
 | 0.2 | 2026-11-22 | Aplicadas decisiones G2 | G2 aprobado por el humano |
+| 0.3 | 2026-11-22 | Verificación de AC con cambios en Strapi ajustada a G3-3 | G3 |
