@@ -307,17 +307,44 @@ Sin hallazgos en: render y validación dinámica del paso 1 (orden, desempates, 
 
 Revisadas y no reportadas por estar aceptadas por el humano (notas de Fase 4): POST → 403, puerto 8080 en todas las interfaces, `hasPublishedVersion`, superadmin en el primer acceso, `birthDate`/`vehicleYear` siempre obligatorios, `*` con `aria-hidden`, estados vacíos con `role="alert"`, foco al primer radio, selección guardada al elegir, `disabled` frente a `aria-disabled` en el pago, formato de año y fecha, C6/C3 como error de contenido e indicador oculto en la confirmación. La decisión 2 solo aparece en F-00.12 porque agrava su alcance; no se reporta por sí misma.
 
-## Resolución (se completa tras G4)
+## Resolución
+
+Decisiones humanas de G4 en [`docs/decision-log.md`](../docs/decision-log.md) (motivo literal: "Apruebo el triage de G4").
 
 | ID | Decisión humana | Estado | Commit / motivo |
 |---|---|---|---|
-| F-00.12 | | | |
-| F-03.1 | | | |
-| F-02.1 | | | |
-| F-03.2 | | | |
-| F-00.13 | | | |
-| F-00.14 | | | |
+| F-00.12 | Corregir | Fixed | `40dfcae` (strapi-developer): `proxy_pass` con `$uri` normalizada + 404 para `request_uri` no canónica |
+| F-03.1 | Corregir | Fixed | `8f763cb` (angular-developer): `step1-backstop` reevalúa `isComplete` tras el reintento; `canPay` exige `step1Complete` |
+| F-02.1 | Corregir | Fixed | `8f763cb` (mismo cambio) |
+| F-03.2 | Corregir | Fixed | `40dfcae`: patrón del RUT de CL con y sin puntos, `maxLength` 12 |
+| F-00.13 | Corregir | Fixed | `40dfcae`: regex de caché con `_` y `-` |
+| F-00.14 | Aceptar; comprobar en G5 | Accepted | Pendiente de la prueba manual con lector de pantalla (G5) |
 
-## Re-review
+### Hallazgo añadido por QA durante la Fase 5
 
-Pendiente de las correcciones que decida G4.
+| ID | Severidad | Ubicación | Descripción | Resolución |
+|---|---|---|---|---|
+| F-03.3 (D-E2E-1) | Minor | `frontend/src/app/features/summary-step/summary-step-page.css:76` | A 320 px la casilla de términos mide 22,2×24 px: el input de 24 px se encoge dentro de la fila flex cuando la etiqueta ocupa dos líneas (REQ-03.36). Encontrado por el e2e de `qa-engineer`. | Fixed en `0086e5a` (orquestador, una línea de CSS: `flex: none`, aplicada también a los radios del paso 2). Incumple un REQ aprobado, por eso se corrigió sin pasar por triage; se informa al humano. |
+
+## Re-review (2026-11-23, orquestador)
+
+Sobre la pila reconstruida con volumen limpio (`docker compose down -v && docker compose up -d --build`) que ya incluye todas las correcciones:
+
+```text
+--- F-00.12 bypass variants (esperado 404 text/html):
+/api/users/..%2Fplans -> 404 text/html
+/api/upload/..%2Fplans -> 404 text/html
+/api//plans -> 404 text/html
+/api/./plans -> 404 text/html
+/api/%70lans -> 404 text/html
+/content-manager/collection-types/api::plan.plan/x%2F..%2F..%2F..%2F..%2Fapi%2Fplans -> 404 text/html
+allowlist countries: 200
+POST: 403
+--- F-00.13 cache:
+main-VPRKP64I.js Cache-Control: public, max-age=31536000, immutable
+styles-32OBUCRH.css Cache-Control: public, max-age=31536000, immutable
+--- F-03.2: cl_rut servido con helpText "Con o sin puntos y con guion, por ejemplo 12.345.678-5 o 12345678-5."
+```
+
+- F-03.1 y F-02.1: `ng test` 463/463 en 46 archivos, con tests `F-03.1 …` y `F-02.1 …` que fallan sin la corrección (comprobado por el angular-developer y repetido por el orquestador).
+- e2e completo sobre la pila nueva: ver `docs/qa/e2e-report.md`, sección "Re-ejecución tras G4".

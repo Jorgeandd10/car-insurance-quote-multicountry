@@ -215,3 +215,18 @@ Automatizados por intercepción y pendientes de comprobación manual del cambio 
 
 1. **La pila probada no incluye `40dfcae` ni `8f763cb`.** Los contenedores se crearon a las 01:11 y 01:15 (−05) y esos commits son de las 02:01 y 02:13. La API en ejecución todavía devuelve para `cl_rut` el patrón `[0-9]{7,8}-[0-9Kk]`, mientras que `cms/src/seed/data/cl.ts:120` ya acepta `12.345.678-5`. El mensaje de `40dfcae` indica que la verificación de la pila necesita un volumen limpio después del e2e. **Hay que reconstruir (`docker compose up -d --build`, con volumen limpio para el seed) y repetir `npx playwright test`** para que la evidencia cubra `8f763cb`. No reconstruí la pila: no lo pide mi rol y borra el volumen de la demo.
 2. **AC-03.6 con puntos (`12.345.678-5`):** según el aviso del orquestador, el test de CL usa `12345678-5`, que acepta el patrón antiguo y el nuevo, y comprueba `*****678-5`. El formato con puntos queda **Pendiente de G4 (F-03.2)** en el plan. Tras reconstruir, se puede añadir un test con `12.345.678-5` → `**.***.678-5`. No lo añadí ahora porque fallaría por la pila desactualizada, no por la app.
+
+## Re-ejecución tras G4 (2026-11-23 02:27, orquestador)
+
+Pila reconstruida con volumen limpio (`docker compose down -v && docker compose up -d --build`) con las correcciones `40dfcae` (F-00.12, F-03.2, F-00.13), `8f763cb` (F-03.1, F-02.1) y `0086e5a` (F-03.3 / D-E2E-1).
+
+```text
+$ cd e2e && npx playwright test --reporter=line
+...
+[71/77] [a11y-responsive] › tests\a11y-responsive\keyboard-and-viewports.spec.ts:157:5 › Viewport 320 px › AC-03.35 summary, payment and confirmation have no horizontal scroll, terms scroll and targets are at least 24x24 at 320 px
+...
+[77/77] [a11y-responsive] › tests\a11y-responsive\keyboard-and-viewports.spec.ts:157:5 › Viewport 1280 px › AC-03.35 summary, payment and confirmation have no horizontal scroll, terms scroll and targets are at least 24x24 at 1280 px
+  77 passed (3.7m)
+```
+
+D-E2E-1 queda corregido (AC-03.35 a 320 px en verde). AC-03.6 con RUT con puntos sigue cubierto solo por unit tests de `maskDocument`; el seed ya admite ese formato (F-03.2).
