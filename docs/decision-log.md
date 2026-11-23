@@ -184,6 +184,22 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
   - Se mantienen los requisitos de accesibilidad de las specs: contraste AA (texto normal ≥ 4,5:1), foco visible, objetivos táctiles de 24 px o más, sin desplazamiento horizontal desde 320 px.
 - **Verificación prevista:** unit tests, build, e2e completos contra la pila reconstruida y capturas a 375 px y escritorio.
 
+## D13 — Ampliación de D12: logo, tipografía, ilustración y experiencia de uso (2026-11-23)
+
+- **Contexto:** el humano revisó el resultado de D12 ("Me gusta") y pidió acercarlo más al sitio de SURA.
+- **Motivo literal del humano:** "Me gusta pero podemos hacerlo mas amigable y similar, te adjunto una imagen q puedes agregar para hacerlo mas amigable, lo puedes poner con las letras blancas para q se vea por encima de l fondo azul q dejaste [...] quiero que uses el mismo eestilo de tipo de letra que usan en la url q te suministre [...] diseñes una imagen relavionada con lo q vamo s ahacer, puedes poner un automovil [...] piknsa en la edperienica de usuario, el paso de vistas q haya un lazy loadigna, etc pero que se vea el profesionalimos, los estilos de los inputs, de los dropdowns, hazlo bien"
+- **Estado:** Aprobado (decisión del propio humano).
+- **Cambios respecto a los límites de D12, señalados de forma explícita:**
+  1. **Logo:** D12 excluía logotipos. Ahora se usa en la banda superior el logo "Seguros SURA" que aportó el humano, convertido a blanco por el orquestador. Es decorativo (`alt=""`), porque un texto alternativo sería texto en código (G2-2). El logo es marca de SURA y se usa a petición del humano, solo como presentación de la prueba técnica.
+  2. **Tipografía:** la fuente `SuraSans` es propietaria y no se copia de su sitio. Se usa **Figtree**, una sans geométrica con licencia OFL de aspecto parecido, autoalojada con el paquete npm `@fontsource-variable/figtree`. Es una dependencia nueva, justificada aquí; la CSP no cambia porque la fuente se sirve desde `'self'`.
+  3. **Ilustración:** se crea una ilustración SVG original (auto y protección) para la pantalla de selección de país. La imagen del sitio de SURA es solo referencia y no se copia. Es decorativa y sin texto.
+- **Experiencia de uso:**
+  - Transición suave al entrar en cada vista, que respeta `prefers-reduced-motion`.
+  - Esqueletos de carga que mantienen el texto "cargando" de G2-2.
+  - Inputs y desplegables con estilo propio y estados hover, foco, error y deshabilitado.
+  - Las rutas ya eran *lazy* (ADR-0001).
+- **Lo que no cambia:** comportamiento, specs, contenido de Strapi, ningún texto nuevo en código, accesibilidad (AA, foco visible, objetivos de 24 px o más, sin scroll horizontal desde 320 px) e `infra/`.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
