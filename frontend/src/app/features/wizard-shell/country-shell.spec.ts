@@ -12,7 +12,13 @@ import {
   pending,
   requestIdOf,
 } from '../../core/cms/testing/fake-cms-client';
-import { strapiC1, strapiC3, strapiC4Complete } from '../../core/cms/testing/strapi-fixtures';
+import {
+  strapiC1,
+  strapiC3,
+  strapiC4Complete,
+  strapiC5,
+  strapiC6,
+} from '../../core/cms/testing/strapi-fixtures';
 import { CLOCK } from '../../core/clock/clock';
 import { WIZARD_STORAGE } from '../../core/storage/wizard-storage';
 import { InMemoryStorage } from '../../core/storage/testing/in-memory-storage';
@@ -36,6 +42,10 @@ const seedHandler =
       }
       case 'C4':
         return countryOf(call) === 'co' ? strapiC4Complete().data : [];
+      case 'C5':
+        return countryOf(call) === 'co' ? strapiC5().data : [];
+      case 'C6':
+        return countryOf(call) === 'co' ? strapiC6().data : [];
       default:
         return pending();
     }
@@ -66,8 +76,15 @@ describe('CountryShell', () => {
 
   const root = () => harness.fixture.nativeElement as HTMLElement;
   const text = (selector: string) => root().querySelector(selector)?.textContent?.trim() ?? null;
-  /** Valid step 1 for the fields of `strapiC4Complete`: steps 2 and 3 require it (REQ-02.19). */
-  const completeStep1 = () =>
+  /**
+   * Valid step 1 for the fields of `strapiC4Complete` and a chosen plan: step 2 requires the first
+   * (REQ-02.19) and the summary both (REQ-03.13).
+   */
+  const completeStep1 = () => {
+    storage.setItem(
+      'ciq.v1.co.plan',
+      JSON.stringify({ planDocumentId: 'p0o9i8u7y6t5r4e3w2q1a0s9' }),
+    );
     storage.setItem(
       'ciq.v1.co.step1',
       JSON.stringify({
@@ -79,6 +96,7 @@ describe('CountryShell', () => {
         },
       }),
     );
+  };
   const open = async (url: string) => {
     await harness.navigateByUrl(url);
     await harness.fixture.whenStable();

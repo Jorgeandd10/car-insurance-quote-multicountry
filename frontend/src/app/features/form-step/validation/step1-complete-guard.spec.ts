@@ -51,7 +51,9 @@ describe('step1CompleteGuard', () => {
     await w.open('/co/summary');
     expect(w.router.url).toBe('/co/form');
 
+    // With step 1 complete, the summary also needs a chosen plan (planSelectedGuard).
     w.storage.setItem('ciq.v1.co.step1', JSON.stringify({ values: validCoValues() }));
+    w.storage.setItem('ciq.v1.co.plan', JSON.stringify({ planDocumentId: 'plan-co-plus' }));
     await w.open('/co/summary');
     expect(w.router.url).toBe('/co/summary');
   });

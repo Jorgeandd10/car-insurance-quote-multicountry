@@ -15,6 +15,13 @@ import { strapiC1, strapiC3 } from '../../../core/cms/testing/strapi-fixtures';
 import { WIZARD_STORAGE } from '../../../core/storage/wizard-storage';
 import { InMemoryStorage } from '../../../core/storage/testing/in-memory-storage';
 import { coFormFieldsDto } from './form-fixtures';
+import {
+  clFactorsDto,
+  clPlansDto,
+  coFactorsDto,
+  coPlansDto,
+  factorsCountryDto,
+} from '../../plans-step/testing/plans-fixtures';
 
 /** Same form for Chile, with the `cl_` key prefix of G3-4. Test-only. */
 export function clFormFieldsDto(): Record<string, unknown>[] {
@@ -33,9 +40,15 @@ export interface WizardContent {
   co: Record<string, unknown>;
   coFields: unknown[];
   clFields: unknown[];
+  /** C5 data of each country. */
+  coPlans: unknown[];
+  clPlans: unknown[];
+  /** `priceFactors` of each country (C6). */
+  coFactors: unknown;
+  clFactors: unknown;
 }
 
-/** C1, C3 and C4 for CO and CL as the seed would answer them; other requests stay pending. */
+/** C1, C3, C4, C5 and C6 for CO and CL as the seed would answer them; C2 and C7 stay pending. */
 export function wizardHandler(content: WizardContent): CmsHandler {
   return async (call) => {
     const code = countryOf(call);
@@ -46,6 +59,14 @@ export function wizardHandler(content: WizardContent): CmsHandler {
         return code === 'co' ? [content.co] : code === 'cl' ? [clCountryDto()] : [];
       case 'C4':
         return code === 'co' ? content.coFields : code === 'cl' ? content.clFields : [];
+      case 'C5':
+        return code === 'co' ? content.coPlans : code === 'cl' ? content.clPlans : [];
+      case 'C6':
+        return code === 'co'
+          ? factorsCountryDto('co', content.coFactors)
+          : code === 'cl'
+            ? factorsCountryDto('cl', content.clFactors)
+            : [];
       default:
         return pending();
     }
@@ -63,6 +84,10 @@ export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
     co: strapiC3().data[0] as unknown as Record<string, unknown>,
     coFields: coFormFieldsDto(),
     clFields: clFormFieldsDto(),
+    coPlans: coPlansDto(),
+    clPlans: clPlansDto(),
+    coFactors: coFactorsDto(),
+    clFactors: clFactorsDto(),
     ...patch,
   };
   const cms = new FakeCmsClient();
@@ -111,6 +136,12 @@ export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
     await settle();
     await settle();
   };
+  const storedPlan = (code: string): unknown => {
+    const raw = storage.getItem(`ciq.v1.${code}.plan`);
+    return raw === null ? null : JSON.parse(raw);
+  };
+  const radio = (planId: string) =>
+    root().querySelector<HTMLInputElement>(`#plan-${planId}`) as HTMLInputElement;
   const storedStep1 = (code: string): unknown => {
     const raw = storage.getItem(`ciq.v1.${code}.step1`);
     return raw === null ? null : JSON.parse(raw);
@@ -129,6 +160,8 @@ export async function createWizardHarness(patch: Partial<WizardContent> = {}) {
     check,
     submit,
     storedStep1,
+    storedPlan,
+    radio,
   };
 }
 

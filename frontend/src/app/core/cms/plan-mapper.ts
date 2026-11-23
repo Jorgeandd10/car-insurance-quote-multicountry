@@ -11,7 +11,7 @@ import {
 } from './strapi-dto';
 
 export interface PlansMapping {
-  /** Valid plans in the order received. Sorting and the single "recommended" are US-02 (4c). */
+  /** Valid plans in the order received. Sorting and the single "recommended": `sort-plans.ts`. */
   readonly plans: readonly Plan[];
   readonly warnings: readonly string[];
 }

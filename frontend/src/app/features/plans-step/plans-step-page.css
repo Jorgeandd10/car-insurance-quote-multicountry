@@ -1,0 +1,104 @@
+/* One column on narrow screens, several on desktop; no horizontal scroll from 320 px (REQ-02.29). */
+.plans-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+legend {
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.plans {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.plan {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  column-gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #8a8a8a;
+  border-radius: 0.5rem;
+}
+
+.plan > :not(input) {
+  grid-column: 2;
+}
+
+.plan--recommended {
+  border: 3px solid #0b57d0;
+}
+
+.plan--selected {
+  background: #eef3fd;
+}
+
+input[type='radio'] {
+  width: 24px;
+  height: 24px;
+  margin: 0.125rem 0 0;
+}
+
+.plan-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.plan-name {
+  font-weight: 700;
+}
+
+.plan-price {
+  flex-basis: 100%;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Recommended is shown as text, not only by colour (REQ-02.5, WCAG 1.4.1). */
+.badge {
+  padding: 0 0.5rem;
+  border-radius: 1rem;
+  background: #0b57d0;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.plan-description {
+  margin: 0.5rem 0 0;
+}
+
+.list-title {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 600;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.notice,
+.error {
+  margin: 1rem 0;
+  font-weight: 600;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}

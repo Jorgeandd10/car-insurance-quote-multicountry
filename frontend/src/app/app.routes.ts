@@ -3,13 +3,15 @@ import { RouteReuseStrategy, Routes, provideRouter } from '@angular/router';
 import { countryCaseGuard } from './core/country/country-case-guard';
 import { CountryRouteReuseStrategy } from './core/country/country-route-reuse-strategy';
 import { step1CompleteGuard } from './features/form-step/validation/step1-complete-guard';
+import { planSelectedGuard } from './features/summary-step/plan-selected-guard';
 import { WizardScreen } from './features/wizard-shell/wizard-screens';
 
 const screen = (value: WizardScreen) => ({ screen: value });
 
 /**
  * Routes (ADR-0001), all lazy loaded. Steps 2 and 3 require a complete step 1 (`step1CompleteGuard`,
- * ADR-0004). `planSelectedGuard` and `confirmationGuard` arrive with US-03 (phase 4d).
+ * ADR-0004); the summary also requires a chosen plan (`planSelectedGuard`). `confirmationGuard`
+ * arrives with US-03 (phase 4d).
  */
 export const routes: Routes = [
   {
@@ -43,7 +45,7 @@ export const routes: Routes = [
       {
         path: 'summary',
         data: screen('summary'),
-        canActivate: [step1CompleteGuard],
+        canActivate: [step1CompleteGuard, planSelectedGuard],
         loadComponent: () =>
           import('./features/summary-step/summary-step-page').then((m) => m.SummaryStepPage),
       },
