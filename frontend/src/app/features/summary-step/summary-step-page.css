@@ -75,6 +75,8 @@ ul {
 
 input[type='checkbox'],
 input[type='radio'] {
+  /* Never shrink inside the flex rows when the label wraps (REQ-03.36, D-E2E-1). */
+  flex: none;
   width: 24px;
   height: 24px;
   margin: 0;
