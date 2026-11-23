@@ -126,6 +126,18 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
 - **Plazo comunicado por el humano:** entrega hasta el 2026-11-23 a las 23:59 (UTC-5).
 - **Ajuste pedido por el humano para los próximos PR:** "para el proximo merge pasame tambien los comentarios para el review del merge". A partir de la Fase 4, cada PR irá acompañado del texto de review listo para pegar.
 
+## Plan de las Fases 4–6 (2026-11-22, 20:40 UTC-5)
+
+- **Presentado:** plan hasta el plazo del 2026-11-23 23:59.
+  - 4a en paralelo: `strapi-developer` (cms, seed, nginx, Docker) y `angular-developer` (base del frontend).
+  - 4b–4d: US-01, US-02 y US-03 en secuencia; integración; demo y PR de la Fase 4 la mañana del 23.
+  - Fase 5: e2e y review 002 en paralelo, G4 y G5.
+  - Fase 6: documentación final y G6, con objetivo antes de las 20:00 del 23.
+  - Commits solo en local durante la noche; push al abrir cada PR con permiso del humano (G1-c).
+- **Ajustes respecto al flujo de `FLOW.md`:** una sola demo al final de la Fase 4 en lugar de una por historia, y una sola review (002) para las tres historias.
+- **Estado:** Aprobado.
+- **Motivo literal del humano:** "Aprobado, arranca"
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
