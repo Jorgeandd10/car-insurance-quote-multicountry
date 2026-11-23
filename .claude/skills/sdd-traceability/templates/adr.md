@@ -1,53 +1,53 @@
-# ADR-NNNN — <Título corto de la decisión>
+# ADR-NNNN — <Short title of the decision>
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Proposed · Accepted (YYYY-MM-DD, G3) · Superseded by ADR-NNNN |
-| Fecha | YYYY-MM-DD |
-| Autor | Software Architect (subagente) |
-| Decisores | Humano |
-| Motivado por | REQ-0X.n, Dn |
+| Status | Proposed · Accepted (YYYY-MM-DD, G3) · Superseded by ADR-NNNN |
+| Date | YYYY-MM-DD |
+| Author | Software Architect (subagent) |
+| Deciders | Human |
+| Motivated by | REQ-0X.n, Dn |
 
-## Contexto y problema
+## Context and problem
 
-Qué problema resolvemos y por qué ahora. Restricciones del PDF que aplican.
+What problem we solve and why now. PDF constraints that apply.
 
-## Factores de decisión
+## Decision drivers
 
 - ...
 
-## Opciones consideradas
+## Considered options
 
-1. Opción A
-2. Opción B
-3. Opción C (si aplica)
+1. Option A
+2. Option B
+3. Option C (if applicable)
 
-## Decisión
+## Decision
 
-Opción elegida: **"Opción X"**, porque ...
+Chosen option: **"Option X"**, because ...
 
-### Consecuencias
+### Consequences
 
-- Positivas: ...
-- Negativas: ...
-- Riesgos y mitigación: ...
+- Positive: ...
+- Negative: ...
+- Risks and mitigation: ...
 
-### Confirmación
+### Confirmation
 
-Cómo se verifica que la implementación cumple la decisión (test, review, comando).
+How to verify that the implementation complies with the decision (test, review, command).
 
-## Pros y contras de las opciones
+## Pros and cons of the options
 
-### Opción A
+### Option A
 
-- A favor: ...
-- En contra: ...
+- For: ...
+- Against: ...
 
-### Opción B
+### Option B
 
-- A favor: ...
-- En contra: ...
+- For: ...
+- Against: ...
 
-## Referencias
+## References
 
-Documentación oficial consultada (URL y fecha).
+Official documentation consulted (URL and date).

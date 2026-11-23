@@ -1,181 +1,183 @@
-# ADR-0001 — Estrategia multipaís en Strapi y Angular
+# ADR-0001 — Multi-country strategy in Strapi and Angular
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Accepted (2026-11-22, G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisores | Humano (G3) |
-| Motivado por | D3, D2, D7 · G2-1, G2-2, G2-3, G2-4, G2-6 · REQ-01.1, REQ-01.2, REQ-01.12, REQ-01.13, REQ-01.18, REQ-01.25, REQ-01.28, REQ-02.1, REQ-02.6, REQ-02.32, REQ-03.15, REQ-03.18, REQ-03.37, REQ-03.38 |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Deciders | Human (G3) |
+| Motivated by | D3, D2, D7 · G2-1, G2-2, G2-3, G2-4, G2-6 · REQ-01.1, REQ-01.2, REQ-01.12, REQ-01.13, REQ-01.18, REQ-01.25, REQ-01.28, REQ-02.1, REQ-02.6, REQ-02.32, REQ-03.15, REQ-03.18, REQ-03.37, REQ-03.38 |
 
-## Contexto y problema
+## Context and problem
 
-El PDF exige que "the same application and the same build serve Colombia and Chile", que la estrategia multipaís quede documentada en un ADR y que el negocio cambie formulario, planes, precios y textos desde Strapi sin cambiar código. D3 (G0) ya fijó el enfoque: colección `Country` con relaciones, sin i18n de Strapi, y país en la URL. Este ADR documenta las alternativas y concreta lo que D3 deja abierto:
+The PDF requires that "the same application and the same build serve Colombia and Chile", that the multi-country strategy be documented in an ADR, and that the business change the form, plans, prices and texts from Strapi without changing code. D3 (G0) already set the approach: a `Country` collection with relations, no Strapi i18n, and the country in the URL. This ADR documents the alternatives and specifies what D3 leaves open:
 
-1. Cómo se modela en Strapi el contenido de cada país (formulario, planes, factores, términos y textos de interfaz).
-2. Dónde vive el contenido que no pertenece a ningún país: la página `/` de selección de país (G2-3, REQ-01.2).
-3. Cómo se representan los roles de campo (G2-1) y las secciones (G2-6).
-4. Cómo resuelve Angular el país y cómo se forman las rutas del wizard (D7).
+1. How each country's content (form, plans, factors, terms and interface texts) is modeled in Strapi.
+2. Where the content that belongs to no country lives: the `/` country selection page (G2-3, REQ-01.2).
+3. How field roles (G2-1) and sections (G2-6) are represented.
+4. How Angular resolves the country and how the wizard routes are built (D7).
 
-## Factores de decisión
+## Decision drivers
 
-- Un único build (PDF). Nada que dependa del país puede resolverse en tiempo de compilación.
-- Configurable sin código: campos, opciones, validaciones, planes, factores, términos y textos (PDF; `CLAUDE.md` §11; G2-2).
-- CO y CL usan el mismo idioma (español). Las diferencias son de mercado (moneda, documento, edad mínima, planes), no de idioma.
-- Un país nuevo no debería exigir código (caso C de `country-content`).
-- Las reglas del PDF se enlazan por rol y no por etiqueta ni orden (G2-1). El catálogo de roles y el de secciones son cerrados y viven en código (REQ-01.28, REQ-01.12).
-- El modelo debe poder impedir que haya más de un texto de términos por país (Q-03.12).
-- Seguridad D4: lecturas públicas mínimas y sin token.
+- A single build (PDF). Nothing that depends on the country can be resolved at build time.
+- Configurable without code: fields, options, validations, plans, factors, terms and texts (PDF; `CLAUDE.md` §11; G2-2).
+- CO and CL use the same language (Spanish). The differences are market differences (currency, document, minimum age, plans), not language differences.
+- A new country should not require code (case C of `country-content`).
+- The PDF rules are linked by role, not by label or order (G2-1). The role catalog and the section catalog are closed and live in code (REQ-01.28, REQ-01.12).
+- The model must be able to prevent more than one terms text per country (Q-03.12).
+- D4 security: minimal public reads and no token.
 
-## Opciones consideradas
+## Considered options
 
-**Eje A: modelado del país en Strapi**
+**Axis A: modeling the country in Strapi**
 
-1. **A1. Colección `Country` + relaciones (D3).** `Country` guarda los datos del mercado, los textos de interfaz, los factores de precio y los términos. `form-field` y `plan` son colecciones con una relación `manyToOne` hacia `Country`.
-2. **A2. i18n de Strapi, con un locale por país** (`es-CO`, `es-CL`). Cada documento tiene una versión por locale y el país se deduce del parámetro `locale`.
-3. **A3. Un build, un entorno o una instancia de Strapi por país.** `environment.co.ts` y `environment.cl.ts`, dos despliegues, o dos bases de contenido.
+1. **A1. `Country` collection + relations (D3).** `Country` holds the market data, the interface texts, the price factors and the terms. `form-field` and `plan` are collections with a `manyToOne` relation to `Country`.
+2. **A2. Strapi i18n, with one locale per country** (`es-CO`, `es-CL`). Each document has one version per locale and the country is inferred from the `locale` parameter.
+3. **A3. One build, environment or Strapi instance per country.** `environment.co.ts` and `environment.cl.ts`, two deployments, or two content databases.
 
-**Eje B: contenido global (página `/`)**
+**Axis B: global content (`/` page)**
 
-1. **B1. Single type `country-selection`** con los textos de la página.
-2. **B2. Un pseudo-país "global"** en la colección `Country`.
-3. **B3. Textos de `/` en código.**
+1. **B1. Single type `country-selection`** with the page texts.
+2. **B2. A "global" pseudo-country** in the `Country` collection.
+3. **B3. `/` texts in code.**
 
-**Eje C: textos de interfaz por país**
+**Axis C: interface texts per country**
 
-1. **C1. Componentes tipados dentro de `Country`**, uno por pantalla (`ui.wizard-texts`, `ui.form-step-texts`, `ui.plans-step-texts`, `ui.summary-step-texts`, `ui.confirmation-texts`).
-2. **C2. Colección clave-valor `ui-text`** (`key`, `value`, relación a `Country`).
+1. **C1. Typed components inside `Country`**, one per screen (`ui.wizard-texts`, `ui.form-step-texts`, `ui.plans-step-texts`, `ui.summary-step-texts`, `ui.confirmation-texts`).
+2. **C2. Key-value collection `ui-text`** (`key`, `value`, relation to `Country`).
 
-**Eje D: resolución del país en Angular**
+**Axis D: country resolution in Angular**
 
-1. **D1. Primer segmento de la ruta** (`/co/...`), como fija D3.
-2. **D2. Subdominio** (`co.example.test`).
-3. **D3. Parámetro de query o país guardado en el navegador.**
+1. **D1. First route segment** (`/co/...`), as D3 sets.
+2. **D2. Subdomain** (`co.example.test`).
+3. **D3. Query parameter or country stored in the browser.**
 
-## Decisión
+## Decision
 
-Opción elegida: **A1 + B1 + C1 + D1**.
+Chosen option: **A1 + B1 + C1 + D1**.
 
-**Strapi** (detalle en [`docs/architecture/content-model.md`](../architecture/content-model.md)):
+**Strapi** (details in [`docs/architecture/content-model.md`](../architecture/content-model.md)):
 
-- `country` (collection type, Draft & Publish): `code` (único, `^[a-z]{2}$`), `name`, `intlLocale` (BCP 47, p. ej. `es-CO`; `locale` es un nombre reservado en Strapi 5), `currency` (ISO 4217), `minimumAge` (G2-4), los cinco componentes de textos (C1), `priceFactors` (ADR-0005) y `termsAndConditions` (ADR-0006).
-- `form-field` y `plan` (collection types, Draft & Publish) con relación `country` `manyToOne` (inversa `oneToMany` en `Country`). Cada campo y cada plan se publica por separado, como piden AC-01.3, AC-01.10, AC-01.11 y AC-02.5.
-- Los términos son un atributo de `Country` y no una colección aparte. Como `code` es único, **no puede haber más de un texto de términos por país** (Q-03.12). La app sigue defendiéndose si llegaran dos países con el mismo código (REQ-03.18).
-- **Roles (G2-1):** atributo `role` de `form-field`, de tipo `enumeration` con exactamente los tres valores del catálogo de código (`documentNumber`, `birthDate`, `vehicleYear`), opcional y con un valor por campo como máximo. Un rol nuevo exige código (caso B de `country-content`), así que el enum de Strapi y el de TypeScript cambian juntos.
-- **Secciones (G2-6):** atributo `section` de tipo `enumeration` (`policyholder`, `vehicle`), obligatorio. El orden de las secciones es fijo en código; sus leyendas son textos del país (`ui.wizard-texts`), compartidos por el paso 1 y el resumen.
-- **i18n desactivado** en todos los content types (`pluginOptions.i18n.localized` ausente o `false`).
-- **Contenido global (B1):** single type `country-selection` (Draft & Publish) con `heading`, `intro` (opcional) y `countryListLabel`. La lista de países sale de los `Country` publicados.
+- `country` (collection type, Draft & Publish): `code` (unique, `^[a-z]{2}$`), `name`, `intlLocale` (BCP 47, e.g. `es-CO`; `locale` is a reserved name in Strapi 5), `currency` (ISO 4217), `minimumAge` (G2-4), the five text components (C1), `priceFactors` (ADR-0005) and `termsAndConditions` (ADR-0006).
+- `form-field` and `plan` (collection types, Draft & Publish) with a `manyToOne` `country` relation (inverse `oneToMany` on `Country`). Each field and each plan is published separately, as AC-01.3, AC-01.10, AC-01.11 and AC-02.5 require.
+- The terms are an attribute of `Country`, not a separate collection. Since `code` is unique, **there cannot be more than one terms text per country** (Q-03.12). The app still defends itself if two countries with the same code arrived (REQ-03.18).
+- **Roles (G2-1):** `role` attribute of `form-field`, of type `enumeration` with exactly the three values of the code catalog (`documentNumber`, `birthDate`, `vehicleYear`), optional and with at most one value per field. A new role requires code (case B of `country-content`), so the Strapi enum and the TypeScript enum change together.
+- **Sections (G2-6):** `section` attribute of type `enumeration` (`policyholder`, `vehicle`), required. The section order is fixed in code; their legends are country texts (`ui.wizard-texts`), shared by step 1 and the summary.
+- **i18n disabled** on all content types (`pluginOptions.i18n.localized` absent or `false`).
+- **Global content (B1):** single type `country-selection` (Draft & Publish) with `heading`, `intro` (optional) and `countryListLabel`. The country list comes from the published `Country` entries.
 
 **Angular:**
 
-- Rutas (paths en inglés, `CLAUDE.md` §11):
+- Routes (paths in English, `CLAUDE.md` §11):
 
-  | Ruta | Pantalla | Paso (D7) |
+  | Route | Screen | Step (D7) |
   |---|---|---|
-  | `/` | Selección de país | No es paso |
-  | `/:country` | Redirige a `/:country/form` | — |
-  | `/:country/form` | Datos del asegurado y del vehículo | 1 |
-  | `/:country/plans` | Planes | 2 |
-  | `/:country/summary` | Resumen y pago simulado | 3 |
-  | `/:country/confirmation` | Confirmación | No es paso |
-  | `/:country/**` | Redirige a `/:country/form` | — |
+  | `/` | Country selection | Not a step |
+  | `/:country` | Redirects to `/:country/form` | — |
+  | `/:country/form` | Policyholder and vehicle data | 1 |
+  | `/:country/plans` | Plans | 2 |
+  | `/:country/summary` | Summary and simulated payment | 3 |
+  | `/:country/confirmation` | Confirmation | Not a step |
+  | `/:country/**` | Redirects to `/:country/form` | — |
 
-- Un **`CountryShell`** (componente de la ruta `/:country`) resuelve el país y muestra "cargando", "error de carga" con "reintentar", "país no disponible" con los países publicados como enlaces, o el paso. El shell contiene el indicador de pasos (REQ-01.31).
-- **Mayúsculas:** un guard funcional de la ruta `/:country` devuelve un `RedirectCommand` hacia la misma URL con el segmento en minúsculas (`/CO/plans` → `/co/plans`). Solo se normaliza la caja. Un código que no está publicado no redirige: muestra "país no disponible" (REQ-01.2).
-- **`CountryContext`**: una señal de solo lectura con el país activo (código, `intlLocale`, moneda, edad mínima y textos), que alimenta a los pasos. Ningún componente lee el país de otra fuente.
-- **Formato por país:** `Intl.NumberFormat` e `Intl.DateTimeFormat` con `intlLocale` y `currency` del país. **No** se usa `LOCALE_ID` ni los pipes de Angular que dependen de datos de locale registrados al compilar, porque el locale se conoce en tiempo de ejecución.
-- Ninguna detección por IP ni por idioma del navegador (G2-3).
+- A **`CountryShell`** (component of the `/:country` route) resolves the country and shows "cargando", "error de carga" with "reintentar", "país no disponible" with the published countries as links, or the step. The shell contains the step indicator (REQ-01.31).
+- **Uppercase:** a functional guard on the `/:country` route returns a `RedirectCommand` to the same URL with the segment in lowercase (`/CO/plans` → `/co/plans`). Only the case is normalized. A code that is not published does not redirect: it shows "país no disponible" (REQ-01.2).
+- **`CountryContext`**: a read-only signal with the active country (code, `intlLocale`, currency, minimum age and texts), which feeds the steps. No component reads the country from another source.
+- **Per-country formatting:** `Intl.NumberFormat` and `Intl.DateTimeFormat` with the country's `intlLocale` and `currency`. `LOCALE_ID` and the Angular pipes that depend on locale data registered at build time are **not** used, because the locale is known at runtime.
+- No detection by IP or by browser language (G2-3).
 
-## Consecuencias
+## Consequences
 
-- **Positivas:**
-  - Un solo build y una sola instancia de Strapi. Añadir un país es contenido (entrada `Country`, campos, planes) y no código (caso C de `country-content`).
-  - El país forma parte del estado navegable: se puede enlazar, recargar y separar el almacenamiento por país (REQ-01.25, REQ-03.37).
-  - Las consultas filtran por relación (`filters[country][code][$eq]=co`), una operación documentada de la REST API.
-  - Los textos son atributos tipados. Un texto que falta se detecta sin buscar claves libres, y el admin de Strapi muestra un formulario por pantalla.
-  - Términos únicos por país por construcción.
-- **Negativas:**
-  - `Country` es un documento grande (datos del mercado, unas 45 cadenas de texto, factores y términos). Cambiar un texto, un factor o los términos exige volver a publicar el país entero, y un borrador a medias de `Country` bloquea publicar otros cambios del mismo país hasta completarlo o descartarlo.
-  - Añadir un texto nuevo de interfaz exige cambiar el esquema de un componente y el código (es un caso B, no A).
-  - Sin i18n, si un país necesitara dos idiomas habría que superseder este ADR (p. ej., activar i18n solo para los textos).
-  - Strapi no impone que un `form-field` o un `plan` tenga país: uno sin relación simplemente no aparece en ningún país.
-  - Los roles se duplican: enum en Strapi y tipo en TypeScript. Si divergen, el mapper ignora el rol desconocido con aviso (tabla 5.3 de US-01) y puede aplicar G2-5.
-- **Riesgos y mitigación:**
-  - *Relaciones con Draft & Publish:* un campo publicado que apunta a un país despublicado no aparece; es el comportamiento buscado. Se verifica con el seed (país, campos y planes publicados).
-  - *Rendimiento de los filtros por relación:* la documentación de Strapi advierte que los filtros profundos pueden ser lentos. Con dos países y decenas de documentos no aplica; se revisa si el volumen crece.
+- **Positive:**
+  - A single build and a single Strapi instance. Adding a country is content (`Country` entry, fields, plans) and not code (case C of `country-content`).
+  - The country is part of the navigable state: it can be linked, reloaded and used to separate storage per country (REQ-01.25, REQ-03.37).
+  - Queries filter by relation (`filters[country][code][$eq]=co`), a documented REST API operation.
+  - Texts are typed attributes. A missing text is detected without searching free-form keys, and the Strapi admin shows one form per screen.
+  - Unique terms per country by construction.
+- **Negative:**
+  - `Country` is a large document (market data, about 45 text strings, factors and terms). Changing a text, a factor or the terms requires republishing the whole country, and a half-finished draft of `Country` blocks publishing other changes to the same country until it is completed or discarded.
+  - Adding a new interface text requires changing a component schema and the code (it is a case B, not A).
+  - Without i18n, if a country needed two languages this ADR would have to be superseded (e.g. enabling i18n only for the texts).
+  - Strapi does not enforce that a `form-field` or a `plan` has a country: one without the relation simply does not appear in any country.
+  - Roles are duplicated: enum in Strapi and type in TypeScript. If they diverge, the mapper ignores the unknown role with a warning (table 5.3 of US-01) and may apply G2-5.
+- **Risks and mitigation:**
+  - *Relations with Draft & Publish:* a published field that points to an unpublished country does not appear; this is the intended behavior. It is verified with the seed (country, fields and plans published).
+  - *Performance of relation filters:* the Strapi documentation warns that deep filters can be slow. With two countries and dozens of documents it does not apply; it is reviewed if the volume grows.
 
-### Confirmación
+### Confirmation
 
-- E2E AC-01.1, AC-01.5, AC-01.6 (incluido `/CO` → `/co`), AC-01.22, AC-02.5 y AC-03.32 contra el seed.
-- Unit del guard de minúsculas y del `CountryShell` (estados de carga, error y país no disponible).
-- Review: `grep -rE "LOCALE_ID|registerLocaleData|environment\.(co|cl)" frontend/src` sin resultados; ningún content type con `i18n.localized: true` en `cms/src/api/**/schema.json`.
+- E2E AC-01.1, AC-01.5, AC-01.6 (including `/CO` → `/co`), AC-01.22, AC-02.5 and AC-03.32 against the seed.
+- Unit tests of the lowercase guard and of the `CountryShell` (loading, error and country-not-available states).
+- Review: `grep -rE "LOCALE_ID|registerLocaleData|environment\.(co|cl)" frontend/src` with no results; no content type with `i18n.localized: true` in `cms/src/api/**/schema.json`.
 
-## Pros y contras de las opciones
+## Pros and cons of the options
 
-### A1. Colección `Country` + relaciones (elegida, D3)
+### A1. `Country` collection + relations (chosen, D3)
 
-- A favor: modela el mercado como entidad propia (moneda, edad mínima, locale de formato); cada campo y cada plan tiene su propio ciclo de publicación; un país nuevo es contenido.
-- En contra: hay que filtrar por relación en cada consulta; `Country` crece con los textos.
+- For: models the market as its own entity (currency, minimum age, formatting locale); each field and each plan has its own publication cycle; a new country is content.
+- Against: every query has to filter by relation; `Country` grows with the texts.
 
-### A2. i18n de Strapi (un locale por país)
+### A2. Strapi i18n (one locale per country)
 
-- A favor: soporte nativo en Strapi 5 (`?locale=es-CO`); el admin trae un selector de locale; los textos traducibles quedan "por país" sin relaciones.
-- En contra: confunde idioma con mercado. CO y CL hablan el mismo idioma, y un futuro `en-CO` rompería la equivalencia locale = país. Los atributos no localizados se comparten entre locales, así que el tipo, el orden o las opciones de un campo se compartirían o habría que localizarlos todos. Los datos del mercado (moneda, edad mínima) siguen necesitando una entidad propia. Además, `locale` y `localizations` son nombres reservados y el plugin añade complejidad a las consultas y a las relaciones. D3 ya la descartó en G0.
+- For: native support in Strapi 5 (`?locale=es-CO`); the admin includes a locale selector; translatable texts become "per country" without relations.
+- Against: it conflates language with market. CO and CL speak the same language, and a future `en-CO` would break the locale = country equivalence. Non-localized attributes are shared across locales, so a field's type, order or options would be shared, or all of them would have to be localized. Market data (currency, minimum age) still needs its own entity. In addition, `locale` and `localizations` are reserved names and the plugin adds complexity to queries and relations. D3 already discarded it in G0.
 
-### A3. Build, entorno o Strapi por país
+### A3. Build, environment or Strapi per country
 
-- A favor: aislamiento total; cada país se despliega por separado; no hay que filtrar por país.
-- En contra: **incumple el PDF** ("the same application and the same build"). Duplica la infraestructura y el seed, y un país nuevo exige un despliegue. Se documenta porque es una práctica real del sector, pero queda descartada por una restricción del PDF.
+- For: full isolation; each country is deployed separately; no need to filter by country.
+- Against: **it violates the PDF** ("the same application and the same build"). It duplicates the infrastructure and the seed, and a new country requires a deployment. It is documented because it is a real industry practice, but it is discarded because of a PDF constraint.
 
-### B1. Single type `country-selection` (elegida)
+### B1. Single type `country-selection` (chosen)
 
-- A favor: separa el contenido global del contenido por país; una sola entrada, sin ambigüedad; tiene Draft & Publish propio.
-- En contra: un content type y un permiso público más (`find` del single type).
+- For: separates global content from per-country content; a single entry, with no ambiguity; it has its own Draft & Publish.
+- Against: one more content type and one more public permission (`find` on the single type).
 
-### B2. Pseudo-país "global"
+### B2. "Global" pseudo-country
 
-- A favor: no añade content types.
-- En contra: contamina la lista de países (habría que excluirlo de `/` y de "país no disponible"); obliga a rellenar campos de mercado sin sentido (moneda, edad).
+- For: adds no content types.
+- Against: it pollutes the country list (it would have to be excluded from `/` and from "país no disponible"); it forces filling in meaningless market fields (currency, age).
 
-### B3. Textos de `/` en código
+### B3. `/` texts in code
 
-- A favor: es lo más simple.
-- En contra: **contradice G2-2**, porque solo cuatro textos pueden estar en código.
+- For: it is the simplest.
+- Against: **it contradicts G2-2**, because only four texts may live in code.
 
-### C1. Componentes tipados por pantalla (elegida)
+### C1. Typed components per screen (chosen)
 
-- A favor: tipado, campos obligatorios por pantalla, formulario legible en el admin, sin claves libres con erratas, una sola petición.
-- En contra: un texto nuevo exige cambiar el esquema; `Country` crece.
+- For: typed, required fields per screen, readable form in the admin, no free-form keys with typos, a single request.
+- Against: a new text requires changing the schema; `Country` grows.
 
-### C2. Colección clave-valor `ui-text`
+### C2. Key-value collection `ui-text`
 
-- A favor: añadir un texto no exige cambiar el esquema de Strapi.
-- En contra: el código igualmente tiene que conocer la clave, así que un texto nuevo sigue exigiendo código. Las claves son texto libre (una errata equivale a un texto ausente). Strapi no puede impedir claves duplicadas por país. El admin muestra decenas de documentos sueltos y hace falta otra petición paginada.
+- For: adding a text does not require changing the Strapi schema.
+- Against: the code still has to know the key, so a new text still requires code. Keys are free text (a typo equals a missing text). Strapi cannot prevent duplicate keys per country. The admin shows dozens of loose documents and another paginated request is needed.
 
-### D1. País en el primer segmento de la ruta (elegida, D3)
+### D1. Country in the first route segment (chosen, D3)
 
-- A favor: un único origen; funciona en `localhost` sin configuración; el e2e navega por URL; enlazable.
-- En contra: el usuario puede escribir cualquier código, lo que obliga a gestionar los desconocidos y las mayúsculas (ya especificado en G2-3).
+- For: a single origin; works on `localhost` without configuration; the e2e navigates by URL; linkable.
+- Against: the user can type any code, which forces handling unknown codes and uppercase (already specified in G2-3).
 
-### D2. Subdominio
+### D2. Subdomain
 
-- A favor: URLs limpias; permite cookies y CSP por país.
-- En contra: exige DNS o `hosts` en local y en el e2e, y nginx con `server_name` por país; contradice D3.
+- For: clean URLs; allows cookies and CSP per country.
+- Against: requires DNS or `hosts` locally and in the e2e, and nginx with a `server_name` per country; contradicts D3.
 
-### D3. Query param o país guardado
+### D3. Query param or stored country
 
-- A favor: simple de implementar.
-- En contra: el país guardado no se puede enlazar ni recargar de forma fiable; con dos pestañas el estado se mezcla; contradice D3.
+- For: simple to implement.
+- Against: the stored country cannot be linked or reloaded reliably; with two tabs the state gets mixed; contradicts D3.
 
-## Referencias
+## References
 
-Consultadas el 2026-11-22:
+Consulted on 2026-11-22:
 
-- Strapi 5, REST API (endpoints de collection y single types, formato con `documentId`): https://docs.strapi.io/cms/api/rest
-- Strapi 5, filtros por relación (`filters[relation][field][$operator]`) y aviso de rendimiento: https://docs.strapi.io/cms/api/rest/filters
-- Strapi 5, modelos (`kind`, relaciones `manyToOne`/`oneToMany`, `options.draftAndPublish`): https://docs.strapi.io/cms/backend-customization/models
-- Strapi 5, nombres reservados (`locale`, `localizations`, `status`, `meta`, `document`...): https://docs.strapi.io/cms/migration/v4-to-v5/breaking-changes/attributes-and-content-types-names-reserved
+- Strapi 5, REST API (collection and single type endpoints, format with `documentId`): https://docs.strapi.io/cms/api/rest
+- Strapi 5, relation filters (`filters[relation][field][$operator]`) and performance warning: https://docs.strapi.io/cms/api/rest/filters
+- Strapi 5, models (`kind`, `manyToOne`/`oneToMany` relations, `options.draftAndPublish`): https://docs.strapi.io/cms/backend-customization/models
+- Strapi 5, reserved names (`locale`, `localizations`, `status`, `meta`, `document`...): https://docs.strapi.io/cms/migration/v4-to-v5/breaking-changes/attributes-and-content-types-names-reserved
 - Strapi 5, Draft & Publish: https://docs.strapi.io/cms/features/draft-and-publish
-- Angular, guards (`CanActivateFn`, retorno `UrlTree` o `RedirectCommand`): https://angular.dev/guide/routing/route-guards
-- Angular, zoneless por defecto desde v21: https://angular.dev/guide/zoneless
-- Versiones del proyecto: Angular 22.3.0, Strapi 5.63.0 y Node 24.22.3, verificadas en local (`docs/phase-1/analysis.md`, "Entorno verificado (local)").
+- Angular, guards (`CanActivateFn`, returning `UrlTree` or `RedirectCommand`): https://angular.dev/guide/routing/route-guards
+- Angular, zoneless by default since v21: https://angular.dev/guide/zoneless
+- Project versions: Angular 22.3.0, Strapi 5.63.0 and Node 24.22.3, verified locally (`docs/phase-1/analysis.md`, "Entorno verificado (local)").
+
+> Translated into English on 2026-11-23 (D16); no content change.

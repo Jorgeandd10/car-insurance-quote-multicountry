@@ -5,76 +5,76 @@ description: Spec-Driven Development procedure and traceability conventions for 
 
 # sdd-traceability
 
-Variante propia y ligera de SDD (decisión D10). La spec aprobada es la fuente de verdad; el código, los tests y las revisiones se derivan de ella y la citan por ID, de modo que el hilo **US → spec → ADR → código → tests → review** se puede seguir con `git log` y `grep`.
+Own lightweight variant of SDD (decision D10). The approved spec is the source of truth; code, tests and reviews are derived from it and cite it by ID, so the thread **US → spec → ADR → code → tests → review** can be followed with `git log` and `grep`.
 
 ## 1. IDs
 
-| ID | Qué es | Dónde nace | Ejemplo |
+| ID | What it is | Where it is born | Example |
 |---|---|---|---|
-| `US-0X` | Historia de usuario del PDF | PDF | `US-01` |
-| `REQ-0X.n` | Requisito verificable de la spec | `specs/US-0X/spec.md` | `REQ-01.3` |
-| `AC-0X.n` | Criterio de aceptación (Gherkin) | spec | `AC-01.2` |
-| `Q-0X.n` | Pregunta abierta o hueco de la historia | spec | `Q-01.4` |
-| `ADR-NNNN` | Decisión de arquitectura | `docs/adr/NNNN-titulo.md` | `ADR-0001` |
-| `F-0X.n` | Hallazgo de code review | `reviews/` | `F-02.3` |
-| `Dn` | Decisión humana en un gate | `docs/decision-log.md` | `D5` |
+| `US-0X` | User story from the PDF | PDF | `US-01` |
+| `REQ-0X.n` | Verifiable requirement of the spec | `specs/US-0X/spec.md` | `REQ-01.3` |
+| `AC-0X.n` | Acceptance criterion (Gherkin) | spec | `AC-01.2` |
+| `Q-0X.n` | Open question or gap of the story | spec | `Q-01.4` |
+| `ADR-NNNN` | Architecture decision | `docs/adr/NNNN-title.md` | `ADR-0001` |
+| `F-0X.n` | Code review finding | `reviews/` | `F-02.3` |
+| `Dn` | Human decision at a gate | `docs/decision-log.md` | `D5` |
 
-- `0X = 00` se usa para lo transversal (seguridad, entorno, infraestructura).
-- Los IDs **no se reutilizan**. Un requisito eliminado se marca `~~REQ-01.3~~ (retirado, motivo)`.
-- Numeración secuencial dentro de cada historia.
+- `0X = 00` is used for cross-cutting matters (security, environment, infrastructure).
+- IDs **are not reused**. A removed requirement is marked `~~REQ-01.3~~ (withdrawn, reason)`.
+- Sequential numbering within each story.
 
-## 2. Procedimientos
+## 2. Procedures
 
-### 2.1 Escribir una spec (Requirements Analyst)
+### 2.1 Write a spec (Requirements Analyst)
 
-1. Copia [templates/spec.md](templates/spec.md) a `specs/US-0X/spec.md`.
-2. Copia **literalmente** del PDF la historia, el contexto, las reglas de negocio y los escenarios.
-3. Convierte cada regla y cada escenario en uno o más `REQ` verificables. Cada `REQ` indica su **origen**: `PDF`, `AC del PDF`, `Dn` o `Q-0X.n resuelta`.
-4. Busca huecos con la lista de la sección 3 y regístralos como `Q`. Cada `Q` lleva una **propuesta** de respuesta; nunca se resuelve en silencio.
-5. Añade `AC` nuevos en Gherkin para los huecos resueltos y para estados de carga, vacío y error.
-6. Estado `Draft` hasta que el humano la apruebe en G2; entonces `Approved` con fecha.
+1. Copy [templates/spec.md](templates/spec.md) to `specs/US-0X/spec.md`.
+2. Copy **literally** from the PDF the story, the context, the business rules and the scenarios.
+3. Turn each rule and each scenario into one or more verifiable `REQ`. Each `REQ` states its **origin**: `PDF`, `PDF AC`, `Dn` or `Q-0X.n resolved`.
+4. Look for gaps with the list in section 3 and record them as `Q`. Each `Q` carries a **proposed** answer; it is never resolved silently.
+5. Add new `AC` in Gherkin for the resolved gaps and for loading, empty and error states.
+6. Status `Draft` until the human approves it in G2; then `Approved` with a date.
 
-### 2.2 Escribir un ADR (Software Architect)
+### 2.2 Write an ADR (Software Architect)
 
-1. Copia [templates/adr.md](templates/adr.md) a `docs/adr/NNNN-titulo-en-kebab-case.md`.
-2. Mínimo **dos opciones reales** consideradas, con pros y contras. Si una alternativa es de paja, no cuenta.
-3. Consecuencias positivas **y negativas**.
-4. Enlaza los `REQ` y `Dn` que motivan la decisión.
-5. Estado `Proposed` → `Accepted` en G3. Un ADR aceptado no se edita: se crea otro que lo `Supersedes`.
+1. Copy [templates/adr.md](templates/adr.md) to `docs/adr/NNNN-title-in-kebab-case.md`.
+2. At least **two real options** considered, with pros and cons. A straw-man alternative does not count.
+3. Positive **and negative** consequences.
+4. Link the `REQ` and `Dn` that motivate the decision.
+5. Status `Proposed` → `Accepted` in G3. An accepted ADR is not edited: another one is created that `Supersedes` it.
 
-### 2.3 Escribir un informe de review (Code Reviewer)
+### 2.3 Write a review report (Code Reviewer)
 
-1. Copia [templates/review.md](templates/review.md) a `reviews/NNN-US-0X-tema.md`.
-2. Registra el rango de commits revisado (`git diff <base>..<head>`) y los comandos ejecutados con su salida real.
-3. Cada hallazgo: `F-0X.n`, severidad, `archivo:línea`, evidencia, `REQ` o regla afectada, propuesta.
-4. No hay hallazgos sin `archivo:línea` ni sin evidencia. Si no encuentras nada, dilo y explica qué revisaste.
-5. Cierre: cada hallazgo queda `Fixed in <sha>`, `Accepted (D-n)` o `Rejected (motivo)`. Solo el humano acepta o rechaza (G4).
+1. Copy [templates/review.md](templates/review.md) to `reviews/NNN-US-0X-topic.md`.
+2. Record the range of commits reviewed (`git diff <base>..<head>`) and the commands run with their real output.
+3. Each finding: `F-0X.n`, severity, `file:line`, evidence, affected `REQ` or rule, proposal.
+4. There are no findings without `file:line` or without evidence. If you find nothing, say so and explain what you reviewed.
+5. Close: each finding ends up `Fixed in <sha>`, `Accepted (D-n)` or `Rejected (reason)`. Only the human accepts or rejects (G4).
 
-### 2.4 Escribir un informe de pruebas (QA Engineer / Angular Developer)
+### 2.4 Write a test report (QA Engineer / Angular Developer)
 
-1. Copia [templates/test-report.md](templates/test-report.md) a `docs/qa/US-0X-test-report.md` (o `docs/qa/e2e-report.md`).
-2. Pega el comando exacto y la salida real (resumen final incluido). No se resume ni se reescribe la salida.
-3. Mapea cada `AC` a su test y resultado. Un `AC` sin test se marca como `No cubierto` con motivo.
+1. Copy [templates/test-report.md](templates/test-report.md) to `docs/qa/US-0X-test-report.md` (or `docs/qa/e2e-report.md`).
+2. Paste the exact command and the real output (final summary included). The output is not summarized or rewritten.
+3. Map each `AC` to its test and result. An `AC` without a test is marked `Not covered` with a reason.
 
-### 2.5 Actualizar la matriz
+### 2.5 Update the matrix
 
-Tras cada spec, ADR, implementación, informe de pruebas o review, actualiza la fila correspondiente de `docs/traceability.md` (formato en [templates/traceability-row.md](templates/traceability-row.md)). Usa rutas y SHAs reales.
+After each spec, ADR, implementation, test report or review, update the corresponding row of `docs/traceability.md` (format in [templates/traceability-row.md](templates/traceability-row.md)). Use real paths and SHAs.
 
-### 2.6 Registrar un gate humano (orquestador)
+### 2.6 Record a human gate (orchestrator)
 
-Añade en `docs/decision-log.md`: gate, fecha, qué se presentó, veredicto (`Aprobada`, `Rechazada`, `Modificada`) y el **motivo literal** del humano. En un rechazo, añade el feedback que recibe el agente productor y el SHA de la corrección cuando exista.
+Add to `docs/decision-log.md`: gate, date, what was presented, verdict (`Approved`, `Rejected`, `Modified`) and the human's **literal reason** (kept in Spanish as written, with an English translation next to it; D16). On a rejection, add the feedback the producing agent receives and the SHA of the fix when it exists.
 
-## 3. Lista de comprobación de huecos (para specs)
+## 3. Gap checklist (for specs)
 
-- ¿Qué pasa con datos vacíos, nulos o mal formados que vienen de Strapi?
-- ¿Límites inclusivos o exclusivos? ¿Relativos a qué fecha y zona horaria?
-- ¿Qué pasa si el negocio elimina o renombra un campo del que depende otra regla?
-- ¿Varios elementos marcados cuando la regla espera uno (p. ej. varios "recomendados")?
-- ¿Datos persistidos que ya no coinciden con la configuración actual?
-- ¿Estados de carga, vacío y error de cada llamada?
-- ¿Accesibilidad: etiqueta, foco, anuncio de errores, navegación con teclado?
-- ¿Cómo se prueba de forma determinista (fechas, pago simulado)?
-- ¿Qué es configurable desde Strapi y qué es fijo en código?
+- What happens with empty, null or malformed data coming from Strapi?
+- Inclusive or exclusive limits? Relative to which date and time zone?
+- What happens if the business removes or renames a field another rule depends on?
+- Several items marked when the rule expects one (e.g. several "recommended")?
+- Persisted data that no longer matches the current configuration?
+- Loading, empty and error states of each call?
+- Accessibility: label, focus, error announcement, keyboard navigation?
+- How is it tested deterministically (dates, simulated payment)?
+- What is configurable from Strapi and what is fixed in code?
 
 ## 4. Commits
 
@@ -82,9 +82,9 @@ Añade en `docs/decision-log.md`: gate, fecha, qué se presentó, veredicto (`Ap
 <type>(<scope>): <summary in English> [US-0X][REQ-0X.n]
 ```
 
-- Un commit de corrección de review cita el hallazgo: `fix(frontend): mask document on summary [US-03][F-03.2]`.
-- Los commits de documentación de specs y ADRs citan su propio ID: `docs(specs): draft US-01 spec [US-01]`.
+- A review fix commit cites the finding: `fix(frontend): mask document on summary [US-03][F-03.2]`.
+- Documentation commits for specs and ADRs cite their own ID: `docs(specs): draft US-01 spec [US-01]`.
 
 ## 5. Tests
 
-El nombre del test empieza por el `AC` o `REQ` que verifica: `it('AC-02.4 shows empty message when no active plans', ...)`. Así `grep -r "AC-02.4"` lleva de la spec al test.
+The test name starts with the `AC` or `REQ` it verifies: `it('AC-02.4 shows empty message when no active plans', ...)`. That way `grep -r "AC-02.4"` leads from the spec to the test.

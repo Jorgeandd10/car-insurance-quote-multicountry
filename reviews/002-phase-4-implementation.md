@@ -1,16 +1,16 @@
-# Review 002 — Fase 4: implementación de US-01, US-02 y US-03 (frontend, Strapi, nginx, compose)
+# Review 002 — Phase 4: implementation of US-01, US-02 and US-03 (frontend, Strapi, nginx, compose)
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Revisor | Code Reviewer (subagente), modelo: Claude Opus 5.5 (`claude-opus-5-5`) |
-| Fecha | 2026-11-23 |
-| Alcance | `git diff 3708a48..f69ae34` (merge de la Fase 3 → merge de la Fase 4; commits `40840ed`, `f5e47f1`, `f411a8b`, `0cb032c`, `078d59a`, `b22d2ad`, `b423202`) · archivos: `frontend/`, `cms/`, `infra/nginx/`, `docker-compose.yml`, `.env.example`. Excluido: `e2e/` (en curso por `qa-engineer`) |
-| Specs / ADRs de referencia | `specs/US-01/spec.md`, `specs/US-02/spec.md`, `specs/US-03/spec.md` (Approved); ADR-0001 a ADR-0007 (Accepted); `docs/architecture/*`; `docs/decision-log.md` (D, G1, G2, G3); `docs/qa/phase-4-implementation-notes.md` (18 decisiones aceptadas por el humano, no reportadas salvo contradicción) |
-| Veredicto | **Cambios requeridos** (1 hallazgo de seguridad Major en la allowlist de nginx y 1 Major de REQ-03.19) |
+| Reviewer | Code Reviewer (subagent), model: Claude Opus 5.5 (`claude-opus-5-5`) |
+| Date | 2026-11-23 |
+| Scope | `git diff 3708a48..f69ae34` (Phase 3 merge → Phase 4 merge; commits `40840ed`, `f5e47f1`, `f411a8b`, `0cb032c`, `078d59a`, `b22d2ad`, `b423202`) · files: `frontend/`, `cms/`, `infra/nginx/`, `docker-compose.yml`, `.env.example`. Excluded: `e2e/` (in progress by `qa-engineer`) |
+| Reference specs / ADRs | `specs/US-01/spec.md`, `specs/US-02/spec.md`, `specs/US-03/spec.md` (Approved); ADR-0001 to ADR-0007 (Accepted); `docs/architecture/*`; `docs/decision-log.md` (D, G1, G2, G3); `docs/qa/phase-4-implementation-notes.md` (18 decisions accepted by the human, not reported unless contradicted) |
+| Verdict | **Changes required** (1 Major security finding in the nginx allowlist and 1 Major on REQ-03.19) |
 
-## Comandos ejecutados
+## Commands run
 
-Build y tests (en `frontend/`, contra el árbol de `f69ae34`; `git status` limpio al empezar):
+Build and tests (in `frontend/`, against the `f69ae34` tree; `git status` clean at the start):
 
 ```text
 $ npx ng build
@@ -49,9 +49,9 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-El `main-Q3HR5Q2P.js` que sirve nginx en `:8080` tiene el mismo hash que el build local: la pila levantada corresponde a `f69ae34`.
+The `main-Q3HR5Q2P.js` that nginx serves on `:8080` has the same hash as the local build: the running stack corresponds to `f69ae34`.
 
-Secretos, tokens y reglas de Angular (`grep` desde la raíz):
+Secrets, tokens and Angular rules (`grep` from the root):
 
 ```text
 $ grep -rniE "authorization|bearer|api[_-]?token|innerHTML|outerHTML|bypassSecurityTrust|DomSanitizer|localStorage|insertAdjacentHTML|document\.write|eval\(|new Function" frontend/src infra docker-compose.yml
@@ -74,10 +74,10 @@ frontend/src/app/features/country-selection/country-selection-page.ts:94:  const
 frontend/src/app/features/summary-step/summary-step-page.ts:205:  constructor() {
 frontend/src/app/features/wizard-shell/country-shell.ts:87:  constructor() {
 frontend/src/app/shared/step-heading.ts:24:  constructor() {
-[nota del revisor: los constructores no reciben dependencias; solo registran effect/afterNextRender, y cms-error.ts es una clase Error]
+[reviewer's note: the constructors take no dependencies; they only register effect/afterNextRender, and cms-error.ts is an Error class]
 
 $ grep -lE "Bearer|Authorization|api_token|APP_KEYS|JWT_SECRET" frontend/dist/car-insurance-quote/browser/*
-[nota del revisor: sin salida]
+[reviewer's note: no output]
 
 $ git ls-files | grep -iE "(^|/)\.env" ; git ls-files | grep -iE "\.db$|\.tmp/"
 .env.example
@@ -86,10 +86,10 @@ $ grep -rnE "aria-label=\"[^\"]+\"|title=\"|placeholder=|alt=\"" --include=*.htm
 $ grep -rnE ">[^<{}@ \n][^<{}]*<" --include=*.html frontend/src/app
 frontend/src/app/features/form-step/dynamic-form.html:20:  <span class="required-mark" aria-hidden="true">*</span>
 frontend/src/app/features/form-step/dynamic-form.html:28:  <span class="required-mark" aria-hidden="true">*</span>
-[nota del revisor: único texto literal en plantillas, el "*" de la decisión aceptada 8]
+[reviewer's note: the only literal text in templates, the "*" of accepted decision 8]
 ```
 
-Allowlist de nginx y métodos (pila levantada, `B=http://localhost:8080`):
+nginx allowlist and methods (running stack, `B=http://localhost:8080`):
 
 ```text
 $ for u in ...; do curl -s -g -o /dev/null -w "%{http_code}\n" "$B$u"; done
@@ -132,9 +132,9 @@ HEAD     200
 TRACE    405
 ```
 
-(`/admin` → 200 es el `index.html` del SPA por el `try_files`, no el admin de Strapi.)
+(`/admin` → 200 is the SPA's `index.html` served by `try_files`, not the Strapi admin.)
 
-Respuesta de nginx frente a la de Strapi para distinguir quién contesta:
+nginx response versus Strapi response, to tell which one answers:
 
 ```text
 $ curl -s -i "$B/api/users" | head -12
@@ -143,7 +143,7 @@ Server: nginx
 Content-Type: text/html
 Content-Length: 146
 Cache-Control: no-store
-[nota del revisor: líneas omitidas]
+[reviewer's note: lines omitted]
 <html>
 
 $ for u in "/api/users/..%2Fplans" "/api/upload/files/..%2F..%2Fplans" "/api/connect/..%2Fplans" "/api/users-permissions/roles/..%2F..%2Fplans" "/api/i18n/locales/..%2F..%2Fplans"; do curl -s -i "$B$u" | head -20 | grep -iE "^HTTP|^content-type|cache-control|\{" ; done
@@ -176,7 +176,7 @@ $ for u in "/admin/init%2F..%2F..%2Fapi%2Fplans" "/admin/users/1%2F..%2F..%2F..%
 /content-manager/collection-types/api::plan.plan/x%2F..%2F..%2F..%2F..%2Fapi%2Fplans 401 application/json; charset=utf-8 {"data":null,"error":{"status":401,"name":"UnauthorizedError","message":"Missing or invalid credentials","deta
 ```
 
-`published-only` (vía nginx y directo a Strapi; el seed tiene un plan y un campo en borrador por país):
+`published-only` (through nginx and directly to Strapi; the seed has one draft plan and one draft field per country):
 
 ```text
 plans?%73tatus=draft                    8 items, total=8 names=Plan Esencial|Plan Plus|Plan Total|Plan Clásico|Plan Básico|Plan Full|Plan Máximo|Plan Clásico
@@ -196,9 +196,9 @@ co co_documentType,co_documentNumber,co_birthDate,co_city,co_dataConsent,co_plat
 cl cl_rut,cl_birthDate,cl_city,cl_dataConsent,cl_licensePlate,cl_make,cl_vehicleYear | Plan Básico,Plan Full,Plan Máximo,Plan Clásico
 ```
 
-Ni `co_referralCode`/`cl_referralCode` ni "Plan Élite" (borradores del seed) aparecen en ningún caso.
+Neither `co_referralCode`/`cl_referralCode` nor "Plan Élite" (seed drafts) appear in any case.
 
-Cabeceras:
+Headers:
 
 ```text
 == /
@@ -208,7 +208,7 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
 == /co/summary
-[nota del revisor: cabeceras idénticas a las de /, omitidas]
+[reviewer's note: headers identical to those of /, omitted]
 == /api/countries
 HTTP/1.1 200 OK
 Cache-Control: no-store
@@ -228,13 +228,13 @@ chunk-B9WkiKwg.js      Cache-Control: public, max-age=31536000, immutable
 chunk-BCNES1iT.js      Cache-Control: public, max-age=31536000, immutable
 chunk-B_Zt-cga.js      
 chunk-C63M3kFm.js      Cache-Control: public, max-age=31536000, immutable
-[nota del revisor: líneas omitidas]
+[reviewer's note: lines omitted]
 chunk-DZtQEVOn.js      Cache-Control: public, max-age=31536000, immutable
 chunk-_XEHCKgE.js      
 missing chunk: 404 text/html
 ```
 
-Reevaluación de `isComplete` tras un reintento (ADR-0004 §Navegación, "respaldo G2"):
+Re-evaluation of `isComplete` after a retry (ADR-0004 §Navigation, "G2 backstop"):
 
 ```text
 $ grep -rn "isComplete" --include=*.ts frontend/src/app | grep -v "\.spec\.ts"
@@ -258,7 +258,7 @@ $ grep -n "Los guards devuelven" docs/adr/0004-wizard-state-persistence-and-navi
 100:- Los guards devuelven `true` si la configuración **falla** al cargar. La página muestra entonces "error de carga" y, tras un "reintentar" con éxito, vuelve a evaluar `isComplete` y redirige si hace falta (respaldo G2).
 ```
 
-Trazabilidad de tests (todos los `it` empiezan por un ID salvo el spike de Signal Forms, que nombra los huecos del ADR-0002):
+Test traceability (every `it` starts with an ID except the Signal Forms spike, which names the gaps of ADR-0002):
 
 ```text
 $ grep -rnE "^\s*it(\.each\(.*\))?\(['\`]" --include=*.spec.ts frontend/src/app | grep -vE "it(\.each\(.*\))?\(['\`](AC|REQ|Q|G[0-9]|F-|D[0-9])"
@@ -268,67 +268,67 @@ $ grep -rnE "^\s*it(\.each\(.*\))?\(['\`]" --include=*.spec.ts frontend/src/app 
 ./features/form-step/signal-forms-spike.spec.ts:85:  it('touched becomes true on blur (error shown after the first blur)', ...
 ./features/form-step/signal-forms-spike.spec.ts:93:  it('a checkbox writes a boolean', ...
 ./features/form-step/validation/reconcile-step1.spec.ts:89:  it('US-01 §7 warnings never contain the stored values', ...
-[nota del revisor: resto de líneas omitidas; empiezan por ADR-0001, ADR-0004, ADR-0005 o ADR-0006]
+[reviewer's note: remaining lines omitted; they start with ADR-0001, ADR-0004, ADR-0005 or ADR-0006]
 ```
 
 ## Checklist
 
-| Área | Resultado | Notas |
+| Area | Result | Notes |
 |---|---|---|
-| Seguridad: tokens y secretos | Cumple | Sin `Authorization`/token en `frontend/src`, `infra/`, compose ni bundle. Solo `.env.example` versionado; sus valores son ficticios (base64 de "fictitious-…") y no hay ningún token de API de Strapi. `HttpClient` sin interceptores, URLs relativas. |
-| Seguridad: rol público, `published-only`, allowlist | **No cumple** | Rol público: exactamente `find` en 4 tipos, `authenticated` sin permisos, registro desactivado (`cms/src/seed/permissions.ts`). Routers `only: ['find']` + `global::published-only` en los 4 tipos. `published-only` resiste `%73tatus`, `hasPublishedVersion`, `publicationFilter` codificado y relaciones pobladas. `strictParams` bloquea `createdBy`. Métodos no GET → 403. **Pero la allowlist exacta de nginx se salta con un path codificado (F-00.12)**: llegan a Strapi rutas de `users-permissions`, `upload` y la API del admin (`content-manager`), que ADR-0003 dice que no pasan por nginx. |
-| Seguridad: CSP, `innerHTML`, términos | Cumple | CSP de ADR-0003 en `/`, rutas del SPA, `/api` y bundles; `inlineCritical: false` deja solo `<link>` y `<script src>`. Términos: árbol cerrado (ADR-0006) pintado por interpolación; sin `innerHTML`, `DomSanitizer` ni `bypassSecurityTrust`; enlaces reducidos a texto. |
-| Seguridad: datos persistidos y documento en el DOM | Cumple | `sessionStorage` por país (`ciq.v1.{cc}.*`): valores del paso 1, `documentId` del plan y confirmación mínima sin datos personales. El resumen solo pinta `maskDocument(...)` (`summary-values.ts`); el test comprueba `innerHTML` sin el valor completo en CO y CL. Avisos de consola sin valores. |
-| REQ: configurabilidad desde Strapi | Cumple | Campos, tipos, validaciones, opciones, orden, sección, rol, textos, edad mínima, planes, factores y términos vienen de Strapi; solo los 4 textos fijos de G2-2 están en código (grep sin literales en plantillas salvo el `*` aceptado). Lectura en cada carga, sin caché persistente; `no-store` en `/api`. |
-| REQ: edad y año | Cumple | Funciones puras con "hoy" inyectado (`legal-age.ts`, `vehicle-year.ts`, `age-in-years.ts`), límites inclusivos, 29 de febrero, fecha futura, `todayLocal` como único punto que lee la zona horaria. Reglas siempre activas por rol (decisión aceptada 6). |
-| REQ: solo planes activos y publicados | Cumple | `filters[active][$eq]=true` + `published-only` + doble comprobación en `plan-mapper.ts` (`active !== true`, moneda, nombre, precio). |
-| REQ: precio con su moneda | Cumple | `formatPrice` con `intlLocale`/`currency` del `Country`, 0 decimales; plan con moneda distinta descartado; misma función en paso 2 y resumen; confirmación con la moneda copiada al pagar. |
-| REQ: enmascarado | Cumple | `maskDocument` según REQ-03.7 (alfanuméricos, `min(4, floor(n/2))`, separadores); todos los campos con rol `documentNumber`; valor completo conservado en el estado (REQ-03.8). Ver F-03.2 para la coherencia del seed de CL con AC-03.6. |
-| REQ: pago bloqueado sin términos y contra el doble envío | **Cumple con observaciones** | `canPay` + guarda en el estado antes de cualquier `await`; `aria-disabled` durante el proceso; controles inhabilitados; abort al salir. **Pero `dataReady` no comprueba que los datos sean válidos** (F-03.1). |
-| REQ: rechazo y reintento | Cumple | Mensaje de Strapi con `role="alert"`, términos y datos intactos, mensaje retirado al reintentar, sin límite. |
-| Angular moderno y tipado | Cumple | Standalone + `OnPush` en todos los componentes, signals/`computed`/`resource`, `@if`/`@for` con `track`/`@switch`, Signal Forms (`form`, `FormField`, `FormRoot` con `novalidate`), `inject()`, zoneless, sin `any`, sin NgModules, DTOs separados del dominio por mappers. Los `as unknown as FieldTree<…>` de `dynamic-form.ts:100-110` son el escape documentado en ADR-0002. |
-| Estados de carga, error y vacío | Cumple con observaciones | Explícitos en `/`, "país no disponible", shell, paso 2 y cada sección del resumen; "cargando" global mientras un guard espera. Ver F-02.1/F-03.1 (estado tras reintento) y F-00.14. |
-| Accesibilidad | Cumple con observaciones | Labels asociados, `aria-describedby` de ayuda y error, `aria-invalid`, `fieldset`/`legend`, foco al `h1` al entrar en cada pantalla y al primer inválido, `aria-current="step"`, radios nativos, región de términos enfocable, `aria-live` persistente para "procesando". Teclado real, responsive y lector de pantalla quedan para e2e y G5. Ver F-00.14. |
-| Tests que validan comportamiento | Cumple | 457/457. Tests de DOM con harness de router real y `FakeCmsClient`; aserciones sobre texto visible, ARIA, URL, `sessionStorage` y número de intentos de pago (AC-03.22 hace clics repetidos y cuenta `gateway.attempts`). Hueco: ningún test cubre el reintento tras fallo de configuración en `/plans` o `/summary` con un paso 1 incompleto (F-02.1, F-03.1). |
-| Trazabilidad | Cumple | Commits con `[US-0X]`/`[REQ-…]`/`[ADR-…]`; casi todos los `it` empiezan por AC/REQ/ADR/Q/G. El spike de Signal Forms nombra los huecos de ADR-0002 en lugar de un ID (aceptable: es un test de caracterización del framework). |
+| Security: tokens and secrets | Pass | No `Authorization`/token in `frontend/src`, `infra/`, compose or bundle. Only `.env.example` is versioned; its values are fictitious (base64 of "fictitious-…") and there is no Strapi API token. `HttpClient` without interceptors, relative URLs. |
+| Security: public role, `published-only`, allowlist | **Fail** | Public role: exactly `find` on 4 types, `authenticated` without permissions, registration disabled (`cms/src/seed/permissions.ts`). Routers `only: ['find']` + `global::published-only` on the 4 types. `published-only` withstands `%73tatus`, `hasPublishedVersion`, encoded `publicationFilter` and populated relations. `strictParams` blocks `createdBy`. Non-GET methods → 403. **But the exact nginx allowlist is bypassed with an encoded path (F-00.12)**: routes of `users-permissions`, `upload` and the admin API (`content-manager`) reach Strapi, which ADR-0003 says do not go through nginx. |
+| Security: CSP, `innerHTML`, terms | Pass | ADR-0003 CSP on `/`, SPA routes, `/api` and bundles; `inlineCritical: false` leaves only `<link>` and `<script src>`. Terms: closed tree (ADR-0006) rendered by interpolation; no `innerHTML`, `DomSanitizer` or `bypassSecurityTrust`; links reduced to text. |
+| Security: persisted data and document in the DOM | Pass | `sessionStorage` per country (`ciq.v1.{cc}.*`): step 1 values, the plan's `documentId` and a minimal confirmation without personal data. The summary only renders `maskDocument(...)` (`summary-values.ts`); the test checks `innerHTML` without the full value in CO and CL. Console warnings without values. |
+| REQ: configurability from Strapi | Pass | Fields, types, validations, options, order, section, role, texts, minimum age, plans, factors and terms come from Strapi; only the 4 fixed texts of G2-2 are in code (grep finds no literals in templates except the accepted `*`). Read on every load, no persistent cache; `no-store` on `/api`. |
+| REQ: age and year | Pass | Pure functions with an injected "today" (`legal-age.ts`, `vehicle-year.ts`, `age-in-years.ts`), inclusive limits, 29 February, future date, `todayLocal` as the only point that reads the time zone. Rules always active by role (accepted decision 6). |
+| REQ: only active and published plans | Pass | `filters[active][$eq]=true` + `published-only` + double check in `plan-mapper.ts` (`active !== true`, currency, name, price). |
+| REQ: price with its currency | Pass | `formatPrice` with the `intlLocale`/`currency` of the `Country`, 0 decimals; a plan with a different currency is discarded; same function in step 2 and the summary; confirmation with the currency copied at payment time. |
+| REQ: masking | Pass | `maskDocument` according to REQ-03.7 (alphanumerics, `min(4, floor(n/2))`, separators); every field with role `documentNumber`; full value kept in the state (REQ-03.8). See F-03.2 for the consistency of the CL seed with AC-03.6. |
+| REQ: payment blocked without terms and against double submission | **Pass with observations** | `canPay` + guard in the state before any `await`; `aria-disabled` during the process; controls disabled; abort on leaving. **But `dataReady` does not check that the data is valid** (F-03.1). |
+| REQ: rejection and retry | Pass | Strapi message with `role="alert"`, terms and data intact, message removed on retry, no limit. |
+| Modern and typed Angular | Pass | Standalone + `OnPush` on every component, signals/`computed`/`resource`, `@if`/`@for` with `track`/`@switch`, Signal Forms (`form`, `FormField`, `FormRoot` with `novalidate`), `inject()`, zoneless, no `any`, no NgModules, DTOs separated from the domain by mappers. The `as unknown as FieldTree<…>` in `dynamic-form.ts:100-110` are the escape hatch documented in ADR-0002. |
+| Loading, error and empty states | Pass with observations | Explicit on `/`, "país no disponible", shell, step 2 and each summary section; global "cargando" while a guard waits. See F-02.1/F-03.1 (state after retry) and F-00.14. |
+| Accessibility | Pass with observations | Associated labels, `aria-describedby` for help and error, `aria-invalid`, `fieldset`/`legend`, focus to the `h1` on entering each screen and to the first invalid field, `aria-current="step"`, native radios, focusable terms region, persistent `aria-live` for "procesando". Real keyboard, responsive and screen reader are left for e2e and G5. See F-00.14. |
+| Tests that validate behaviour | Pass | 457/457. DOM tests with a real router harness and `FakeCmsClient`; assertions on visible text, ARIA, URL, `sessionStorage` and number of payment attempts (AC-03.22 clicks repeatedly and counts `gateway.attempts`). Gap: no test covers the retry after a configuration failure on `/plans` or `/summary` with an incomplete step 1 (F-02.1, F-03.1). |
+| Traceability | Pass | Commits with `[US-0X]`/`[REQ-…]`/`[ADR-…]`; almost every `it` starts with AC/REQ/ADR/Q/G. The Signal Forms spike names the ADR-0002 gaps instead of an ID (acceptable: it is a characterisation test of the framework). |
 
-## Hallazgos
+## Findings
 
-| ID | Severidad | Archivo:línea | Descripción | Evidencia | REQ / regla | Propuesta |
+| ID | Severity | File:line | Description | Evidence | REQ / rule | Proposal |
 |---|---|---|---|---|---|---|
-| F-00.12 | Major | `infra/nginx/snippets/strapi-api.conf:15` (`proxy_pass http://strapi;`), incluido desde `infra/nginx/default.conf:29-43` | La allowlist "exacta" se salta con `%2F` y `..`. nginx elige la `location = /api/plans` con la URI **normalizada** (`/api/users/../plans` → `/api/plans`), pero `proxy_pass` sin URI reenvía a Strapi la URI **original** sin normalizar. Así llegan a Strapi rutas que no están en la allowlist: `users-permissions` (`/api/users/:id`, `/api/connect/*`, `/api/users-permissions/roles/*`), `upload` y la API del admin (`/admin/users/:id`, `/content-manager/collection-types/:model/:id`). Hoy solo las frenan los permisos de Strapi (403) y la autenticación del admin (401). El puerto 8080 escucha en todas las interfaces (decisión aceptada 2), así que esa superficie del admin, solo por GET, también es accesible desde la LAN. Con `.env.example` cargado por defecto, `ADMIN_JWT_SECRET` es público. No he verificado si Strapi 5.63 acepta un JWT de admin forjado sin sesión: es un riesgo compuesto que no he comprobado. | Ver "Comandos ejecutados". `/api/users` lo responde **nginx** (`Server: nginx`, `text/html`, 404); `/api/users/..%2Fplans` lo responde **Strapi** (`application/json`, 403 `ForbiddenError`). `/content-manager/collection-types/api::plan.plan/x%2F..%2F..%2F..%2F..%2Fapi%2Fplans` → 401 `"Missing or invalid credentials"`, que es la autenticación del admin de Strapi. | D4 ("nginx proxy GET-only con allowlist"); ADR-0003 §2 ("Allowlist exacta"; "`location /api/` → 404 para todo lo demás"; "El admin de Strapi no pasa por nginx"); defensa en profundidad (ADR-0003, Consecuencias) | En `strapi-api.conf`, enviar siempre la ruta normalizada: `proxy_pass http://strapi$uri$is_args$args;`. En una `location =`, `$uri` es exactamente la ruta de la allowlist, y `strapi` es un `upstream`, así que no hace falta `resolver`. Como alternativa o además: `if ($request_uri !~ "^/api/(countries\|form-fields\|plans\|country-selection)(\?\|$)") { return 404; }`. Añadir a la "Confirmación" de ADR-0003 (vía nueva entrada o test de infraestructura) los `curl` `/api/users/..%2Fplans` → 404 de nginx y `/content-manager/...%2F..%2Fapi%2Fplans` → 404 de nginx. |
-| F-03.1 | Major | `frontend/src/app/features/summary-step/summary-step-page.ts:180` (`dataReady: this.sections() !== null`); `frontend/src/app/features/form-step/validation/step1-complete-guard.ts:28` | Tras un fallo de la configuración del país en una entrada directa a `/:cc/summary`, el guard deja pasar (`result === null` → `true`, conforme a ADR-0004). Después de un "reintentar" con éxito, el shell pinta el `router-outlet` y el resumen se activa **sin volver a evaluar `isComplete`**. ADR-0004 lo exige ("tras un reintentar con éxito, vuelve a evaluar `isComplete` y redirige si hace falta (respaldo G2)"), pero ninguna página lo hace (el grep de `isComplete` solo lo encuentra en el guard). Además, `canPay` toma `dataReady` como "hay textos" y no como "los datos son válidos". Si el paso 1 guardado está incompleto o es inválido (por ejemplo, porque cambió la configuración), el resumen lo muestra y deja pagar. | `grep` de `isComplete` y de `dataReady` en "Comandos ejecutados". `payment-state.ts:7-9` documenta `dataReady` como "Step 1 data shown (texts present)". `step1-complete-guard.spec.ts:68` solo comprueba que el guard deja pasar, no la redirección posterior. | REQ-03.13 (guarda "calculada con la configuración vigente"); REQ-03.19 ("los datos y el plan están cargados **y son válidos**"); ADR-0004 §Navegación y guardas, punto 2 | En `SummaryStepPage`, derivar un `step1 = computed(() => this.reader.read(config))` y: (a) si `!step1.isComplete`, navegar a `/:cc/form` con `replaceUrl` (el mismo respaldo que pide ADR-0004); (b) pasar `dataReady: sections !== null && step1.isComplete` a `canPay`. Añadir un test `REQ-03.13 after a failed configuration and a successful retry an incomplete step 1 goes to the form` y otro de `canPay` con datos inválidos. |
-| F-02.1 | Minor | `frontend/src/app/features/plans-step/plans-step-page.ts:66-76` (el `resource` pide planes en cuanto hay `config`) y `:95` | El mismo hueco en el paso 2: tras fallo de configuración y reintento con éxito en `/:cc/plans`, la página pide los planes a Strapi y los muestra con precios calculados sobre un paso 1 incompleto. Sí se corrige al continuar, porque `/summary` vuelve a pasar por el guard; por eso es Minor. | Igual que F-03.1. `plans-step-page.spec.ts` no tiene ningún caso de reintento de la configuración del país con un paso 1 incompleto. | REQ-02.19 ("si `isComplete` es falso ... redirige al paso 1 del mismo país **sin pedir planes a Strapi**"); ADR-0004 (respaldo G2) | Condicionar `params` del `resource` a `reader.read(config).isComplete` y, si es falso, navegar a `/:cc/form` (`replaceUrl`). Test `REQ-02.19 after a failed configuration and a successful retry an incomplete step 1 goes to the form without requesting plans`. |
-| F-03.2 | Minor | `cms/src/seed/data/cl.ts:119` (`pattern: '[0-9]{7,8}-[0-9Kk]'`, con `helpText` "Sin puntos y con guion") | El seed de CL rechaza el RUT con puntos, y AC-03.6 está escrito con ese formato ("Given ... el campo con rol `documentNumber` vale `12.345.678-5`"). El plan de verificación de la spec lo asigna a "E2E de CL (términos y RUT)" (US-03 §8). Contra el seed, el e2e no puede llegar al resumen con ese valor: tendría que interceptar C4 o cambiar el ejemplo. La regla de enmascarado es correcta (unit `AC-03.7 "12.345.678-5"` pasa). Lo que falla es la coherencia entre el seed y el AC. | `[0-9]{7,8}-[0-9Kk]` no admite `.`, así que el `pattern` anclado `^(?:…)$` (`form-field-mapper.ts`, `compileFullMatch`) marca `12.345.678-5` como inválido. `specs/US-03/spec.md:195-199` y `:636`. | AC-03.6; REQ-01.34 (seed); Q-01.17 → G2-13 (patrones del seed revisables en la demo) | Que el humano decida en G4: (a) admitir puntos en el seed, por ejemplo `[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-[0-9Kk]` con `maxLength` 12 y el `helpText` ajustado; o (b) mantener el seed y que el e2e de AC-03.6 use intercepción de C4 (ADR-0003 3c), dejándolo anotado en el informe de e2e. Avisar al `qa-engineer`, que está escribiendo ese e2e. |
-| F-00.13 | Nit | `infra/nginx/default.conf:60` | El `location` de bundles con hash exige `[A-Z0-9]{8}` (insensible a mayúsculas), pero esbuild genera hashes con `_` y `-`. `chunk-_XEHCKgE.js` (summary-step-page) y `chunk-B_Zt-cga.js` (confirmation-page) caen en `location /` y se sirven sin `Cache-Control: immutable`. No afecta a la seguridad: la CSP se aplica igual. | Salida de `curl` por chunk en "Comandos ejecutados". | ADR-0003 §2 ("Bundles con hash del build: `Cache-Control: public, max-age=31536000, immutable`") | Cambiar a `[A-Za-z0-9_-]{8}`. |
-| F-00.14 | Nit | `frontend/src/app/shared/status-message.ts:17` (y el `role="alert"` de `:23` y `:28`) | Los estados "cargando" de cada sección se anuncian con un `<p role="status">` que se **inserta** ya con el texto. Varios lectores de pantalla (NVDA y JAWS con algunos navegadores) no anuncian una región viva que aparece con su contenido; solo anuncian los cambios posteriores. El "cargando" global (`app.html:1-5`) sí usa una región persistente cuyo contenido cambia, que es el patrón robusto. Los `role="alert"` insertados suelen anunciarse bien. La implementación cumple la letra de REQ-01.32 y REQ-02.20; el hallazgo es de eficacia real y no se puede verificar en jsdom. | Código citado. `docs/qa/phase-4-implementation-notes.md`, decisión 10, ya plantea dudas sobre el rol de estos mensajes. | REQ-01.32; REQ-02.20; REQ-03.31 | Comprobarlo en G5 con lector de pantalla. Si no se anuncia, usar una región `role="status"` persistente por sección y cambiar solo su texto. |
+| F-00.12 | Major | `infra/nginx/snippets/strapi-api.conf:15` (`proxy_pass http://strapi;`), included from `infra/nginx/default.conf:29-43` | The "exact" allowlist is bypassed with `%2F` and `..`. nginx picks the `location = /api/plans` using the **normalised** URI (`/api/users/../plans` → `/api/plans`), but `proxy_pass` without a URI forwards the **original**, non-normalised URI to Strapi. This way routes that are not in the allowlist reach Strapi: `users-permissions` (`/api/users/:id`, `/api/connect/*`, `/api/users-permissions/roles/*`), `upload` and the admin API (`/admin/users/:id`, `/content-manager/collection-types/:model/:id`). Today only Strapi's permissions (403) and the admin authentication (401) stop them. Port 8080 listens on all interfaces (accepted decision 2), so that admin surface, GET only, is also reachable from the LAN. With `.env.example` loaded by default, `ADMIN_JWT_SECRET` is public. I have not verified whether Strapi 5.63 accepts a forged admin JWT without a session: it is a compound risk that I have not checked. | See "Commands run". `/api/users` is answered by **nginx** (`Server: nginx`, `text/html`, 404); `/api/users/..%2Fplans` is answered by **Strapi** (`application/json`, 403 `ForbiddenError`). `/content-manager/collection-types/api::plan.plan/x%2F..%2F..%2F..%2F..%2Fapi%2Fplans` → 401 `"Missing or invalid credentials"`, which is the Strapi admin authentication. | D4 ("nginx GET-only proxy with allowlist"); ADR-0003 §2 ("Exact allowlist"; "`location /api/` → 404 for everything else"; "The Strapi admin does not go through nginx"); defence in depth (ADR-0003, Consequences) | In `strapi-api.conf`, always send the normalised path: `proxy_pass http://strapi$uri$is_args$args;`. In a `location =`, `$uri` is exactly the allowlist path, and `strapi` is an `upstream`, so no `resolver` is needed. As an alternative or in addition: `if ($request_uri !~ "^/api/(countries\|form-fields\|plans\|country-selection)(\?\|$)") { return 404; }`. Add to the ADR-0003 "Confirmation" (via a new entry or an infrastructure test) the `curl` checks `/api/users/..%2Fplans` → 404 from nginx and `/content-manager/...%2F..%2Fapi%2Fplans` → 404 from nginx. |
+| F-03.1 | Major | `frontend/src/app/features/summary-step/summary-step-page.ts:180` (`dataReady: this.sections() !== null`); `frontend/src/app/features/form-step/validation/step1-complete-guard.ts:28` | After a failure of the country configuration on a direct entry to `/:cc/summary`, the guard lets the navigation through (`result === null` → `true`, as per ADR-0004). After a successful "reintentar", the shell renders the `router-outlet` and the summary is activated **without re-evaluating `isComplete`**. ADR-0004 requires it ("after a successful retry, it re-evaluates `isComplete` and redirects if needed (G2 backstop)"), but no page does it (the `isComplete` grep only finds it in the guard). Besides, `canPay` takes `dataReady` as "there are texts" and not as "the data is valid". If the stored step 1 is incomplete or invalid (for example, because the configuration changed), the summary shows it and allows payment. | `grep` of `isComplete` and `dataReady` in "Commands run". `payment-state.ts:7-9` documents `dataReady` as "Step 1 data shown (texts present)". `step1-complete-guard.spec.ts:68` only checks that the guard lets the navigation through, not the later redirect. | REQ-03.13 (guard "computed with the current configuration"); REQ-03.19 ("the data and the plan are loaded **and are valid**"); ADR-0004 §Navigation and guards, point 2 | In `SummaryStepPage`, derive a `step1 = computed(() => this.reader.read(config))` and: (a) if `!step1.isComplete`, navigate to `/:cc/form` with `replaceUrl` (the same backstop ADR-0004 asks for); (b) pass `dataReady: sections !== null && step1.isComplete` to `canPay`. Add a test `REQ-03.13 after a failed configuration and a successful retry an incomplete step 1 goes to the form` and another one for `canPay` with invalid data. |
+| F-02.1 | Minor | `frontend/src/app/features/plans-step/plans-step-page.ts:66-76` (the `resource` requests plans as soon as there is a `config`) and `:95` | The same gap in step 2: after a configuration failure and a successful retry on `/:cc/plans`, the page requests the plans from Strapi and shows them with prices computed on an incomplete step 1. It does get corrected on continuing, because `/summary` goes through the guard again; that is why it is Minor. | Same as F-03.1. `plans-step-page.spec.ts` has no case of retrying the country configuration with an incomplete step 1. | REQ-02.19 ("if `isComplete` is false ... redirects to step 1 of the same country **without requesting plans from Strapi**"); ADR-0004 (G2 backstop) | Make the `resource` `params` depend on `reader.read(config).isComplete` and, if it is false, navigate to `/:cc/form` (`replaceUrl`). Test `REQ-02.19 after a failed configuration and a successful retry an incomplete step 1 goes to the form without requesting plans`. |
+| F-03.2 | Minor | `cms/src/seed/data/cl.ts:119` (`pattern: '[0-9]{7,8}-[0-9Kk]'`, with `helpText` "Sin puntos y con guion") | The CL seed rejects the RUT with dots, and AC-03.6 is written with that format ("Given ... the field with role `documentNumber` is `12.345.678-5`"). The spec's verification plan assigns it to the "CL E2E (terms and RUT)" (US-03 §8). Against the seed, the e2e cannot reach the summary with that value: it would have to intercept C4 or change the example. The masking rule is correct (unit `AC-03.7 "12.345.678-5"` passes). What fails is the consistency between the seed and the AC. | `[0-9]{7,8}-[0-9Kk]` does not allow `.`, so the anchored `pattern` `^(?:…)$` (`form-field-mapper.ts`, `compileFullMatch`) marks `12.345.678-5` as invalid. `specs/US-03/spec.md:195-199` and `:636`. | AC-03.6; REQ-01.34 (seed); Q-01.17 → G2-13 (seed patterns reviewable in the demo) | Let the human decide in G4: (a) allow dots in the seed, for example `[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-[0-9Kk]` with `maxLength` 12 and the `helpText` adjusted; or (b) keep the seed and have the AC-03.6 e2e use C4 interception (ADR-0003 3c), noting it in the e2e report. Tell the `qa-engineer`, who is writing that e2e. |
+| F-00.13 | Nit | `infra/nginx/default.conf:60` | The `location` for hashed bundles requires `[A-Z0-9]{8}` (case-insensitive), but esbuild generates hashes with `_` and `-`. `chunk-_XEHCKgE.js` (summary-step-page) and `chunk-B_Zt-cga.js` (confirmation-page) fall into `location /` and are served without `Cache-Control: immutable`. It does not affect security: the CSP is applied anyway. | Per-chunk `curl` output in "Commands run". | ADR-0003 §2 ("Hashed build bundles: `Cache-Control: public, max-age=31536000, immutable`") | Change it to `[A-Za-z0-9_-]{8}`. |
+| F-00.14 | Nit | `frontend/src/app/shared/status-message.ts:17` (and the `role="alert"` at `:23` and `:28`) | The "cargando" states of each section are announced with a `<p role="status">` that is **inserted** already containing the text. Several screen readers (NVDA and JAWS with some browsers) do not announce a live region that appears with its content; they only announce later changes. The global "cargando" (`app.html:1-5`) does use a persistent region whose content changes, which is the robust pattern. Inserted `role="alert"` elements are usually announced well. The implementation meets the letter of REQ-01.32 and REQ-02.20; the finding is about real effectiveness and cannot be verified in jsdom. | Quoted code. `docs/qa/phase-4-implementation-notes.md`, decision 10, already raises doubts about the role of these messages. | REQ-01.32; REQ-02.20; REQ-03.31 | Check it in G5 with a screen reader. If it is not announced, use a persistent `role="status"` region per section and change only its text. |
 
-Sin hallazgos en: render y validación dinámica del paso 1 (orden, desempates, catálogo tipado, `pattern` anclado, roles obligatorios, reconciliación con la tabla 5.4), regla de precio y su documentación, orden de planes y recomendado único, persistencia por país, confirmación y su guard, número de cotización (alfabeto de 32 símbolos, `crypto.getRandomValues`, fecha UTC), términos (ADR-0006), permisos del bootstrap, middleware `published-only`, `.env.example`, `.gitignore` (`.env`, `cms/.tmp/`) y dependencias (solo las del scaffold de Angular 22 y de Strapi 5.63).
+No findings in: dynamic rendering and validation of step 1 (order, tie-breaks, typed catalogue, anchored `pattern`, mandatory roles, reconciliation with table 5.4), pricing rule and its documentation, plan order and single recommended plan, per-country persistence, confirmation and its guard, quote number (32-symbol alphabet, `crypto.getRandomValues`, UTC date), terms (ADR-0006), bootstrap permissions, `published-only` middleware, `.env.example`, `.gitignore` (`.env`, `cms/.tmp/`) and dependencies (only those of the Angular 22 and Strapi 5.63 scaffolds).
 
-Revisadas y no reportadas por estar aceptadas por el humano (notas de Fase 4): POST → 403, puerto 8080 en todas las interfaces, `hasPublishedVersion`, superadmin en el primer acceso, `birthDate`/`vehicleYear` siempre obligatorios, `*` con `aria-hidden`, estados vacíos con `role="alert"`, foco al primer radio, selección guardada al elegir, `disabled` frente a `aria-disabled` en el pago, formato de año y fecha, C6/C3 como error de contenido e indicador oculto en la confirmación. La decisión 2 solo aparece en F-00.12 porque agrava su alcance; no se reporta por sí misma.
+Reviewed and not reported because they were accepted by the human (Phase 4 notes): POST → 403, port 8080 on all interfaces, `hasPublishedVersion`, superadmin on first access, `birthDate`/`vehicleYear` always required, `*` with `aria-hidden`, empty states with `role="alert"`, focus to the first radio, selection saved on choosing, `disabled` versus `aria-disabled` in the payment, year and date format, C6/C3 as a content error and indicator hidden on the confirmation. Decision 2 only appears in F-00.12 because it widens its reach; it is not reported on its own.
 
-## Resolución
+## Resolution
 
-Decisiones humanas de G4 en [`docs/decision-log.md`](../docs/decision-log.md) (motivo literal: "Apruebo el triage de G4").
+Human G4 decisions in [`docs/decision-log.md`](../docs/decision-log.md) (literal reason: "Apruebo el triage de G4", "I approve the G4 triage").
 
-| ID | Decisión humana | Estado | Commit / motivo |
+| ID | Human decision | Status | Commit / reason |
 |---|---|---|---|
-| F-00.12 | Corregir | Fixed | `40dfcae` (strapi-developer): `proxy_pass` con `$uri` normalizada + 404 para `request_uri` no canónica |
-| F-03.1 | Corregir | Fixed | `8f763cb` (angular-developer): `step1-backstop` reevalúa `isComplete` tras el reintento; `canPay` exige `step1Complete` |
-| F-02.1 | Corregir | Fixed | `8f763cb` (mismo cambio) |
-| F-03.2 | Corregir | Fixed | `40dfcae`: patrón del RUT de CL con y sin puntos, `maxLength` 12 |
-| F-00.13 | Corregir | Fixed | `40dfcae`: regex de caché con `_` y `-` |
-| F-00.14 | Aceptar; comprobar en G5 | Accepted | G5 aprobada sin defectos (2026-11-23); el humano no detalló si ejecutó la parte opcional con lector de pantalla, así que queda como limitación conocida en el README |
+| F-00.12 | Fix | Fixed | `40dfcae` (strapi-developer): `proxy_pass` with the normalised `$uri` + 404 for a non-canonical `request_uri` |
+| F-03.1 | Fix | Fixed | `8f763cb` (angular-developer): `step1-backstop` re-evaluates `isComplete` after the retry; `canPay` requires `step1Complete` |
+| F-02.1 | Fix | Fixed | `8f763cb` (same change) |
+| F-03.2 | Fix | Fixed | `40dfcae`: CL RUT pattern with and without dots, `maxLength` 12 |
+| F-00.13 | Fix | Fixed | `40dfcae`: cache regex with `_` and `-` |
+| F-00.14 | Accept; check in G5 | Accepted | G5 approved without defects (2026-11-23); the human did not specify whether they ran the optional screen reader part, so it stays as a known limitation in the README |
 
-### Hallazgo añadido por QA durante la Fase 5
+### Finding added by QA during Phase 5
 
-| ID | Severidad | Ubicación | Descripción | Resolución |
+| ID | Severity | Location | Description | Resolution |
 |---|---|---|---|---|
-| F-03.3 (D-E2E-1) | Minor | `frontend/src/app/features/summary-step/summary-step-page.css:76` | A 320 px la casilla de términos mide 22,2×24 px: el input de 24 px se encoge dentro de la fila flex cuando la etiqueta ocupa dos líneas (REQ-03.36). Encontrado por el e2e de `qa-engineer`. | Fixed en `0086e5a` (orquestador, una línea de CSS: `flex: none`, aplicada también a los radios del paso 2). Incumple un REQ aprobado, por eso se corrigió sin pasar por triage; se informa al humano. |
+| F-03.3 (D-E2E-1) | Minor | `frontend/src/app/features/summary-step/summary-step-page.css:76` | At 320 px the terms checkbox measures 22.2×24 px: the 24 px input shrinks inside the flex row when the label takes two lines (REQ-03.36). Found by the `qa-engineer` e2e. | Fixed in `0086e5a` (orchestrator, one line of CSS: `flex: none`, also applied to the step 2 radios). It breaks an approved REQ, so it was fixed without going through triage; the human is informed. |
 
-## Re-review (2026-11-23, orquestador)
+## Re-review (2026-11-23, orchestrator)
 
-Sobre la pila reconstruida con volumen limpio (`docker compose down -v && docker compose up -d --build`) que ya incluye todas las correcciones:
+On the stack rebuilt with a clean volume (`docker compose down -v && docker compose up -d --build`), which already includes all the fixes:
 
 ```text
 --- F-00.12 bypass variants (esperado 404 text/html):
@@ -346,5 +346,5 @@ styles-32OBUCRH.css Cache-Control: public, max-age=31536000, immutable
 --- F-03.2: cl_rut servido con helpText "Con o sin puntos y con guion, por ejemplo 12.345.678-5 o 12345678-5."
 ```
 
-- F-03.1 y F-02.1: `ng test` 463/463 en 46 archivos, con tests `F-03.1 …` y `F-02.1 …` que fallan sin la corrección (comprobado por el angular-developer y repetido por el orquestador).
-- e2e completo sobre la pila nueva: ver `docs/qa/e2e-report.md`, sección "Re-ejecución tras G4".
+- F-03.1 and F-02.1: `ng test` 463/463 in 46 files, with `F-03.1 …` and `F-02.1 …` tests that fail without the fix (checked by the angular-developer and repeated by the orchestrator).
+- Full e2e on the new stack: see `docs/qa/e2e-report.md`, section "Re-run after G4".

@@ -1,133 +1,134 @@
-# FLOW.md — Flujo agéntico
+# FLOW.md — Agentic flow
 
-> **Estado: aprobado en G1 (2026-11-22), documento vivo.** Las secciones 6–8 se completan con lo que ocurra realmente durante el proyecto; no se rellenan por adelantado.
+> **Status: approved in G1 (2026-11-22), living document.** Sections 6–8 were filled in with what actually happened during the project, not in advance. Translated into English on 2026-11-23 (D16).
 
-Cómo una historia de usuario funcional pasa a un incremento listo para QA, quién interviene en cada paso y dónde decide una persona.
+How a functional user story becomes a QA-ready increment, who takes part in each step, and where a person decides.
 
-## 1. Herramienta y por qué
+## 1. Tool and why
 
-**Claude Code** (app de escritorio, sesión local), modelo del orquestador **Claude Opus 5.5** (`claude-opus-5-5`). Los subagentes heredan el modelo (`model: inherit`, decisión G1-b).
+**Claude Code** (desktop app, local session). The orchestrator runs on **Claude Opus 5.5** (`claude-opus-5-5`). Subagents inherit the model (`model: inherit`, decision G1-b).
 
-Motivos (D1):
+Reasons (D1):
 
-- Subagentes (`.claude/agents/`) y Skills (`.claude/skills/`) se definen como archivos versionados y se cargan de forma nativa, con herramientas permitidas por agente.
-- `CLAUDE.md` se carga automáticamente en el orquestador y en los subagentes: un único contexto que gobierna la generación.
-- Ejecuta en la máquina real: Docker, Node, Playwright y Git, de modo que tests y arranque se verifican con salida real.
-- Las transcripciones originales quedan como JSONL en local y se pueden copiar sin editar a `logs/sessions/` (requisito de logs sin editar).
-- Hooks para convertir reglas críticas en controles deterministas: `.claude/settings.json` bloquea `Write`/`Edit` en `logs/` (G1-a).
+- Subagents (`.claude/agents/`) and Skills (`.claude/skills/`) are versioned files loaded natively, with allowed tools set per agent.
+- `CLAUDE.md` is the single global context that governs generation. Subagents read it explicitly as step 0 (§7).
+- It runs on the real machine (Docker, Node, Playwright, Git), so tests and start-up are verified with real output.
+- The original transcripts stay as local JSONL and can be copied unedited into `logs/sessions/` (unedited-logs requirement).
+- Hooks turn critical rules into deterministic controls: `.claude/settings.json` blocks `Write`/`Edit` under `logs/` (G1-a).
 
-La Fase 1 se hizo en claude.ai porque aún no estaba el entorno local; allí no había daemon de Docker, que es uno de los motivos del cambio.
+Phase 1 was done in claude.ai because the local environment was not ready yet. There was no Docker daemon there, which is one of the reasons for the switch.
 
-## 2. Actores
+## 2. Actors
 
-| Actor | Tipo | Responsabilidad | Definición |
+| Actor | Type | Responsibility | Definition |
 |---|---|---|---|
-| Humano (Jorge) | Persona | Aprueba o rechaza en cada gate, responde preguntas abiertas, prueba manual sin IA | — |
-| Orquestador | Sesión principal de Claude Code | Planifica, delega, verifica el criterio de terminado, hace commits, registra decisiones | `CLAUDE.md` |
-| Requirements Analyst | Subagente | Historia → spec verificable | [.claude/agents/requirements-analyst.md](.claude/agents/requirements-analyst.md) |
-| Software Architect | Subagente | ADRs, modelo de contenido, contratos de API | [.claude/agents/software-architect.md](.claude/agents/software-architect.md) |
-| Strapi Developer | Subagente | `cms/`, seed, permisos, Docker y nginx | [.claude/agents/strapi-developer.md](.claude/agents/strapi-developer.md) |
-| Angular Developer | Subagente | `frontend/` + unit tests | [.claude/agents/angular-developer.md](.claude/agents/angular-developer.md) |
-| QA Engineer | Subagente | Plan de pruebas, e2e, informe | [.claude/agents/qa-engineer.md](.claude/agents/qa-engineer.md) |
-| Code Reviewer | Subagente | Review independiente incl. seguridad | [.claude/agents/code-reviewer.md](.claude/agents/code-reviewer.md) |
-| `sdd-traceability` | Skill | IDs, plantillas y procedimientos SDD | [.claude/skills/sdd-traceability/SKILL.md](.claude/skills/sdd-traceability/SKILL.md) |
-| `country-content` | Skill | Procedimiento de contenido por país de punta a punta | [.claude/skills/country-content/SKILL.md](.claude/skills/country-content/SKILL.md) |
+| Human (Jorge) | Person | Approves or rejects at each gate, answers open questions, runs the manual check without AI | — |
+| Orchestrator | Main Claude Code session | Plans, delegates, checks the definition of done, commits, records decisions | `CLAUDE.md` |
+| Requirements Analyst | Subagent | Story → verifiable spec | [.claude/agents/requirements-analyst.md](.claude/agents/requirements-analyst.md) |
+| Software Architect | Subagent | ADRs, content model, API contracts | [.claude/agents/software-architect.md](.claude/agents/software-architect.md) |
+| Strapi Developer | Subagent | `cms/`, seed, permissions, Docker and nginx | [.claude/agents/strapi-developer.md](.claude/agents/strapi-developer.md) |
+| Angular Developer | Subagent | `frontend/` + unit tests | [.claude/agents/angular-developer.md](.claude/agents/angular-developer.md) |
+| QA Engineer | Subagent | Test plan, e2e, report | [.claude/agents/qa-engineer.md](.claude/agents/qa-engineer.md) |
+| Code Reviewer | Subagent | Independent review, security included | [.claude/agents/code-reviewer.md](.claude/agents/code-reviewer.md) |
+| `sdd-traceability` | Skill | IDs, templates and SDD procedures | [.claude/skills/sdd-traceability/SKILL.md](.claude/skills/sdd-traceability/SKILL.md) |
+| `country-content` | Skill | End-to-end procedure for country content | [.claude/skills/country-content/SKILL.md](.claude/skills/country-content/SKILL.md) |
 
-Los subagentes no se llaman entre sí ni hacen commit: todo pasa por el orquestador, que es el único punto de integración.
+Subagents never call each other and never commit. Everything goes through the orchestrator, which is the only integration point.
 
-## 3. Diagrama
+## 3. Diagram
 
 ```mermaid
 flowchart TD
-    PDF[/"Historia de usuario (PDF)"/] --> RA["Requirements Analyst<br/>+ sdd-traceability"]
+    PDF[/"User story (PDF)"/] --> RA["Requirements Analyst<br/>+ sdd-traceability"]
     RA --> SPEC["specs/US-0X/spec.md<br/>(Draft)"]
-    SPEC --> G2{"G2 · Humano<br/>aprueba spec y<br/>responde Q"}
-    G2 -- rechazo + motivo --> RA
-    G2 -- aprobada --> ARC["Software Architect<br/>+ sdd-traceability + country-content"]
+    SPEC --> G2{"G2 · Human<br/>approves spec and<br/>answers Qs"}
+    G2 -- rejection + reason --> RA
+    G2 -- approved --> ARC["Software Architect<br/>+ sdd-traceability + country-content"]
     ARC --> ADR["docs/adr/ · docs/architecture/<br/>(Proposed)"]
-    ADR --> G3{"G3 · Humano<br/>aprueba ADRs y<br/>modelo de contenido"}
-    G3 -- rechazo + motivo --> ARC
-    G3 -- aprobado --> CMS["Strapi Developer<br/>cms/ · seed · Docker"]
-    G3 -- aprobado --> FE["Angular Developer<br/>frontend/ · unit tests"]
-    CMS --> ORQ["Orquestador<br/>verifica criterio de terminado<br/>y hace commit con IDs"]
+    ADR --> G3{"G3 · Human<br/>approves ADRs and<br/>content model"}
+    G3 -- rejection + reason --> ARC
+    G3 -- approved --> CMS["Strapi Developer<br/>cms/ · seed · Docker"]
+    G3 -- approved --> FE["Angular Developer<br/>frontend/ · unit tests"]
+    CMS --> ORQ["Orchestrator<br/>checks definition of done<br/>and commits with IDs"]
     FE --> ORQ
     ORQ --> QA["QA Engineer<br/>e2e/ · docs/qa/"]
-    QA -- defecto --> FE
+    QA -- defect --> FE
     QA --> CR["Code Reviewer<br/>reviews/NNN"]
-    CR --> G4{"G4 · Humano<br/>triage de hallazgos"}
-    G4 -- corregir --> FE
+    CR --> G4{"G4 · Human<br/>findings triage"}
+    G4 -- fix --> FE
     FE -. re-review .-> CR
-    G4 -- todo resuelto o aceptado --> DEMO{"Demo · Humano<br/>prueba la historia"}
-    DEMO -- rechazo --> RA
-    DEMO -- ok, siguiente historia --> PDF
-    DEMO -- ok, última historia --> G5{"G5 · Humano<br/>teclado y móvil<br/>SIN IA"}
-    G5 -- defecto --> FE
-    G5 -- ok --> G6{"G6 · Humano<br/>entrega a QA"}
+    G4 -- all fixed or accepted --> DEMO{"Demo · Human<br/>tries the story"}
+    DEMO -- rejection --> RA
+    DEMO -- ok, next story --> PDF
+    DEMO -- ok, last story --> G5{"G5 · Human<br/>keyboard and mobile<br/>NO AI"}
+    G5 -- defect --> FE
+    G5 -- ok --> G6{"G6 · Human<br/>hand-off to QA"}
 ```
 
-Cada decisión humana (aprobación, rechazo y motivo literal) queda en [`docs/decision-log.md`](docs/decision-log.md).
+Every human decision (approval, rejection and literal reason) is recorded in [`docs/decision-log.md`](docs/decision-log.md).
 
-## 4. Paso a paso
+## 4. Step by step
 
-| Paso | Descripción | ¿IA? | IA, agente, subagente o skill | Entregable | Humano en el bucle |
+| Step | Description | AI? | AI, agent, subagent or skill | Deliverable | Human in the loop |
 |---|---|---|---|---|---|
-| 0. Análisis | Leer el PDF, proponer arquitectura, equipo de agentes, riesgos y decisiones. Arranque del proyecto. | Sí | claude.ai (Fase 1) + Claude Code, orquestador (verificación local) | `docs/phase-1/analysis.md` | **G0**: aprueba D1–D11. Rechazo → el orquestador reformula la decisión. |
-| 1. Diseño del flujo | Crear el contexto global, los subagentes, las Skills y este documento. Lo hace el orquestador porque los agentes aún no existen. | Sí | Claude Code, orquestador | `CLAUDE.md`, `.claude/agents/`, `.claude/skills/`, `FLOW.md` | **G1**: aprueba el flujo. Rechazo → el orquestador ajusta y se registra el motivo. |
-| 2. Spec | Convertir la historia en REQ, AC Gherkin y preguntas abiertas con propuesta. | Sí | Subagente `requirements-analyst` + Skill `sdd-traceability` | `specs/US-0X/spec.md` | **G2**: aprueba la spec y responde cada `Q`. Rechazo → vuelve al analista con el motivo. Ninguna historia se implementa sin G2. |
-| 2b. Revisión cruzada de specs | Comparar las specs entre sí antes de G2: las escribe en paralelo una instancia del analista por historia, que no ve las otras. | Sí | Orquestador | `reviews/000-G2-specs-cross-consistency.md` | Los hallazgos se presentan en G2 como decisiones; las correcciones vuelven al analista de cada spec y el orquestador hace una re-review. |
-| 3. Arquitectura | ADRs con alternativas reales, modelo de contenido, contratos de API. | Sí | Subagente `software-architect` + Skills `sdd-traceability`, `country-content` | `docs/adr/`, `docs/architecture/` | **G3**: aprueba ADRs y modelo. Rechazo → vuelve al arquitecto. |
-| 4. Implementación CMS | Content types, seed CO/CL, permisos mínimos, Docker y nginx. | Sí | Subagente `strapi-developer` + Skill `country-content` | `cms/`, `docker-compose.yml`, `.env.example` | El orquestador verifica el criterio de terminado; el humano lo ve en la demo. |
-| 5. Implementación frontend | Componentes, store, validadores y unit tests de la historia. | Sí | Subagente `angular-developer` + Skills | `frontend/`, `docs/qa/US-0X-test-report.md` | El orquestador re-ejecuta build y tests antes de hacer commit. |
-| 6. Verificación e2e | Plan de pruebas desde los AC y e2e con Playwright. | Sí | Subagente `qa-engineer` | `e2e/`, `docs/qa/test-plan.md`, `docs/qa/e2e-report.md` | Defectos → vuelven al desarrollador. |
-| 7. Code review | Review independiente contra spec, ADRs y checklist de seguridad. | Sí | Subagente `code-reviewer` + Skill `sdd-traceability` | `reviews/NNN-US-0X-*.md` | — |
-| 8. Triage | Decidir cada hallazgo: corregir, aceptar o rechazar. | **No** | — | Tabla de resolución del informe + `docs/decision-log.md` | **G4**: el humano decide. Corregir → desarrollador → re-review. |
-| 9. Demo | Probar la historia en la app real antes de pasar a la siguiente. | **No** | — | Entrada en `docs/decision-log.md` | Rechazo → vuelve a la spec o al desarrollador según la causa. |
-| 10. Prueba manual | Recorrer el wizard solo con teclado y en ancho móvil. | **No** | — | `docs/qa/manual-check.md` | **G5**: el humano ejecuta y firma. Defecto → desarrollador. |
-| 11. Trazabilidad y logs | Actualizar la matriz y exportar la transcripción de la sesión: copia íntegra salvo la redacción de datos personales (G1-f), con hashes. | Sí | Orquestador + Skill `sdd-traceability` + `scripts/export-session-logs.ps1` | `docs/traceability.md`, `logs/sessions/`, `docs/logs-manifest.md` | El humano decide qué se redacta (G1-f) y comprueba la matriz en G6. |
-| 12. Entrega a QA | README, FLOW y `docker compose up` verificado desde cero. | Sí | Orquestador | `README.md`, `FLOW.md` | **G6**: aprueba la entrega. |
+| 0. Analysis | Read the PDF; propose architecture, agent team, risks and decisions. Project bootstrap. | Yes | claude.ai (Phase 1) + Claude Code orchestrator (local verification) | `docs/phase-1/analysis.md` | **G0**: approves D1–D11. Rejection → the orchestrator reworks the decision. |
+| 1. Flow design | Create the global context, the subagents, the Skills and this document. The orchestrator does it because the agents do not exist yet. | Yes | Claude Code orchestrator | `CLAUDE.md`, `.claude/agents/`, `.claude/skills/`, `FLOW.md` | **G1**: approves the flow. Rejection → the orchestrator adjusts it and the reason is recorded. |
+| 2. Spec | Turn the story into REQs, Gherkin ACs and open questions with a proposal. | Yes | `requirements-analyst` subagent + `sdd-traceability` Skill | `specs/US-0X/spec.md` | **G2**: approves the spec and answers each `Q`. Rejection → back to the analyst with the reason. No story is implemented without G2. |
+| 2b. Cross-spec review | Compare the specs before G2: one analyst instance per story writes them in parallel, and none sees the others. | Yes | Orchestrator | `reviews/000-G2-specs-cross-consistency.md` | Findings are presented in G2 as decisions; fixes go back to each spec's analyst and the orchestrator re-reviews. |
+| 3. Architecture | ADRs with real alternatives, content model, API contracts. | Yes | `software-architect` subagent + `sdd-traceability`, `country-content` Skills | `docs/adr/`, `docs/architecture/` | **G3**: approves ADRs and model. Rejection → back to the architect. |
+| 4. CMS implementation | Content types, CO/CL seed, minimal permissions, Docker and nginx. | Yes | `strapi-developer` subagent + `country-content` Skill | `cms/`, `docker-compose.yml`, `.env.example` | The orchestrator checks the definition of done; the human sees it in the demo. |
+| 5. Frontend implementation | Components, store, validators and unit tests of the story. | Yes | `angular-developer` subagent + Skills | `frontend/`, `docs/qa/US-0X-test-report.md` | The orchestrator re-runs build and tests before committing. |
+| 6. E2E verification | Test plan from the ACs and Playwright e2e. | Yes | `qa-engineer` subagent | `e2e/`, `docs/qa/test-plan.md`, `docs/qa/e2e-report.md` | Defects → back to the developer. |
+| 7. Code review | Independent review against spec, ADRs and a security checklist. | Yes | `code-reviewer` subagent + `sdd-traceability` Skill | `reviews/NNN-*.md` | — |
+| 8. Triage | Decide each finding: fix, accept or reject. | **No** | — | Resolution table in the report + `docs/decision-log.md` | **G4**: the human decides. Fix → developer → re-review. |
+| 9. Demo | Try the story in the real app before moving to the next one. | **No** | — | Entry in `docs/decision-log.md` | Rejection → back to the spec or the developer, depending on the cause. |
+| 10. Manual check | Go through the wizard with the keyboard only and at mobile width. | **No** | — | `docs/qa/manual-check.md` | **G5**: the human runs and signs it. Defect → developer. |
+| 11. Traceability and logs | Update the matrix and export the session transcript: a full copy except the redaction of personal data (G1-f), with hashes. | Yes | Orchestrator + `sdd-traceability` Skill + `scripts/export-session-logs.ps1` | `docs/traceability.md`, `logs/sessions/`, `docs/logs-manifest.md` | The human decides what is redacted (G1-f) and checks the matrix in G6. |
+| 12. Hand-off to QA | README, FLOW and `docker compose up` verified from scratch. | Yes | Orchestrator | `README.md`, `FLOW.md` | **G6**: approves the delivery. |
 
-## 5. Mecanismo de trazabilidad
+## 5. Traceability mechanism
 
-- IDs `US → REQ → AC → ADR → F → Dn` definidos en la Skill `sdd-traceability`.
-- Commits con IDs en el asunto: `feat(frontend): ... [US-01][REQ-01.3]`; correcciones con el hallazgo `[F-01.4]`.
-- Tests nombrados por AC: `grep -r "AC-02.4"` lleva de la spec al test.
-- Matriz por REQ en [`docs/traceability.md`](docs/traceability.md).
-- Decisiones y rechazos humanos en [`docs/decision-log.md`](docs/decision-log.md).
+- IDs `US → REQ → AC → ADR → F → Dn`, defined in the `sdd-traceability` Skill.
+- Commits carry IDs in the subject: `feat(frontend): ... [US-01][REQ-01.3]`; fixes carry the finding: `[F-01.4]`.
+- Tests are named after their AC: `grep -r "AC-02.4"` leads from the spec to the test.
+- Matrix per REQ in [`docs/traceability.md`](docs/traceability.md).
+- Human decisions and rejections in [`docs/decision-log.md`](docs/decision-log.md).
 
-## 6. Si lo usara un equipo de 5 personas
+## 6. If a team of 5 used it
 
-Lo que cambiaría, a partir de lo que funcionó y falló aquí:
+What would change, based on what worked and failed here:
 
-- **Personas dueñas de rutas, no solo agentes.** La propiedad de rutas de los agentes (`.claude/agents/`) se trasladaría a `CODEOWNERS`. Por ejemplo: dos personas en `frontend/`, una en `cms/` e `infra/`, una de QA en `e2e/` y `docs/qa/`, y un *tech lead* en `specs/`, `docs/adr/` y los gates. Cada persona usaría los mismos subagentes en su zona.
-- **Gates en el flujo de Git.** G2 y G3 serían PR de specs y ADRs con aprobación obligatoria de producto y del *tech lead*. G4 sería la review en el propio PR, con hallazgos como comentarios y la resolución enlazada. G6, una *release*. El `decision-log.md` seguiría siendo la fuente para lo que no cabe en un PR.
-- **Integración continua obligatoria.** Unit, build y e2e en cada PR, sobre un *runner* con recursos fijos. Aquí los e2e en local fueron sensibles a la carga del equipo (§7).
-- **Specs en paralelo con un responsable de lo transversal.** Aquí, tres specs en paralelo produjeron 7 inconsistencias (§7). Con 5 personas, una sola persona resolvería los temas compartidos (roles de campo, textos fijos, persistencia) antes de repartir las historias.
-- **Un entorno de Strapi compartido para cambios reales de contenido,** además de la intercepción en los e2e: el negocio y QA lo probarían igual que en la parte 4 de G5.
-- **Las Skills como conocimiento del equipo.** `sdd-traceability` y `country-content` serían la guía de *onboarding*. Cambiar una Skill pasaría por review, como el código.
-- **Lo que no escala igual:** un único orquestador que revisa cada diff es un cuello de botella. Con 5 personas, cada una revisa los diffs de sus agentes, y el orquestador queda para la integración y los gates.
+- **People own paths, not only agents.** The agents' path ownership (`.claude/agents/`) would move into `CODEOWNERS`. For example: two people on `frontend/`, one on `cms/` and `infra/`, one QA on `e2e/` and `docs/qa/`, and a tech lead on `specs/`, `docs/adr/` and the gates. Each person would use the same subagents in their own area.
+- **Gates inside the Git flow.** G2 and G3 would be PRs of specs and ADRs with mandatory approval from product and the tech lead. G4 would be the review in the PR itself, with findings as comments and the resolution linked. G6 would be a release. `decision-log.md` would remain the source for what does not fit in a PR.
+- **Mandatory CI.** Unit, build and e2e on every PR, on a runner with fixed resources. Here the local e2e runs were sensitive to the machine's load (§7).
+- **Parallel specs with one owner of cross-cutting topics.** Here three parallel specs produced 7 inconsistencies (§7). With 5 people, one person would settle the shared topics (field roles, fixed texts, persistence) before splitting the stories.
+- **A shared Strapi environment for real content changes,** besides interception in the e2e: business and QA would try them as in part 4 of G5.
+- **Skills as team knowledge.** `sdd-traceability` and `country-content` would be the onboarding guide. Changing a Skill would go through review, like code.
+- **What does not scale the same way:** a single orchestrator reviewing every diff is a bottleneck. With 5 people, each one reviews their agents' diffs and the orchestrator keeps integration and the gates.
 
-## 7. Qué no funcionó como se esperaba y cómo se ajustó
+## 7. What did not work as expected and how it was adjusted
 
-- **Entorno de la Fase 1.** Se hizo en claude.ai sin daemon de Docker; se movió a Claude Code local (D1) y se re-verificó el entorno, lo que cambió la recomendación de D5.
-- **Carga de subagentes a mitad de sesión (2026-11-22).** Las Skills creadas durante la sesión se cargaron al momento, pero la primera prueba de humo de `code-reviewer` falló con `Agent type 'code-reviewer' not found`. Los archivos eran correctos (frontmatter en la línea 1, sin BOM). Más tarde, en la misma sesión, los 6 agentes aparecieron disponibles sin reiniciar: la carga tuvo retraso. Ajuste: no delegar en un agente recién creado sin una prueba de humo previa.
-- **`CLAUDE.md` no llega a los subagentes (2026-11-22).** La prueba de humo de los 6 agentes confirmó herramientas y Skills correctas (`code-reviewer` sin `Edit`), pero los 6 respondieron que no tenían `CLAUDE.md` en contexto. Como el contexto global es la base del flujo, se añadió a cada agente un paso 0 obligatorio: leer `CLAUDE.md` con `Read` antes de actuar. Re-prueba con `code-reviewer`: lo leyó y respondió correctamente sobre la sección 6, los commits y `logs/`.
-- **Hook de `logs/` (G1-a).** Probado con entradas simuladas (5 casos) y en real: un `Write` sobre `logs/sessions/.gitkeep` fue rechazado por el hook.
-- **Specs en paralelo (Fase 3).** Tres instancias de `requirements-analyst` escribieron US-01, US-02 y US-03 a la vez para ganar tiempo. Cada una resolvió sola los temas compartidos, y salieron 6 inconsistencias (p. ej. roles de campo frente a un booleano `masked` para el documento). Ajuste: se añadió el paso 2b (revisión cruzada del orquestador antes de G2) y las 60 preguntas abiertas se agruparon en 13 decisiones para el humano. La re-review encontró una séptima inconsistencia (F-00.7) causada por la redacción ambigua del propio orquestador en G2-2.
-- **Integración y límites de uso (Fase 4).** El trabajo en paralelo de `strapi-developer` y `angular-developer` sin pisarse funcionó, pero la CSP de ADR-0003 rompió los estilos al juntar las dos partes: el CSS crítico de Angular inyecta un `<script>` en línea. Solo apareció al integrar, no en los unit tests (corregido en `b22d2ad`). Además, la sesión llegó al límite de uso a mitad de la fase y un subagente quedó cortado antes de crear nada; se reanudó con el mismo agente y con los comandos largos en segundo plano. Se añadió a cada fase la verificación de integración del orquestador.
-- **Rediseño visual tardío (D12–D14, Fase 5).** Tras G5, el humano pidió un estilo cercano al de SURA. Tres efectos reales:
-  - Las animaciones nuevas duplicaron la duración de los e2e (de 4,0 a 7,6 min) y provocaron fallos intermitentes ("error de carga" por el timeout de 10 s de la app con Strapi cargado). La causa se aisló repitiendo los tests (60/60 por separado) y midiendo tiempos. Se corrigió ejecutando el e2e con `reducedMotion`, sin reintentos que lo ocultaran.
-  - El cambio de contenido de D14 obligó a un *backfill* idempotente del volumen ya sembrado, porque el seed no tocaba los países existentes.
-  - Dos agentes reconstruyeron contenedores a la vez y chocaron por el nombre del contenedor. Ajuste: el orquestador serializa las operaciones de Docker.
-  Además, un cambio de diseño posterior a G5 invalida en parte esa prueba manual, así que se abrió la review 003 de todo lo posterior.
-- **Datos personales en las transcripciones (G1-f).** La revisión previa a copiar los logs encontró el email del autor (contexto que añade Claude Code). El humano decidió redactar solo esa cadena; se creó `scripts/export-session-logs.ps1` con lista de redacción fuera del repo, sin sobrescritura y con hashes en `docs/logs-manifest.md`. El script falló dos veces en Windows PowerShell 5.1 (sin BOM corrompía los acentos; `$PSScriptRoot` vacío en los valores por defecto de `param`); ambas causas se analizaron y corrigieron antes de exportar.
+- **Phase 1 environment.** It was done in claude.ai without a Docker daemon. It moved to local Claude Code (D1) and the environment was re-verified, which changed the recommendation of D5.
+- **Subagents loading mid-session (2026-11-22).** Skills created during the session loaded at once, but the first smoke test of `code-reviewer` failed with `Agent type 'code-reviewer' not found`. The files were correct (frontmatter on line 1, no BOM). Later in the same session the 6 agents became available without a restart: loading was delayed. Adjustment: never delegate to a freshly created agent without a smoke test.
+- **`CLAUDE.md` does not reach subagents (2026-11-22).** The smoke test of the 6 agents confirmed the right tools and Skills (`code-reviewer` without `Edit`), but all 6 answered that they did not have `CLAUDE.md` in context. Since the global context is the base of the flow, a mandatory step 0 was added to each agent: read `CLAUDE.md` with `Read` before acting. Re-test with `code-reviewer`: it read it and answered correctly about section 6, commits and `logs/`.
+- **`logs/` hook (G1-a).** Tested with simulated inputs (5 cases) and for real: a `Write` on `logs/sessions/.gitkeep` was rejected by the hook.
+- **Parallel specs (Phase 3).** Three `requirements-analyst` instances wrote US-01, US-02 and US-03 at the same time to save time. Each one settled the shared topics on its own, and 6 inconsistencies came out (e.g. field roles versus a `masked` boolean for the document). Adjustment: step 2b was added (cross-review by the orchestrator before G2), and the 60 open questions were grouped into 13 decisions for the human. The re-review found a seventh inconsistency (F-00.7), caused by the orchestrator's own ambiguous wording in G2-2.
+- **Integration and usage limits (Phase 4).** `strapi-developer` and `angular-developer` worked in parallel without stepping on each other, but the CSP of ADR-0003 broke the styles when the two parts were joined: Angular's critical CSS injects an inline `<script>`. It only showed up at integration, not in unit tests (fixed in `b22d2ad`). The session also hit its usage limit mid-phase and a subagent was cut off before creating anything; it resumed with the same agent and with long commands in the background. The orchestrator's integration check was added to every phase.
+- **Late visual redesign (D12–D14, after G5).** After G5 the human asked for a look close to SURA's site. Real effects:
+  - With the new animations, two full e2e runs took 7.6 min instead of 4.0 and had intermittent failures ("error de carga", the app's 10 s timeout with Strapi under load), each time in different tests. The orchestrator blamed the animations and ran the e2e with `reducedMotion` (77/77). Review 003 (F-00.15) showed the cause had **not** been isolated: the reviewer ran the suite with animations and got 80/80. `reducedMotion` was removed and the suite re-run with animations (`docs/qa/e2e-report.md`). Lesson: a mitigation that makes the suite green is not a proven cause.
+  - The D14 content change required an idempotent backfill of the already seeded volume, because the seed never touched existing countries.
+  - Two agents rebuilt containers at the same time and collided on the container name. Adjustment: the orchestrator serializes Docker operations.
+  - A design change after G5 partly invalidates that manual check, so review 003 covered everything after it and the human repeats a short G5 (F-00.16).
+- **Documentation language (D16).** `CLAUDE.md` set documentation in Spanish (G1). On the last day the human showed the recruiter's email asking for the assessment to be answered in English. Five agents translated their own paths in parallel, each checking ID counts before and after so that no content was lost. Lesson: confirm the delivery language at G0.
+- **Personal data in the transcripts (G1-f).** The check before copying the logs found the author's email (context added by Claude Code). The human decided to redact only that string. `scripts/export-session-logs.ps1` was created, with the redaction list outside the repo, no overwriting and hashes in `docs/logs-manifest.md`. The script failed twice on Windows PowerShell 5.1: without a BOM it corrupted accents, and `$PSScriptRoot` was empty in `param` defaults. Both causes were analysed and fixed before exporting.
 
-## 8. Dónde se decidió no usar IA
+## 8. Where we decided not to use AI
 
-- **Gates G0–G6:** las aprobaciones y rechazos son humanos; la IA solo prepara la información.
-- **Triage de hallazgos (G4):** decidir si un hallazgo se corrige o se acepta es una decisión de riesgo del humano.
-- **Prueba manual de teclado y móvil (G5):** comprobación independiente de lo que la IA afirma. Su primer resultado pegaba el texto de ejemplo del orquestador, que no lo registró hasta tener la confirmación real del humano.
-- **Alcance y prioridades:** el humano rechazó extras propuestos por la IA (un tercer país por e2e, CI, varias mejoras de UX) por el tiempo disponible (D15). Decidir qué no se hace es una decisión de producto.
-- **Identidad visual:** el logo, el favicon y la dirección de estilo (D12, D13, D15) los aportó y decidió el humano. La IA midió la paleta del sitio de referencia y la aplicó, pero no copió la fuente propietaria ni las ilustraciones.
-- **Credenciales y el admin de Strapi:** el superadmin y cualquier cambio real en el admin los hace el humano. La IA no entra con sus credenciales.
-- **Merges y publicación:** los merges de cada PR, la visibilidad pública del repositorio (D1) y el envío al reclutador son del humano.
-- **Exportación de la conversación de la Fase 1 (claude.ai):** solo puede hacerla el humano desde su cuenta.
+- **Gates G0–G6:** approvals and rejections are human; the AI only prepares the information.
+- **Findings triage (G4):** deciding whether a finding is fixed or accepted is the human's risk decision.
+- **Keyboard and mobile manual check (G5):** an independent check of what the AI claims. Its first result pasted the orchestrator's example text; the orchestrator did not record it until the human gave the real confirmation.
+- **Scope and priorities:** the human rejected extras proposed by the AI (a third country via e2e, CI, several UX improvements) because of the time left (D15). Deciding what not to build is a product decision.
+- **Visual identity:** the logo, the favicon and the style direction (D12, D13, D15) were provided and decided by the human. The AI measured the reference site's palette and applied it, but did not copy the proprietary font or the illustrations.
+- **Credentials and the Strapi admin:** the human creates the superadmin and makes any real change in the admin. The AI never logs in with their credentials.
+- **Merges and publication:** merging each PR, the public visibility of the repository (D1) and sending it to the recruiter belong to the human.
+- **Exporting the Phase 1 conversation (claude.ai):** only the human can do it from their account.

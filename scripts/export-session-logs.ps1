@@ -101,9 +101,9 @@ if ($leaks -gt 0) { throw "Verification failed: $leaks redacted string(s) still 
 $manifest = Join-Path $ProjectRoot 'docs\logs-manifest.md'
 if (-not (Test-Path $manifest)) {
     $header = @(
-        '# Manifiesto de logs de sesiones',
+        '# Session logs manifest',
         '',
-        'Cada exportación de `scripts/export-session-logs.ps1` añade una sección. Única transformación permitida (decisión G1-f): sustituir por `<redacted-personal-data>` las cadenas de un archivo de redacción que vive fuera del repositorio. Los archivos con 0 sustituciones son copias byte a byte (hash de origen = hash de copia). Los originales siguen en `~/.claude/projects/` de la máquina del autor.',
+        'Each export by `scripts/export-session-logs.ps1` adds a section. The only transformation allowed (decision G1-f): replace with `<redacted-personal-data>` the strings of a redaction file that lives outside the repository. Files with 0 substitutions are byte-for-byte copies (source hash = copy hash). The originals remain in `~/.claude/projects/` on the author''s machine.',
         ''
     ) -join "`n"
     [System.IO.File]::WriteAllText($manifest, $header + "`n", (New-Object System.Text.UTF8Encoding($false)))
@@ -112,10 +112,10 @@ $relDest = $destRoot.Substring($ProjectRoot.Length).TrimStart('\') -replace '\\'
 $lines = @(
     "## $relDest",
     '',
-    ('- Sesión: `{0}` · exportada: {1} · cadenas redactadas: {2} · archivos: {3} · sustituciones totales: {4}' -f $SessionId, (Get-Date -Format 'yyyy-MM-dd HH:mm'), @($redactions).Count, $rows.Count, ($rows | Measure-Object Replacements -Sum).Sum),
-    '- Verificación: 0 cadenas redactadas presentes en la copia.',
+    ('- Session: `{0}` · exported: {1} · redacted strings: {2} · files: {3} · total substitutions: {4}' -f $SessionId, (Get-Date -Format 'yyyy-MM-dd HH:mm'), @($redactions).Count, $rows.Count, ($rows | Measure-Object Replacements -Sum).Sum),
+    '- Verification: 0 redacted strings present in the copy.',
     '',
-    '| Archivo | Sustituciones | SHA-256 original | SHA-256 copia |',
+    '| File | Substitutions | Original SHA-256 | Copy SHA-256 |',
     '|---|---|---|---|'
 )
 foreach ($row in $rows) {

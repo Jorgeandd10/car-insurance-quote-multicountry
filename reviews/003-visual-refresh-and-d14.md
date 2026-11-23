@@ -1,18 +1,18 @@
-# Review 003 — Estilo visual (D12, D13), cambiar de país y tarjeta pulsable (D14), favicon (D15)
+# Review 003 — Visual style (D12, D13), change country and clickable card (D14), favicon (D15)
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Revisor | Code Reviewer (subagente), modelo: Claude Opus 5.5 (`claude-opus-5-5`) |
-| Fecha | 2026-11-23 |
-| Alcance | `git diff 95c2c0c..c4f5095` (rama `style/sura-visual-refresh`, 10 commits: `fe5c56c`, `1d1c668`, `792119b`, `db808c1`, `47443de`, `63ca979`, `3bd348e`, `60311e5`, `af53c7e`, `c4f5095`) · 54 archivos: `frontend/` (estilos, shell, assets, dependencia), `cms/` (campo y backfill), `e2e/`, `specs/US-01`, `specs/US-02`, `docs/`. Fuera de alcance: `e54001a` (README y FLOW, posterior a `c4f5095`; solo docs, no toca `frontend/` ni `cms/`) |
-| Specs / ADRs de referencia | `specs/US-01/spec.md` v0.4 (REQ-01.33, REQ-01.36, AC-01.36), `specs/US-02/spec.md` v0.4 (REQ-02.26, REQ-02.27, REQ-02.29, REQ-02.34, AC-02.34), `specs/US-03/spec.md` (REQ-03.36); ADR-0001, ADR-0003, ADR-0004, ADR-0007; `docs/architecture/content-model.md`, `api-contracts.md`; `docs/decision-log.md` (D12, D13, D14, D15, G2-2, G3-5); `CLAUDE.md` |
-| Veredicto | **Aprobado con cambios** (0 Blocker, 0 Major; 4 Minor y 4 Nit para triage en G4) |
+| Reviewer | Code Reviewer (subagent), model: Claude Opus 5.5 (`claude-opus-5-5`) |
+| Date | 2026-11-23 |
+| Scope | `git diff 95c2c0c..c4f5095` (branch `style/sura-visual-refresh`, 10 commits: `fe5c56c`, `1d1c668`, `792119b`, `db808c1`, `47443de`, `63ca979`, `3bd348e`, `60311e5`, `af53c7e`, `c4f5095`) · 54 files: `frontend/` (styles, shell, assets, dependency), `cms/` (field and backfill), `e2e/`, `specs/US-01`, `specs/US-02`, `docs/`. Out of scope: `e54001a` (README and FLOW, after `c4f5095`; docs only, does not touch `frontend/` or `cms/`) |
+| Reference specs / ADRs | `specs/US-01/spec.md` v0.4 (REQ-01.33, REQ-01.36, AC-01.36), `specs/US-02/spec.md` v0.4 (REQ-02.26, REQ-02.27, REQ-02.29, REQ-02.34, AC-02.34), `specs/US-03/spec.md` (REQ-03.36); ADR-0001, ADR-0003, ADR-0004, ADR-0007; `docs/architecture/content-model.md`, `api-contracts.md`; `docs/decision-log.md` (D12, D13, D14, D15, G2-2, G3-5); `CLAUDE.md` |
+| Verdict | **Approved with changes** (0 Blocker, 0 Major; 4 Minor and 4 Nit for triage in G4) |
 
-## Comandos ejecutados
+## Commands run
 
-Todos son de lectura, build o test. El build escribe en `frontend/dist/` (ignorado por git). Las sondas de Playwright del revisor se escribieron y ejecutaron desde el scratchpad de la sesión, fuera del repo, con salida de artefactos también fuera del repo. `git status` limpio al empezar y al terminar (salvo este informe).
+All of them are read, build or test commands. The build writes to `frontend/dist/` (ignored by git). The reviewer's Playwright probes were written and run from the session scratchpad, outside the repo, with their artefact output also outside the repo. `git status` clean at the start and at the end (except for this report).
 
-### Alcance
+### Scope
 
 ```text
 $ git log --oneline 95c2c0c..c4f5095
@@ -34,9 +34,9 @@ e54001a docs: add README and complete FLOW sections 6-8 for delivery
  2 files changed, 107 insertions(+), 5 deletions(-)
 ```
 
-`e54001a` solo cambia documentación, así que el build y los tests ejecutados sobre el árbol actual equivalen a `c4f5095` en `frontend/` y `cms/`.
+`e54001a` only changes documentation, so the build and the tests run on the current tree are equivalent to `c4f5095` in `frontend/` and `cms/`.
 
-### Build, unit tests y formato (en `frontend/`)
+### Build, unit tests and formatting (in `frontend/`)
 
 ```text
 $ npx ng build
@@ -75,9 +75,9 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-Sin avisos de budget (`initial` 500 kB / 1 MB; `anyComponentStyle` 4 kB / 8 kB en `angular.json:34-45`). El `index.html` servido en `:8080` referencia `main-SOBT4VEK.js` y `styles-NTDGXMFB.css`, los mismos hashes que el build local: la pila levantada corresponde al código revisado.
+No budget warnings (`initial` 500 kB / 1 MB; `anyComponentStyle` 4 kB / 8 kB in `angular.json:34-45`). The `index.html` served on `:8080` references `main-SOBT4VEK.js` and `styles-NTDGXMFB.css`, the same hashes as the local build: the running stack corresponds to the reviewed code.
 
-### Assets, fuente y CSP contra la pila (`http://localhost:8080`)
+### Assets, font and CSP against the stack (`http://localhost:8080`)
 
 ```text
 $ curl -s http://localhost:8080/ | grep -o 'main-[A-Z0-9]*\.js\|styles-[A-Z0-9]*\.css'
@@ -94,7 +94,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 HTTP/1.1 200 OK
 Content-Type: image/png
 Content-Length: 1059
-[... misma CSP ...]
+[... same CSP ...]
 == /brand/icon-192.png
 HTTP/1.1 200 OK
 Content-Type: image/png
@@ -123,7 +123,7 @@ Content-Length: 857
 Cache-Control: no-cache
 ```
 
-[nota del revisor: la salida se recorta solo en la repetición de la cabecera CSP, idéntica en las 8 respuestas. `does-not-exist.png` → `index.html` es el `try_files $uri /index.html` previo a este rango (`infra/nginx/default.conf:74-75`), sin cambios aquí.]
+[reviewer's note: the output is trimmed only in the repeated CSP header, identical in the 8 responses. `does-not-exist.png` → `index.html` is the `try_files $uri /index.html` that predates this range (`infra/nginx/default.conf:74-75`), unchanged here.]
 
 ```text
 $ grep -o "@font-face{[^}]*}" dist/car-insurance-quote/browser/styles-*.css
@@ -134,7 +134,7 @@ $ grep -rnoE "https?://[a-zA-Z0-9./_-]+" dist/car-insurance-quote/browser --incl
 dist/car-insurance-quote/browser/illustrations/car-protection.svg:1:http://www.w3.org/2000/svg
 
 $ grep -nE "<text|<script|href|xlink|on[a-z]+=|<foreignObject|<title|<desc|url\(http" public/illustrations/car-protection.svg
-[sin salida]
+[no output]
 
 $ file public/favicon.ico public/brand/*.png
 public/favicon.ico:                MS Windows icon resource - 1 icon, 32x32 with PNG image data, 32 x 32, 8-bit/color RGBA, non-interlaced, 32 bits/pixel
@@ -142,7 +142,7 @@ public/brand/apple-touch-icon.png: PNG image data, 180 x 180, 8-bit/color RGBA, 
 public/brand/icon-192.png:         PNG image data, 192 x 192, 8-bit/color RGBA, non-interlaced
 public/brand/icon-32.png:          PNG image data, 32 x 32, 8-bit/color RGBA, non-interlaced
 public/brand/sura-logo-white.png:  PNG image data, 640 x 118, 8-bit/color RGBA, non-interlaced
-[chunks tEXt/iTXt/zTXt/eXIf en los 4 PNG: ninguno (script de Python de lectura)]
+[tEXt/iTXt/zTXt/eXIf chunks in the 4 PNGs: none (read-only Python script)]
 
 $ npm ls @fontsource-variable/figtree
 car-insurance-quote@0.0.0 C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend
@@ -154,24 +154,24 @@ Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figt
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 ```
 
-`package.json` fija `"@fontsource-variable/figtree": "5.3.0"` (sin `^`), y `package-lock.json` registra `resolved` en `registry.npmjs.org`, `integrity sha512-VRVo…` y `"license": "OFL-1.1"`. La justificación está en D13 y en el cuerpo de `db808c1`.
+`package.json` pins `"@fontsource-variable/figtree": "5.3.0"` (without `^`), and `package-lock.json` records `resolved` on `registry.npmjs.org`, `integrity sha512-VRVo…` and `"license": "OFL-1.1"`. The justification is in D13 and in the body of `db808c1`.
 
-### Secretos y reglas de código (`frontend/`)
+### Secrets and code rules (`frontend/`)
 
 ```text
 $ grep -rnE "content:\s*['\"][^'\"]+['\"]" src --include=*.css --include=*.ts
-[sin salida]
+[no output]
 $ grep -rnE "\balt=\"[^\"]+\"|\baria-label=\"|\btitle=\"|placeholder=\"" src --include=*.html --include=*.ts
-[sin salida]
+[no output]
 $ grep -rnE ":\s*any\b|<any>|as any|\*ngIf|\*ngFor|NgModule" src --include=*.ts --include=*.html
-[sin salida]
+[no output]
 $ grep -rl "@Component" src/app --include=*.ts | grep -v spec | while read f; do grep -q "OnPush" "$f" || echo "NO OnPush: $f"; done
-[sin salida]
+[no output]
 $ grep -rlE "Bearer|api_token|APP_KEYS|JWT_SECRET|ADMIN_JWT" dist/car-insurance-quote/browser; echo "exit $?"
 exit 1
 ```
 
-### Strapi: backfill y rol público
+### Strapi: backfill and public role
 
 ```text
 $ for c in co cl; do curl -s "http://localhost:8080/api/countries?filters%5Bcode%5D%5B%24eq%5D=$c&populate%5BwizardTexts%5D=true" | grep -o '"changeCountryLabel":"[^"]*"'; done
@@ -194,11 +194,11 @@ cms-1  | [2026-11-23 21:42:11.531] info: [seed] country-selection: exists, not m
 cms-1  | [2026-11-23 21:42:11.532] info: [seed] done: 0 created, 30 already present (left untouched)
 ```
 
-El último arranque del contenedor no escribe nada (no hay líneas `wizardTexts backfilled`): el backfill ya se había aplicado y es idempotente. `git diff 95c2c0c..c4f5095 --stat -- cms/` solo toca `wizard-texts.json`, `seed/data/{co,cl}.ts` y `seed/seed.ts`; los permisos del rol público no cambian. No hay `tsc` local en `cms/` (`npx tsc` pide instalar TypeScript), así que el tipado del seed lo respalda solo el arranque del contenedor con ese código.
+The container's last start writes nothing (there are no `wizardTexts backfilled` lines): the backfill had already been applied and is idempotent. `git diff 95c2c0c..c4f5095 --stat -- cms/` only touches `wizard-texts.json`, `seed/data/{co,cl}.ts` and `seed/seed.ts`; the public role permissions do not change. There is no local `tsc` in `cms/` (`npx tsc` asks to install TypeScript), so the typing of the seed is backed only by the container starting with that code.
 
-### Contraste WCAG de los pares usados
+### WCAG contrast of the pairs in use
 
-Script de Node en el scratchpad con la fórmula de luminancia relativa de WCAG 2.x:
+Node script in the scratchpad with the WCAG 2.x relative luminance formula:
 
 ```text
 #2d6df6 on #ffffff: 4.54:1  primary/white (legend, h2)
@@ -234,15 +234,15 @@ Script de Node en el scratchpad con la fórmula de luminancia relativa de WCAG 2
 #2d6df6 on #f5f8ff: 4.27:1  primary/soft
 ```
 
-Todos los valores coinciden con los comentarios de `frontend/src/styles.css:12-35`. Los pares por debajo de 4,5:1 están justificados:
+All the values match the comments in `frontend/src/styles.css:12-35`. The pairs below 4.5:1 are justified:
 
-- `#2d6df6` sobre `#dfeaff` (3,75): solo en `h1`, con al menos 32 px y peso 800, así que es texto grande (≥ 3:1).
-- `#0b5fff` sobre `#dfeaff` (4,24): no hay ningún `<a>` sobre la superficie azul clara. El enlace "Cambiar de país" usa `#0033a0`, y las tarjetas de país son blancas.
-- `#2d6df6` sobre `#f5f8ff` (4,27): no se usa como color de texto.
-- `#e3eaf7` (1,21): borde decorativo de tarjeta. El control es el radio nativo.
-- `#0033a0` frente a `#2d6df6` (2,34): con `outline-offset: 2px`, el anillo de foco queda sobre blanco o sobre la superficie, no pegado al primario.
+- `#2d6df6` on `#dfeaff` (3.75): only in the `h1`, at 32 px or more and weight 800, so it is large text (≥ 3:1).
+- `#0b5fff` on `#dfeaff` (4.24): there is no `<a>` on the light blue surface. The "Cambiar de país" link uses `#0033a0`, and the country cards are white.
+- `#2d6df6` on `#f5f8ff` (4.27): not used as a text colour.
+- `#e3eaf7` (1.21): decorative card border. The control is the native radio.
+- `#0033a0` versus `#2d6df6` (2.34): with `outline-offset: 2px`, the focus ring sits on white or on the surface, not against the primary.
 
-### E2E del cambio y sondas del revisor (Playwright, Chrome del sistema, pila en `:8080`)
+### E2E of the change and reviewer probes (Playwright, system Chrome, stack on `:8080`)
 
 ```text
 $ cd e2e && npx playwright test tests/flow/change-country-and-plan-card.spec.ts --reporter=line --output <scratchpad>/pw-out
@@ -253,7 +253,7 @@ Running 3 tests using 2 workers
   3 passed (16.5s)
 ```
 
-**Sonda 1: la suite con animaciones.** Config del scratchpad idéntica a `e2e/playwright.config.ts` (2 workers, 0 retries, timeouts 60 s / 15 s, Chrome, es-CO, America/Bogota, 1280×900), con `reducedMotion: 'no-preference'` y los mismos `tests/`:
+**Probe 1: the suite with animations.** Scratchpad config identical to `e2e/playwright.config.ts` (2 workers, 0 retries, timeouts 60 s / 15 s, Chrome, es-CO, America/Bogota, 1280×900), with `reducedMotion: 'no-preference'` and the same `tests/`:
 
 ```text
 $ npx playwright test -c <scratchpad>/motion.config.mjs          # proyectos flow + a11y-responsive
@@ -266,7 +266,7 @@ Running 38 tests using 2 workers
 real	1m11.674s
 ```
 
-**Sonda 2: hit testing, foco, scroll y tamaños.** Script del scratchpad que importa `e2e/support/fixtures.ts`:
+**Probe 2: hit testing, focus, scroll and sizes.** Scratchpad script that imports `e2e/support/fixtures.ts`:
 
 ```text
 elementFromPoint(centre of coverage "Hurto" of Plan Total) = LABEL class="plan-label" for="plan-w0wpckj1bpd9na29vbg5pr99"
@@ -294,69 +294,71 @@ aria snapshot (extracto) del grupo "Planes disponibles":
 
 ## Checklist
 
-| Área | Resultado | Notas |
+| Area | Result | Notes |
 |---|---|---|
-| Cumple los REQ de la spec | ✅ | **REQ-01.36** (enlace en los pasos 1 a 3 y en la confirmación, `href="/"`, texto de Strapi, obligatorio, no borra datos, 147–154×44 px, foco visible): unit en `country-shell.spec.ts`, e2e AC-01.36 y sonda 2. **REQ-02.34** (clic en la cobertura o la descripción selecciona el plan, el radio nativo sigue siendo el único control, el nombre accesible no cambia): e2e AC-02.34, unit y sonda 2 (aria snapshot). Ver F-02.2 sobre la técnica. **REQ-01.33, REQ-02.29, REQ-03.36** (sin scroll horizontal): e2e a 320, 375 y 1280 px en verde, también con animaciones (sonda 1), y `/` a 320 px (sonda 2). Ver F-02.3 en la spec |
-| Seguridad (tokens, permisos, datos) | ✅ | Sin tokens en el bundle (`grep` → exit 1). Fuente autoalojada desde `'self'`, versión fijada, lockfile con integrity, licencia OFL-1.1. El SVG no tiene script, enlaces ni texto. Los PNG no tienen metadatos de texto. La CSP no cambia y cubre los `data:` de los iconos de `select`/`date` (`img-src 'self' data:`). El backfill usa el Query Engine solo sobre el componente `ui.wizard-texts`, solo en campos vacíos y sin publicar. El rol público no cambia (POST/PUT/DELETE rechazados, `status=draft` → 400). `infra/` sin cambios. Los datos de las capturas son ficticios (`1234567890`, `ABC123`, "Marca A") |
-| Angular moderno (standalone, signals, control flow, sin `any`) | ✅ | Sin `any`, `*ngIf`/`*ngFor` ni NgModules. Todos los componentes son OnPush. `RouterLink` importado en `country-shell.ts`. Los cambios de D12 y D13 son de presentación: clases, envoltorios y `[class.done]`, sin lógica nueva |
-| Textos en código (G2-2) | ✅ | Ningún `content:` con texto. Ningún `alt`, `aria-label`, `title` ni `placeholder` literal. El logo tiene `alt=""` y su banda `aria-hidden="true"`. La ilustración tiene `alt=""` y el SVG `aria-hidden`. El enlace toma `wizard.changeCountryLabel`, y si falta se muestra el error genérico (test `REQ-01.36 REQ-01.13 …`) |
-| Estados de carga / vacío / error | ✅ | El esqueleto es `aria-hidden`, sin texto, y sigue mostrando "cargando" con un solo `role="status"` dentro de `StatusMessage` (unit `REQ-01.3 D13 …`). Error y mensaje mantienen `role="alert"`. El "cargando" global sigue en su `role="status"` |
-| Accesibilidad (contraste, foco, objetivos, movimiento) | ✅ con observaciones | El contraste AA se verifica en la tabla. Foco visible de 3 px `#0033A0` en el enlace "Cambiar de país" (Shift+Tab desde el h1) y en las tarjetas de país. Objetivos: enlace 147×44, tarjetas 288×76, radios y checkboxes 24×24, botones ≥ 48 px de alto. Todas las animaciones y transiciones se anulan con `prefers-reduced-motion` (regla global en `styles.css:330-345` y reglas locales en `app.css`, `status-message.ts` y `plans-step-page.css`). Ver F-02.2 y F-00.16 |
-| Tests que validan comportamiento | ✅ con observación | Unit y e2e nuevos nombrados por AC/REQ/D (`AC-01.36 …`, `AC-02.34 …`, `D13 G2-2 …`, `REQ-01.3 D13 …`). El e2e de AC-02.34 hace un clic real con `page.mouse`, sin `force`. Ver F-00.15 (`reducedMotion`) |
-| Trazabilidad (IDs en commits y tests) | ✅ con observaciones | Los 10 commits citan IDs. `docs/traceability.md` y `docs/qa/test-plan.md` están al día (AC-01.36, AC-02.34, totales 106/99). Ver F-02.3 (spec), F-00.17 (tipo de commit) y F-00.19 (capturas) |
-| Mantenibilidad | ✅ con observaciones | Tokens coherentes en `styles.css`. Assets pequeños: logo de 21,8 kB a 640×118, que cubre 2× de su tamaño mostrado; SVG de 4,2 kB; fuente de 20 + 10 kB, la segunda solo bajo `unicode-range`. Budgets sin aviso. Ver F-00.18 y F-01.1 |
+| Meets the REQs of the spec | ✅ | **REQ-01.36** (link on steps 1 to 3 and on the confirmation, `href="/"`, text from Strapi, required, does not delete data, 147–154×44 px, visible focus): unit in `country-shell.spec.ts`, e2e AC-01.36 and probe 2. **REQ-02.34** (a click on the coverage or the description selects the plan, the native radio is still the only control, the accessible name does not change): e2e AC-02.34, unit and probe 2 (aria snapshot). See F-02.2 about the technique. **REQ-01.33, REQ-02.29, REQ-03.36** (no horizontal scroll): e2e at 320, 375 and 1280 px green, also with animations (probe 1), and `/` at 320 px (probe 2). See F-02.3 in the spec |
+| Security (tokens, permissions, data) | ✅ | No tokens in the bundle (`grep` → exit 1). Self-hosted font from `'self'`, pinned version, lockfile with integrity, OFL-1.1 licence. The SVG has no script, links or text. The PNGs have no text metadata. The CSP does not change and covers the `data:` icons of `select`/`date` (`img-src 'self' data:`). The backfill uses the Query Engine only on the `ui.wizard-texts` component, only on empty fields and without publishing. The public role does not change (POST/PUT/DELETE rejected, `status=draft` → 400). `infra/` unchanged. The data in the screenshots is fictitious (`1234567890`, `ABC123`, "Marca A") |
+| Modern Angular (standalone, signals, control flow, no `any`) | ✅ | No `any`, `*ngIf`/`*ngFor` or NgModules. Every component is OnPush. `RouterLink` imported in `country-shell.ts`. The D12 and D13 changes are presentational: classes, wrappers and `[class.done]`, no new logic |
+| Texts in code (G2-2) | ✅ | No `content:` with text. No literal `alt`, `aria-label`, `title` or `placeholder`. The logo has `alt=""` and its band `aria-hidden="true"`. The illustration has `alt=""` and the SVG `aria-hidden`. The link takes `wizard.changeCountryLabel`, and if it is missing the generic error is shown (test `REQ-01.36 REQ-01.13 …`) |
+| Loading / empty / error states | ✅ | The skeleton is `aria-hidden`, without text, and still shows "cargando" with a single `role="status"` inside `StatusMessage` (unit `REQ-01.3 D13 …`). Error and message keep `role="alert"`. The global "cargando" stays in its `role="status"` |
+| Accessibility (contrast, focus, targets, motion) | ✅ with observations | AA contrast is verified in the table. Visible 3 px `#0033A0` focus on the "Cambiar de país" link (Shift+Tab from the h1) and on the country cards. Targets: link 147×44, cards 288×76, radios and checkboxes 24×24, buttons ≥ 48 px high. Every animation and transition is cancelled with `prefers-reduced-motion` (global rule in `styles.css:330-345` and local rules in `app.css`, `status-message.ts` and `plans-step-page.css`). See F-02.2 and F-00.16 |
+| Tests that validate behaviour | ✅ with observation | New unit and e2e tests named by AC/REQ/D (`AC-01.36 …`, `AC-02.34 …`, `D13 G2-2 …`, `REQ-01.3 D13 …`). The AC-02.34 e2e makes a real click with `page.mouse`, without `force`. See F-00.15 (`reducedMotion`) |
+| Traceability (IDs in commits and tests) | ✅ with observations | The 10 commits cite IDs. `docs/traceability.md` and `docs/qa/test-plan.md` are up to date (AC-01.36, AC-02.34, totals 106/99). See F-02.3 (spec), F-00.17 (commit type) and F-00.19 (screenshots) |
+| Maintainability | ✅ with observations | Consistent tokens in `styles.css`. Small assets: 21.8 kB logo at 640×118, which covers 2× its displayed size; 4.2 kB SVG; 20 + 10 kB font, the second only under `unicode-range`. Budgets without warnings. See F-00.18 and F-01.1 |
 
-## Hallazgos
+## Findings
 
-| ID | Severidad | Archivo:línea | Descripción | Evidencia | REQ / regla | Propuesta |
+| ID | Severity | File:line | Description | Evidence | REQ / rule | Proposal |
 |---|---|---|---|---|---|---|
-| F-00.15 | Minor | `e2e/playwright.config.ts:31-34`; `docs/qa/e2e-report.md:248-249` | La suite e2e se ejecuta siempre con `reducedMotion: 'reduce'`, de modo que el camino que ve la mayoría de los usuarios (animaciones activas) no tiene cobertura automatizada. Además, la causa que se documenta ("las animaciones … doblaron el tiempo … y empujaron las respuestas de Strapi más allá de 10 s") se presenta como un hecho, pero no se aisló: los fallos eran "error de carga" intermitentes en un host cargado, y el informe ya había documentado ese mismo síntoma antes de D13 (comentario del config: "with 4 workers real responses took up to 10.4 s"). | Sonda 1: con `reducedMotion: 'no-preference'` y el resto de la config igual, los 80 tests pasan, `42 passed (1.4m)` + `38 passed (1.1m)`. No oculta ningún defecto detectable hoy por la suite, pero la decisión y su justificación no se sostienen con la evidencia actual. | ADR-0007 (e2e contra la pila); `CLAUDE.md` §6 ("Ante un fallo, primero la causa"); config: "a flaky test is a defect to explain, not to hide" | Quitar `reducedMotion: 'reduce'` y volver a ejecutar la suite completa. Si vuelven los fallos intermitentes, atribuirlos con una medición (p. ej. la misma pasada con y sin `reduce`). Alternativa mínima: mantenerlo, añadir un proyecto sin `reduce` para `flow/` y reescribir la "Causa" de `e2e-report.md:248` como hipótesis no confirmada. |
-| F-00.16 | Minor | `docs/decision-log.md:161-168` frente a `:174-230` | La prueba manual G5 (teclado y móvil, sin IA) se aprobó **antes** de D12–D15. Desde entonces cambiaron toda la presentación (controles con `appearance: none` en `select` y `date`, leyendas flotantes, anillos de foco, banda, animaciones) y el comportamiento (D14: enlace nuevo, tarjeta pulsable). La aprobación G5 registrada cubre otra interfaz. D14 menciona que el humano revisó la app ("Esta quedando muy bien"), pero no consta una comprobación con teclado y móvil. | Orden del log: G5 en la línea 161, D12 en la 174, D14 en la 203. Sin cambios en `docs/qa/manual-check.md` en el rango (`git diff --stat 95c2c0c..c4f5095` no lo incluye). Las comprobaciones de accesibilidad de esta review son automáticas (e2e y sondas), no manuales. | DoD de `CLAUDE.md` §9 (G5); REQ-02.26, REQ-02.27 (teclado); AC-01.28, AC-02.29 (móvil) | Repetir antes de G6 una pasada breve de G5 sobre la build actual: teclado (incluidos el enlace "Cambiar de país" y los planes) y móvil real a 375 px (el `date` sin apariencia nativa y el `select` con chevron propio en iOS y Android). Registrarla en `docs/qa/manual-check.md`. O aceptar el riesgo de forma explícita en G4. |
-| F-02.2 | Minor | `frontend/src/app/features/plans-step/plans-step-page.css:114-119` | REQ-02.34 se implementa con un `label::after` absoluto que cubre toda la tarjeta. Cumple el REQ, pero desvía todo el hit testing del contenido hacia el `label`. Consecuencias: (1) la descripción, las coberturas y los beneficios no se pueden seleccionar ni copiar con el ratón (el propio comentario lo reconoce como trade-off); (2) un lector de pantalla con exploración táctil (TalkBack/VoiceOver), que usa el hit testing del navegador, al tocar una cobertura cae en el radio y el label en vez de leer la cobertura. Las listas siguen accesibles con gestos de desplazamiento y con el cursor virtual. El punto (2) es una inferencia desde el hit testing; no se ha probado en un dispositivo. | Sonda 2: `elementFromPoint(centro de "Hurto" de Plan Total) = LABEL class="plan-label"`. `e2e/tests/flow/change-country-and-plan-card.spec.ts:26-28`: "`locator.click()` refuses because the label intercepts the pointer". El nombre accesible y el teclado no cambian (aria snapshot: `radio "Plan Total $ 1.815.000"`). | REQ-02.34 (cumplido); REQ-02.26 y REQ-02.27 (sin regresión); buena práctica de accesibilidad móvil | Decidir en G4. (a) **Aceptar** el trade-off, documentándolo en la spec o en `manual-check.md`. (b) Sustituir el overlay por un `(click)` en `.plan` que llame a `select(id)` cuando el objetivo no es el `input` ni el `label`. El radio sigue siendo el único control de teclado (el `div` no necesita foco), el texto se puede seleccionar y la exploración táctil lee el contenido. El e2e de AC-02.34 valdría sin cambios. |
-| F-02.3 | Minor | `specs/US-02/spec.md:370-381` | El bloque Gherkin de AC-02.34 se insertó **entre los dos escenarios de AC-02.33**. El segundo escenario de AC-02.33 ("A step text and the generic error message are missing in Strapi") queda ahora bajo el comentario `# AC-02.34 — origen: D14`. Quien navegue por IDs (`grep "AC-02.34"`) atribuye a D14 un escenario que es de G2-2, y AC-02.33 parece tener un solo escenario, aunque `docs/qa/test-plan.md` dice "`cst › AC-02.33 …` (dos escenarios)". | `sed -n 355,385p specs/US-02/spec.md`: línea 360 `# AC-02.33`, escenario 1; línea 370 `# AC-02.34`, escenario de la tarjeta; línea 375 `Scenario: A step text and the generic error message are missing in Strapi`, que es el segundo de AC-02.33. | Skill `sdd-traceability` §1 y §5 (trazabilidad por `grep`); la spec es la fuente de verdad (`CLAUDE.md` §2) | Mover el bloque `# AC-02.34` detrás del segundo escenario de AC-02.33 (justo antes del cierre del bloque de código). Es un cambio editorial, sin cambio de contenido, que se anota en el historial de la spec. |
-| F-00.17 | Nit | commit `47443de` | El asunto usa el tipo `specs:`, que no es un tipo de Conventional Commits. La convención del repo para specs es `docs(specs): …` (Skill §4; historial: `2c34185`, `8ca08f7`, `5a28ea2`, …). | `git show --stat 47443de` → `specs: add change-country link and clickable plan card after G5 [...]` | `CLAUDE.md` §6–7 (Conventional Commits, scopes) | No reescribir la historia: el commit ya forma parte de la rama. Basta con anotarlo y aplicar la convención en adelante. |
-| F-00.18 | Nit | `frontend/src/app/features/wizard-shell/step-indicator.ts:96`; `frontend/src/app/shared/status-message.ts:75`, `:89-97`; `frontend/src/app/features/plans-step/plans-step-page.css:170-177`; `frontend/src/app/features/summary-step/summary-step-page.css:169-175`; `frontend/src/app/features/country-selection/country-selection-page.ts:51` | Pequeñas incoherencias con el sistema de tokens. (1) El halo del paso actual es un literal `rgb(45 109 246 / 0.25)` que casi duplica `--focus-halo` (`0.22`, `styles.css:29`). (2) Los colores del esqueleto (`#e6edfa`) no son token. (3) El panel "borde izquierdo de 4 px + radio + fondo" se repite en tres componentes. (4) La clase `countries` ya no tiene estilos (se borró `.countries` y lo usa `.country-links`), y ningún test la usa (`grep` en `frontend/src` y `e2e/`). | `grep -n "rgb(45 109 246\|#e6edfa\|border-left: 4px" -r frontend/src/app` → las 4 líneas citadas | `CLAUDE.md` §8 (mantenibilidad); comentario de `styles.css:3` ("components reuse them") | Usar `var(--focus-halo)` o un token `--halo-current`; añadir `--color-skeleton`; extraer el panel a una clase global (p. ej. `.panel`, `.panel--error`); quitar `countries` del `ul`. Ninguno es urgente. |
-| F-00.19 | Nit | `docs/assets/screenshots/*.png` (añadidas en `1d1c668`/`db808c1`) | Las capturas son anteriores a D14: no muestran el enlace "Cambiar de país" (p. ej. `04b-plans-selected-1280.png`, donde el indicador de pasos empieza justo bajo la banda). El README de `e54001a` las usa como imagen del producto. | Lectura de `docs/assets/screenshots/04b-plans-selected-1280.png` | Coherencia de la documentación de entrega (G6) | Regenerar las capturas con la build actual, o anotar que son de D13. |
-| F-01.1 | Nit | `cms/src/seed/seed.ts:234` | Desde el backfill, el resumen final del seed (`"... already present (left untouched)"`) puede ser falso: en el arranque que rellena `changeCountryLabel`, los países existentes **sí** se modifican. Además, el backfill no tiene test automático: su corrección se apoya en la respuesta de C3 y en los logs. | `seed.ts:172` llama a `backfillWizardTexts` para un país existente, y `:158` hace `update`. La línea 234 no lo refleja. Log actual: `done: 0 created, 30 already present (left untouched)` | `CLAUDE.md` §8 ("Seed … idempotentes"); `CLAUDE.md` §6 (evidencia real) | Cambiar el texto a `already present (content kept; see backfill lines)` o contar los backfills en `Counters`. El test del backfill es opcional, porque `cms/` no tiene runner de tests; el humano decide. |
+| F-00.15 | Minor | `e2e/playwright.config.ts:31-34`; `docs/qa/e2e-report.md:248-249` | The e2e suite always runs with `reducedMotion: 'reduce'`, so the path most users see (animations on) has no automated coverage. Besides, the documented cause ("the animations … doubled the time … and pushed the Strapi responses beyond 10 s") is presented as a fact, but it was not isolated: the failures were intermittent "error de carga" on a loaded host, and the report had already documented that same symptom before D13 (config comment: "with 4 workers real responses took up to 10.4 s"). | Probe 1: with `reducedMotion: 'no-preference'` and the rest of the config unchanged, the 80 tests pass, `42 passed (1.4m)` + `38 passed (1.1m)`. It hides no defect the suite can detect today, but the decision and its justification are not supported by the current evidence. | ADR-0007 (e2e against the stack); `CLAUDE.md` §6 ("On a failure, the cause first"); config: "a flaky test is a defect to explain, not to hide" | Remove `reducedMotion: 'reduce'` and run the full suite again. If the intermittent failures come back, attribute them with a measurement (e.g. the same run with and without `reduce`). Minimal alternative: keep it, add a project without `reduce` for `flow/` and rewrite the "Cause" of `e2e-report.md:248` as an unconfirmed hypothesis. |
+| F-00.16 | Minor | `docs/decision-log.md:161-168` versus `:174-230` | The G5 manual test (keyboard and mobile, without AI) was approved **before** D12–D15. Since then the whole presentation has changed (controls with `appearance: none` on `select` and `date`, floating legends, focus rings, band, animations) and so has the behaviour (D14: new link, clickable card). The recorded G5 approval covers a different interface. D14 mentions that the human reviewed the app ("Esta quedando muy bien", "It's looking very good"), but there is no record of a keyboard and mobile check. | Log order: G5 on line 161, D12 on 174, D14 on 203. No changes to `docs/qa/manual-check.md` in the range (`git diff --stat 95c2c0c..c4f5095` does not include it). The accessibility checks of this review are automated (e2e and probes), not manual. | DoD of `CLAUDE.md` §9 (G5); REQ-02.26, REQ-02.27 (keyboard); AC-01.28, AC-02.29 (mobile) | Before G6, repeat a short G5 pass on the current build: keyboard (including the "Cambiar de país" link and the plans) and a real mobile at 375 px (the `date` without native appearance and the `select` with its own chevron on iOS and Android). Record it in `docs/qa/manual-check.md`. Or accept the risk explicitly in G4. |
+| F-02.2 | Minor | `frontend/src/app/features/plans-step/plans-step-page.css:114-119` | REQ-02.34 is implemented with an absolute `label::after` that covers the whole card. It meets the REQ, but it diverts all the hit testing of the content to the `label`. Consequences: (1) the description, the coverages and the benefits cannot be selected or copied with the mouse (the comment itself acknowledges it as a trade-off); (2) a screen reader with touch exploration (TalkBack/VoiceOver), which uses the browser's hit testing, lands on the radio and the label when touching a coverage instead of reading the coverage. The lists are still accessible with swipe gestures and with the virtual cursor. Point (2) is an inference from the hit testing; it has not been tested on a device. | Probe 2: `elementFromPoint(centre of "Hurto" of Plan Total) = LABEL class="plan-label"`. `e2e/tests/flow/change-country-and-plan-card.spec.ts:26-28`: "`locator.click()` refuses because the label intercepts the pointer". The accessible name and the keyboard do not change (aria snapshot: `radio "Plan Total $ 1.815.000"`). | REQ-02.34 (met); REQ-02.26 and REQ-02.27 (no regression); mobile accessibility good practice | Decide in G4. (a) **Accept** the trade-off, documenting it in the spec or in `manual-check.md`. (b) Replace the overlay with a `(click)` on `.plan` that calls `select(id)` when the target is neither the `input` nor the `label`. The radio stays the only keyboard control (the `div` does not need focus), the text can be selected and touch exploration reads the content. The AC-02.34 e2e would remain valid unchanged. |
+| F-02.3 | Minor | `specs/US-02/spec.md:370-381` | The Gherkin block of AC-02.34 was inserted **between the two scenarios of AC-02.33**. The second scenario of AC-02.33 ("A step text and the generic error message are missing in Strapi") now sits under the comment `# AC-02.34 — origen: D14`. Anyone navigating by IDs (`grep "AC-02.34"`) attributes to D14 a scenario that belongs to G2-2, and AC-02.33 seems to have a single scenario, although `docs/qa/test-plan.md` says "`cst › AC-02.33 …` (two scenarios)". | `sed -n 355,385p specs/US-02/spec.md`: line 360 `# AC-02.33`, scenario 1; line 370 `# AC-02.34`, the card scenario; line 375 `Scenario: A step text and the generic error message are missing in Strapi`, which is the second one of AC-02.33. | `sdd-traceability` Skill §1 and §5 (traceability by `grep`); the spec is the source of truth (`CLAUDE.md` §2) | Move the `# AC-02.34` block after the second scenario of AC-02.33 (just before the end of the code block). It is an editorial change, with no content change, noted in the spec history. |
+| F-00.17 | Nit | commit `47443de` | The subject uses the type `specs:`, which is not a Conventional Commits type. The repo convention for specs is `docs(specs): …` (Skill §4; history: `2c34185`, `8ca08f7`, `5a28ea2`, …). | `git show --stat 47443de` → `specs: add change-country link and clickable plan card after G5 [...]` | `CLAUDE.md` §6–7 (Conventional Commits, scopes) | Do not rewrite history: the commit is already part of the branch. It is enough to note it and apply the convention from now on. |
+| F-00.18 | Nit | `frontend/src/app/features/wizard-shell/step-indicator.ts:96`; `frontend/src/app/shared/status-message.ts:75`, `:89-97`; `frontend/src/app/features/plans-step/plans-step-page.css:170-177`; `frontend/src/app/features/summary-step/summary-step-page.css:169-175`; `frontend/src/app/features/country-selection/country-selection-page.ts:51` | Small inconsistencies with the token system. (1) The halo of the current step is a literal `rgb(45 109 246 / 0.25)` that almost duplicates `--focus-halo` (`0.22`, `styles.css:29`). (2) The skeleton colours (`#e6edfa`) are not a token. (3) The "4 px left border + radius + background" panel is repeated in three components. (4) The `countries` class no longer has styles (`.countries` was deleted and `.country-links` is used instead), and no test uses it (`grep` in `frontend/src` and `e2e/`). | `grep -n "rgb(45 109 246\|#e6edfa\|border-left: 4px" -r frontend/src/app` → the 4 lines quoted | `CLAUDE.md` §8 (maintainability); comment in `styles.css:3` ("components reuse them") | Use `var(--focus-halo)` or a `--halo-current` token; add `--color-skeleton`; extract the panel into a global class (e.g. `.panel`, `.panel--error`); remove `countries` from the `ul`. None of them is urgent. |
+| F-00.19 | Nit | `docs/assets/screenshots/*.png` (added in `1d1c668`/`db808c1`) | The screenshots predate D14: they do not show the "Cambiar de país" link (e.g. `04b-plans-selected-1280.png`, where the step indicator starts right below the band). The README of `e54001a` uses them as the product image. | Reading of `docs/assets/screenshots/04b-plans-selected-1280.png` | Consistency of the delivery documentation (G6) | Regenerate the screenshots with the current build, or note that they are from D13. |
+| F-01.1 | Nit | `cms/src/seed/seed.ts:234` | Since the backfill, the seed's final summary (`"... already present (left untouched)"`) can be false: on the start that fills `changeCountryLabel`, the existing countries **are** modified. Besides, the backfill has no automated test: its correctness relies on the C3 response and the logs. | `seed.ts:172` calls `backfillWizardTexts` for an existing country, and `:158` does an `update`. Line 234 does not reflect it. Current log: `done: 0 created, 30 already present (left untouched)` | `CLAUDE.md` §8 ("Seed … idempotent"); `CLAUDE.md` §6 (real evidence) | Change the text to `already present (content kept; see backfill lines)` or count the backfills in `Counters`. The backfill test is optional, because `cms/` has no test runner; the human decides. |
 
-No hay hallazgos `F-03.n`: los cambios en US-03 son solo de estilo (`summary-step-page.css`, `confirmation-page.ts`). La sonda 1 los cubre (AC-03.35 a 320, 375 y 1280 px en verde, con y sin animaciones), igual que la tabla de contraste.
+There are no `F-03.n` findings: the changes in US-03 are style only (`summary-step-page.css`, `confirmation-page.ts`). Probe 1 covers them (AC-03.35 at 320, 375 and 1280 px green, with and without animations), as does the contrast table.
 
-### Qué se revisó y no dio hallazgo
+### What was reviewed with no finding
 
-- **Seguridad del rango:** dependencia nueva, assets, CSP, ausencia de URLs externas en CSS, HTML y SVG, tokens, `infra/` sin cambios, permisos del rol público, backfill (Query Engine sobre la fila del componente, borrador y publicado por separado, solo campos vacíos, sin `publish`, idempotente).
-- **G2-2:** sin texto nuevo en código, en ninguna de sus formas.
-- **Decorativos:** la banda es `<header aria-hidden="true">` fuera de `<main>`, con logo `alt=""` y `width`/`height` declarados (unit `D13 G2-2 …`); la ilustración, `alt=""` + `aria-hidden` en el SVG; el chevron, el pin, el check y los puntos, pseudo-elementos con `content: ''`; el esqueleto, `aria-hidden` y sin texto.
-- **Indicador de pasos:** el estado no depende solo del color (actual: negrita + halo + `aria-current="step"`; hecho: check dibujado; el dígito sigue `aria-hidden`).
-- **Movimiento:** cada `animation`/`transition` nueva tiene su anulación con `prefers-reduced-motion`.
-- **Scroll horizontal:** la banda a sangre usa `border-image` con *outset*, que es *ink overflow* y no añade scroll. Comprobado: `scrollWidth === clientWidth` a 320 y 1280 px en `/` y `/co/form`.
-- **Observación sin hallazgo:** al llegar a cada paso, el foco va al `h1` (ADR-0004) y el enlace "Cambiar de país" queda antes en el DOM, así que con teclado se alcanza con Shift+Tab, no con Tab (sonda 2: el primer Tab desde `/co/form` va al primer `select`). El orden de foco sigue el visual (WCAG 2.4.3) y REQ-01.36 solo exige que sea operable con teclado, así que no se reporta como defecto.
+- **Security of the range:** new dependency, assets, CSP, no external URLs in CSS, HTML and SVG, tokens, `infra/` unchanged, public role permissions, backfill (Query Engine on the component row, draft and published separately, only empty fields, no `publish`, idempotent).
+- **G2-2:** no new text in code, in any of its forms.
+- **Decorative elements:** the band is a `<header aria-hidden="true">` outside `<main>`, with logo `alt=""` and declared `width`/`height` (unit `D13 G2-2 …`); the illustration, `alt=""` + `aria-hidden` on the SVG; the chevron, the pin, the check and the dots, pseudo-elements with `content: ''`; the skeleton, `aria-hidden` and without text.
+- **Step indicator:** the state does not depend on colour alone (current: bold + halo + `aria-current="step"`; done: drawn check; the digit stays `aria-hidden`).
+- **Motion:** every new `animation`/`transition` has its `prefers-reduced-motion` override.
+- **Horizontal scroll:** the full-bleed band uses `border-image` with *outset*, which is *ink overflow* and adds no scroll. Checked: `scrollWidth === clientWidth` at 320 and 1280 px on `/` and `/co/form`.
+- **Observation without a finding:** on reaching each step, focus goes to the `h1` (ADR-0004) and the "Cambiar de país" link comes earlier in the DOM, so with the keyboard it is reached with Shift+Tab, not with Tab (probe 2: the first Tab from `/co/form` goes to the first `select`). The focus order follows the visual order (WCAG 2.4.3) and REQ-01.36 only requires it to be keyboard operable, so it is not reported as a defect.
 
-## Tabla de hallazgos para el triage (G4)
+## Findings table for the triage (G4)
 
-| ID | Severidad | Resumen | Estado |
+| ID | Severity | Summary | Status |
 |---|---|---|---|
-| F-00.15 | Minor | `reducedMotion: 'reduce'` en el e2e sin causa aislada; la suite pasa 80/80 con animaciones | Open |
-| F-00.16 | Minor | G5 manual aprobada antes de D12–D15; no hay comprobación manual de la interfaz actual | Open |
-| F-02.2 | Minor | El overlay `label::after` de REQ-02.34 impide seleccionar texto y desvía la exploración táctil al radio | Open |
-| F-02.3 | Minor | AC-02.34 insertado entre los dos escenarios de AC-02.33 en la spec | Open |
-| F-00.17 | Nit | Commit `47443de` con tipo `specs:` en lugar de `docs(specs):` | Open |
-| F-00.18 | Nit | Literales de color fuera de tokens, panel repetido y clase `countries` sin uso | Open |
-| F-00.19 | Nit | Capturas de `docs/assets/screenshots/` anteriores a D14 | Open |
-| F-01.1 | Nit | El log final del seed dice "left untouched" aunque el backfill escriba; backfill sin test | Open |
+| F-00.15 | Minor | `reducedMotion: 'reduce'` in the e2e without an isolated cause; the suite passes 80/80 with animations | Open |
+| F-00.16 | Minor | Manual G5 approved before D12–D15; there is no manual check of the current interface | Open |
+| F-02.2 | Minor | The REQ-02.34 `label::after` overlay prevents text selection and diverts touch exploration to the radio | Open |
+| F-02.3 | Minor | AC-02.34 inserted between the two scenarios of AC-02.33 in the spec | Open |
+| F-00.17 | Nit | Commit `47443de` with type `specs:` instead of `docs(specs):` | Open |
+| F-00.18 | Nit | Colour literals outside tokens, repeated panel and unused `countries` class | Open |
+| F-00.19 | Nit | Screenshots in `docs/assets/screenshots/` predate D14 | Open |
+| F-01.1 | Nit | The seed's final log says "left untouched" even when the backfill writes; backfill without a test | Open |
 
-## Resolución (se completa tras G4)
+## Resolution
 
-| ID | Decisión humana | Estado | Commit / motivo |
+Human G4 decisions in [`docs/decision-log.md`](../docs/decision-log.md), section "G4 — Triage of review 003" (literal reason: "Apruebo ambos", "I approve both"). The human answered with the "Apruebo ambos" button of the next-step box (triage + English documentation); the orchestrator records the button text as the literal answer. Accepted findings are closed; the fixes are in progress and the orchestrator closes them with the SHA of each fix.
+
+| ID | Human decision | Status | Commit / reason |
 |---|---|---|---|
-| F-00.15 | | Open | |
-| F-00.16 | | Open | |
-| F-02.2 | | Open | |
-| F-02.3 | | Open | |
-| F-00.17 | | Open | |
-| F-00.18 | | Open | |
-| F-00.19 | | Open | |
-| F-01.1 | | Open | |
+| F-00.15 | Fix: remove `reducedMotion` from the e2e config, re-run the full suite and correct the e2e report (the cause was not isolated) | In progress | Owner: orchestrator + `qa-engineer` |
+| F-00.16 | Fix: the human repeats a short G5 on the current UI | In progress | Owner: human |
+| F-02.2 | Accept | Accepted | Side effect of the whole-card click the human asked for (D14); keyboard and accessible name unchanged |
+| F-02.3 | Fix: misplaced scenario in US-02 | In progress | Owner: `requirements-analyst` |
+| F-00.17 | Accept | Accepted | Fixing it would rewrite Git history |
+| F-00.18 | Accept | Accepted | Minor CSS cleanup, no impact |
+| F-00.19 | Fix: retake the README screenshots | In progress | Owner: orchestrator |
+| F-01.1 | Fix the misleading seed log message; accept the missing backfill test (verified for real on an existing and an empty volume) | In progress | Owner: orchestrator |
 
 ## Re-review
 
-Pendiente de las correcciones que se decidan en G4.
+Pending the fixes decided in G4.

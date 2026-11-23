@@ -1,13 +1,13 @@
-# Manifiesto de logs de sesiones
+# Session logs manifest
 
-Cada exportación de `scripts/export-session-logs.ps1` añade una sección. Única transformación permitida (decisión G1-f): sustituir por `<redacted-personal-data>` las cadenas de un archivo de redacción que vive fuera del repositorio. Los archivos con 0 sustituciones son copias byte a byte (hash de origen = hash de copia). Los originales siguen en `~/.claude/projects/` de la máquina del autor.
+Each export by `scripts/export-session-logs.ps1` adds a section. The only transformation allowed (decision G1-f): replace with `<redacted-personal-data>` the strings of a redaction file that lives outside the repository. Files with 0 substitutions are byte-for-byte copies (source hash = copy hash). The originals remain in `~/.claude/projects/` on the author's machine.
 
 ## logs/sessions/2026-11-22T1425-e47a27f0
 
-- Sesión: `e47a27f0-74c7-4957-994a-94c086d65178` · exportada: 2026-11-22 14:25 · cadenas redactadas: 1 · archivos: 30 · sustituciones totales: 7
-- Verificación: 0 cadenas redactadas presentes en la copia.
+- Session: `e47a27f0-74c7-4957-994a-94c086d65178` · exported: 2026-11-22 14:25 · redacted strings: 1 · files: 30 · total substitutions: 7
+- Verification: 0 redacted strings present in the copy.
 
-| Archivo | Sustituciones | SHA-256 original | SHA-256 copia |
+| File | Substitutions | Original SHA-256 | Copy SHA-256 |
 |---|---|---|---|
 | `e47a27f0-74c7-4957-994a-94c086d65178.jsonl` | 7 | `4c746c150f6f575b6abee57644f3f2e9be015a5d18af88b2c04427fe32fce1e6` | `1141818c819d252426cc3bf8fe84510a47c2092ee77a00526dbc8578f8d2122a` |
 | `e47a27f0-74c7-4957-994a-94c086d65178/custom-title.json` | 0 | `8c08fc76c1051afc9d25ba08aa4d0f6257765715881022e4842052788fdeafa7` | `8c08fc76c1051afc9d25ba08aa4d0f6257765715881022e4842052788fdeafa7` |

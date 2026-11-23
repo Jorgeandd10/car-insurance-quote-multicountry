@@ -1,44 +1,44 @@
-# Review NNN — US-0X <tema>
+# Review NNN — US-0X <topic>
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Revisor | Code Reviewer (subagente), modelo: ... |
-| Fecha | YYYY-MM-DD |
-| Alcance | `git diff <base-sha>..<head-sha>` · archivos: ... |
-| Specs / ADRs de referencia | specs/US-0X/spec.md, ADR-NNNN |
-| Veredicto | Aprobado · Aprobado con cambios · Cambios requeridos |
+| Reviewer | Code Reviewer (subagent), model: ... |
+| Date | YYYY-MM-DD |
+| Scope | `git diff <base-sha>..<head-sha>` · files: ... |
+| Reference specs / ADRs | specs/US-0X/spec.md, ADR-NNNN |
+| Verdict | Approved · Approved with changes · Changes required |
 
-## Comandos ejecutados
+## Commands run
 
 ```text
-$ <comando>
-<salida real, sin editar>
+$ <command>
+<real output, unedited>
 ```
 
 ## Checklist
 
-| Área | Resultado | Notas |
+| Area | Result | Notes |
 |---|---|---|
-| Cumple los REQ de la spec | ✅ / ❌ | |
-| Seguridad (tokens, permisos, datos) | | |
-| Angular moderno (standalone, signals, control flow, sin `any`) | | |
-| Estados de carga / vacío / error | | |
-| Accesibilidad (labels, foco, teclado) | | |
-| Tests que validan comportamiento (no implementación) | | |
-| Trazabilidad (IDs en commits y tests) | | |
+| Meets the REQ of the spec | ✅ / ❌ | |
+| Security (tokens, permissions, data) | | |
+| Modern Angular (standalone, signals, control flow, no `any`) | | |
+| Loading / empty / error states | | |
+| Accessibility (labels, focus, keyboard) | | |
+| Tests that validate behavior (not implementation) | | |
+| Traceability (IDs in commits and tests) | | |
 
-## Hallazgos
+## Findings
 
-| ID | Severidad | Archivo:línea | Descripción | Evidencia | REQ / regla | Propuesta |
+| ID | Severity | File:line | Description | Evidence | REQ / rule | Proposal |
 |---|---|---|---|---|---|---|
 | F-0X.1 | Blocker · Major · Minor · Nit | `frontend/src/...:42` | ... | ... | REQ-0X.n | ... |
 
-## Resolución (se completa tras G4)
+## Resolution (completed after G4)
 
-| ID | Decisión humana | Estado | Commit / motivo |
+| ID | Human decision | Status | Commit / reason |
 |---|---|---|---|
-| F-0X.1 | Corregir · Aceptar · Rechazar | Fixed · Accepted · Rejected | `<sha>` / "motivo literal" |
+| F-0X.1 | Fix · Accept · Reject | Fixed · Accepted · Rejected | `<sha>` / "literal reason" |
 
 ## Re-review
 
-Verificación de las correcciones: comandos y salida real.
+Verification of the fixes: commands and real output.

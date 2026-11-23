@@ -1,71 +1,71 @@
-# US-0X — <Título>
+# US-0X — <Title>
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Draft · Approved (YYYY-MM-DD, G2) |
-| Versión | 0.1 |
-| Autor | Requirements Analyst (subagente) |
-| Aprobador | Humano (G2) |
-| ADRs relacionados | ADR-NNNN |
-| Decisiones relacionadas | Dn |
+| Status | Draft · Approved (YYYY-MM-DD, G2) |
+| Version | 0.1 |
+| Author | Requirements Analyst (subagent) |
+| Approver | Human (G2) |
+| Related ADRs | ADR-NNNN |
+| Related decisions | Dn |
 
-## 1. Historia (literal del PDF)
+## 1. Story (literal from the PDF)
 
-> Como ..., quiero ..., para ...
+> As a ..., I want ..., so that ...
 
-**Contexto (literal):** ...
+**Context (literal):** ...
 
-## 2. Alcance
+## 2. Scope
 
-- Incluido: ...
-- Fuera de alcance: ...
+- Included: ...
+- Out of scope: ...
 
-## 3. Requisitos
+## 3. Requirements
 
-| ID | Requisito verificable | Origen | Verificación |
+| ID | Verifiable requirement | Origin | Verification |
 |---|---|---|---|
-| REQ-0X.1 | ... | PDF (regla de negocio n) | Unit · E2E · Manual |
+| REQ-0X.1 | ... | PDF (business rule n) | Unit · E2E · Manual |
 
-## 4. Criterios de aceptación
+## 4. Acceptance criteria
 
-### Escenarios del PDF (literales)
+### PDF scenarios (literal)
 
 ```gherkin
 Scenario: ...
 ```
 
-### Escenarios añadidos por la spec
+### Scenarios added by the spec
 
 ```gherkin
-# AC-0X.n — origen: Q-0X.m
+# AC-0X.n — origin: Q-0X.m
 Scenario: ...
 ```
 
-| AC | Escenario | REQ cubiertos |
+| AC | Scenario | REQ covered |
 |---|---|---|
 | AC-0X.1 | ... | REQ-0X.1, REQ-0X.2 |
 
-## 5. Preguntas abiertas y huecos
+## 5. Open questions and gaps
 
-| ID | Pregunta | Propuesta | Estado | Resuelto por |
+| ID | Question | Proposal | Status | Resolved by |
 |---|---|---|---|---|
-| Q-0X.1 | ... | ... | Abierta · Resuelta · Bloqueante | Humano (G2) · Dn |
+| Q-0X.1 | ... | ... | Open · Resolved · Blocking | Human (G2) · Dn |
 
-## 6. Datos y contratos
+## 6. Data and contracts
 
-Qué consume la historia de Strapi y qué guarda en el navegador (referencia a `docs/architecture/`).
+What the story consumes from Strapi and what it stores in the browser (reference to `docs/architecture/`).
 
-## 7. Requisitos no funcionales aplicables
+## 7. Applicable non-functional requirements
 
-Accesibilidad (teclado, etiquetas, foco), responsive, estados de carga/vacío/error, seguridad.
+Accessibility (keyboard, labels, focus), responsive, loading/empty/error states, security.
 
-## 8. Plan de verificación
+## 8. Verification plan
 
-| AC / REQ | Tipo de test | Ubicación prevista |
+| AC / REQ | Test type | Planned location |
 |---|---|---|
 
-## 9. Historial
+## 9. History
 
-| Versión | Fecha | Cambio | Motivo |
+| Version | Date | Change | Reason |
 |---|---|---|---|
-| 0.1 | YYYY-MM-DD | Borrador inicial | — |
+| 0.1 | YYYY-MM-DD | Initial draft | — |

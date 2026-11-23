@@ -1,43 +1,43 @@
-# Contratos de API: Angular → nginx → Strapi 5
+# API contracts: Angular → nginx → Strapi 5
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Proposed (G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisiones | D3, D4, D6 · ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006 |
-| Modelo | [`content-model.md`](content-model.md) |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Decisions | D3, D4, D6 · ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006 |
+| Model | [`content-model.md`](content-model.md) |
 
-## 1. Reglas comunes
+## 1. Common rules
 
-- **Origen:** URLs relativas `/api/...` desde el navegador hacia nginx (mismo origen). nginx solo permite `GET`/`HEAD` en `/api/countries`, `/api/form-fields`, `/api/plans` y `/api/country-selection` (ADR-0003).
-- **Sin autenticación:** ninguna petición lleva `Authorization` ni cookies (REQ-01.35, REQ-02.31). No hay interceptores de autenticación.
-- **Solo publicado:** la app **nunca** envía `status` ni `publicationFilter`. Por defecto la REST API devuelve la versión publicada, y el middleware `published-only` lo fuerza en Strapi.
-- **Codificación:** los parámetros se construyen con `HttpParams` (codifican `[` y `]`). Los ejemplos se muestran sin codificar para que se lean mejor.
-- **Paginación:** `pagination[pageSize]=100` (el `maxLimit` de Strapi está configurado en 100) y `pagination[page]=n`. Si `meta.pagination.pageCount > 1`, `CmsClient` pide las páginas `2..pageCount` en serie y concatena `data` (REQ-02.24). Aplica a C4 y C5. C1 usa una sola página de 100 (más de 100 países no es un caso realista; si `pageCount > 1` se recorren igual).
-- **Timeout:** 10 000 ms por petición (ADR-0004).
-- **Errores de petición** → estado `error` ("error de carga" + "reintentar"): error de red, timeout, HTTP distinto de 2xx, cuerpo que no es JSON, o forma global inesperada (`data` ausente, o de tipo distinto a array en collection types o a objeto en single types).
-- **Errores de elemento** → el elemento se descarta (o el atributo se ignora) con `console.warn('[cms] …')`, **sin datos del usuario** (US-02 §7). No convierten la respuesta en error.
-- **Caché:** respuestas con `Cache-Control: no-store` (nginx). La app no guarda respuestas fuera de memoria (REQ-01.6).
-- **Formato v5:** atributos planos en cada elemento (sin `attributes`), `id` numérico y `documentId` string; los componentes incluyen su propio `id`. La app usa `documentId` como identidad (nunca `id`).
+- **Origin:** relative URLs `/api/...` from the browser to nginx (same origin). nginx only allows `GET`/`HEAD` on `/api/countries`, `/api/form-fields`, `/api/plans` and `/api/country-selection` (ADR-0003).
+- **No authentication:** no request carries `Authorization` or cookies (REQ-01.35, REQ-02.31). There are no authentication interceptors.
+- **Published only:** the app **never** sends `status` or `publicationFilter`. By default the REST API returns the published version, and the `published-only` middleware enforces it in Strapi.
+- **Encoding:** parameters are built with `HttpParams` (which encode `[` and `]`). The examples are shown unencoded for readability.
+- **Pagination:** `pagination[pageSize]=100` (Strapi's `maxLimit` is configured at 100) and `pagination[page]=n`. If `meta.pagination.pageCount > 1`, `CmsClient` requests pages `2..pageCount` serially and concatenates `data` (REQ-02.24). It applies to C4 and C5. C1 uses a single page of 100 (more than 100 countries is not a realistic case; if `pageCount > 1` the pages are walked anyway).
+- **Timeout:** 10 000 ms per request (ADR-0004).
+- **Request errors** → `error` state ("error de carga" + "reintentar"): network error, timeout, HTTP other than 2xx, a body that is not JSON, or an unexpected overall shape (`data` missing, or of a type other than an array for collection types or an object for single types).
+- **Item errors** → the item is discarded (or the attribute is ignored) with `console.warn('[cms] …')`, **without user data** (US-02 §7). They do not turn the response into an error.
+- **Caching:** responses with `Cache-Control: no-store` (nginx). The app does not store responses outside memory (REQ-01.6).
+- **v5 format:** flat attributes in each item (no `attributes`), numeric `id` and string `documentId`; components include their own `id`. The app uses `documentId` as identity (never `id`).
 
-### Cuándo se hace cada petición
+### When each request is made
 
-| Petición | Momento | Historia |
+| Request | When | Story |
 |---|---|---|
-| C1 Países publicados | Al entrar en `/`, y en `/:country` solo si C3 no encuentra el país | US-01 |
-| C2 Textos de `/` | Al entrar en `/` | US-01 |
-| C3 Configuración del país | Una vez por carga de la app y país (y con "reintentar") | US-01, US-02, US-03 |
-| C4 Campos del formulario | Junto con C3 (en paralelo) | US-01, US-02, US-03 |
-| C5 Planes | En cada entrada al paso 2 y al resumen | US-02, US-03 |
-| C6 Factores de precio | En cada entrada al paso 2 y al resumen (en paralelo con C5) | US-02, US-03 |
-| C7 Términos | En cada entrada al resumen | US-03 |
+| C1 Published countries | On entering `/`, and on `/:country` only if C3 does not find the country | US-01 |
+| C2 `/` texts | On entering `/` | US-01 |
+| C3 Country configuration | Once per app load and country (and with "reintentar") | US-01, US-02, US-03 |
+| C4 Form fields | Together with C3 (in parallel) | US-01, US-02, US-03 |
+| C5 Plans | On every entry to step 2 and to the summary | US-02, US-03 |
+| C6 Price factors | On every entry to step 2 and to the summary (in parallel with C5) | US-02, US-03 |
+| C7 Terms | On every entry to the summary | US-03 |
 
-C3 y C4 forman la **configuración del país** (`CountryConfig`): si falla cualquiera de las dos, el estado es `error`.
+C3 and C4 make up the **country configuration** (`CountryConfig`): if either of them fails, the state is `error`.
 
-## 2. Peticiones
+## 2. Requests
 
-### C1 — Países publicados
+### C1 — Published countries
 
 ```
 GET /api/countries
@@ -56,9 +56,9 @@ GET /api/countries
 }
 ```
 
-Dominio: `CountrySummary { code: string; name: string }[]`. Se descartan los elementos con un `code` que no cumple `^[a-z]{2}$` o sin `name`. Si hay códigos duplicados, se queda el primero. La resolución de `/:country` no usa esta lista sino C3: si C3 devuelve 0 países, se pide C1 para mostrar "país no disponible" con los países publicados como enlaces (REQ-01.2). Si C1 falla, aparece "país no disponible" con "error de carga" + "reintentar" en lugar de la lista.
+Domain: `CountrySummary { code: string; name: string }[]`. Items with a `code` that does not match `^[a-z]{2}$` or without a `name` are discarded. If there are duplicate codes, the first one is kept. Resolving `/:country` does not use this list but C3: if C3 returns 0 countries, C1 is requested to show "país no disponible" with the published countries as links (REQ-01.2). If C1 fails, "país no disponible" appears with "error de carga" + "reintentar" instead of the list.
 
-### C2 — Textos de la página `/`
+### C2 — `/` page texts
 
 ```
 GET /api/country-selection?fields[0]=heading&fields[1]=intro&fields[2]=countryListLabel
@@ -71,9 +71,9 @@ GET /api/country-selection?fields[0]=heading&fields[1]=intro&fields[2]=countryLi
 }
 ```
 
-Dominio: `CountrySelectionTexts { heading: string; intro: string | null; countryListLabel: string }`. Un `404` (single type no publicado), o la falta de `heading` o `countryListLabel`, se tratan como **error** ("error de carga" + "reintentar"), porque en `/` no hay mensaje genérico de país. Ver "Huecos" (§4).
+Domain: `CountrySelectionTexts { heading: string; intro: string | null; countryListLabel: string }`. A `404` (single type not published), or a missing `heading` or `countryListLabel`, is treated as an **error** ("error de carga" + "reintentar"), because there is no country generic message on `/`. See "Gaps" (§4).
 
-### C3 — Configuración del país (datos y textos)
+### C3 — Country configuration (data and texts)
 
 ```
 GET /api/countries
@@ -84,7 +84,7 @@ GET /api/countries
   &pagination[pageSize]=2
 ```
 
-`pageSize=2` permite detectar un duplicado (`data.length > 1` → error de configuración, que en la práctica impide `code` único).
+`pageSize=2` allows detecting a duplicate (`data.length > 1` → configuration error, which in practice the unique `code` prevents).
 
 ```json
 {
@@ -118,17 +118,17 @@ GET /api/countries
 }
 ```
 
-Mapeo a dominio:
+Mapping to domain:
 
-| DTO | Dominio | Regla |
+| DTO | Domain | Rule |
 |---|---|---|
-| `data.length === 0` | `notAvailable` | "país no disponible" (no publicado o código desconocido) |
-| `data.length > 1` | `error` | Configuración no interpretable |
-| `code`, `name`, `intlLocale`, `currency` | `Country.code`, `.name`, `.intlLocale`, `.currency` | `intlLocale` y `currency` deben ser aceptados por `Intl.NumberFormat` (se comprueba en un `try`); si no, `error` |
-| `minimumAge` | `Country.minimumAge: number` | Entero ≥ 0; si no, `error` (sin él no se puede aplicar REQ-01.20) |
-| `*Texts.*` | `UiTexts` (un objeto por pantalla) | Cada texto se recorta; vacío o ausente → la pantalla o sección queda `configError` (content-model §3.5). Si falta `genericErrorMessage` → `error` |
+| `data.length === 0` | `notAvailable` | "país no disponible" (not published or unknown code) |
+| `data.length > 1` | `error` | Configuration cannot be interpreted |
+| `code`, `name`, `intlLocale`, `currency` | `Country.code`, `.name`, `.intlLocale`, `.currency` | `intlLocale` and `currency` must be accepted by `Intl.NumberFormat` (checked in a `try`); otherwise, `error` |
+| `minimumAge` | `Country.minimumAge: number` | Integer ≥ 0; otherwise, `error` (without it REQ-01.20 cannot be applied) |
+| `*Texts.*` | `UiTexts` (one object per screen) | Each text is trimmed; empty or missing → the screen or section becomes `configError` (content-model §3.5). If `genericErrorMessage` is missing → `error` |
 
-### C4 — Campos del formulario
+### C4 — Form fields
 
 ```
 GET /api/form-fields
@@ -180,30 +180,30 @@ GET /api/form-fields
 }
 ```
 
-Mapeo a `FormConfig` (función pura `mapFormFields(dtos, country) → { config, warnings }`; tablas 5.2 a 5.4 de US-01):
+Mapping to `FormConfig` (pure function `mapFormFields(dtos, country) → { config, warnings }`; tables 5.2 to 5.4 of US-01):
 
-| DTO | Dominio `FormFieldConfig` | Regla |
+| DTO | `FormFieldConfig` domain | Rule |
 |---|---|---|
-| `key` | `key: string` | Debe cumplir `^[a-z][a-zA-Z0-9_]{0,49}$`; si no → se omite el campo. Si se repite → se queda el primero por `order` (5.3) |
-| `label` | `label: string` | Recortado; vacío → se omite el campo (5.3) |
-| `type` | `type: FieldType` | Fuera del catálogo → se omite el campo |
-| `required` | `required: boolean` | `true` solo si es exactamente `true` |
-| `helpText` | `helpText: string \| null` | Vacío → `null` (no se muestra) |
-| `errorMessage` | `errorMessage: string \| null` | Vacío → `null` (se usa `genericErrorMessage`) |
-| `order` | `order: number \| null` | Entero o `null`. Orden: sección fija (`policyholder`, `vehicle`), luego `order` ascendente, `null` al final, desempate por `key` |
-| `section` | `section: Section` | Fuera del catálogo → se omite el campo |
-| `role` | `role: FieldRole \| null` | Fuera del catálogo o incompatible con `type` → `null` con aviso |
-| `options` | `options: { value; label }[]` | Solo en `select`. Se omiten las opciones sin `value` o `label` y los `value` repetidos. Sin opciones válidas → se omite el campo |
-| `validations` | `validations: ValidationRule[]` | Unión discriminada por `kind` (ADR-0002). Inválidas o de otro tipo de campo → se ignoran |
+| `key` | `key: string` | Must match `^[a-z][a-zA-Z0-9_]{0,49}$`; otherwise → the field is omitted. If repeated → the first by `order` is kept (5.3) |
+| `label` | `label: string` | Trimmed; empty → the field is omitted (5.3) |
+| `type` | `type: FieldType` | Outside the catalog → the field is omitted |
+| `required` | `required: boolean` | `true` only if it is exactly `true` |
+| `helpText` | `helpText: string \| null` | Empty → `null` (not shown) |
+| `errorMessage` | `errorMessage: string \| null` | Empty → `null` (`genericErrorMessage` is used) |
+| `order` | `order: number \| null` | Integer or `null`. Order: fixed section (`policyholder`, `vehicle`), then ascending `order`, `null` last, tie broken by `key` |
+| `section` | `section: Section` | Outside the catalog → the field is omitted |
+| `role` | `role: FieldRole \| null` | Outside the catalog or incompatible with `type` → `null` with a warning |
+| `options` | `options: { value; label }[]` | Only for `select`. Options without `value` or `label` and repeated `value`s are omitted. No valid options → the field is omitted |
+| `validations` | `validations: ValidationRule[]` | Discriminated union by `kind` (ADR-0002). Invalid ones or those for another field type → ignored |
 
-Estado de `FormConfig`:
+`FormConfig` state:
 
-- `empty` si no queda ningún campo (REQ-01.5).
-- `unavailable` si falta algún rol obligatorio (`documentNumber`, `birthDate` o `vehicleYear`) en un campo válido (REQ-01.22, G2-5).
-- `configError` si falta un texto del paso (REQ-01.13).
-- `ready` en el resto de casos.
+- `empty` if no field remains (REQ-01.5).
+- `unavailable` if a required role (`documentNumber`, `birthDate` or `vehicleYear`) is missing from a valid field (REQ-01.22, G2-5).
+- `configError` if a step text is missing (REQ-01.13).
+- `ready` in all other cases.
 
-### C5 — Planes del país
+### C5 — The country's plans
 
 ```
 GET /api/plans
@@ -235,23 +235,23 @@ GET /api/plans
 }
 ```
 
-Mapeo a `Plan` (función pura `mapPlans(dtos, country) → { plans, warnings }`):
+Mapping to `Plan` (pure function `mapPlans(dtos, country) → { plans, warnings }`):
 
-| DTO | Dominio | Regla |
+| DTO | Domain | Rule |
 |---|---|---|
-| `documentId` | `id: string` | Identidad persistida (G2-9); vacío → se descarta el plan |
-| `active` | — | Se vuelve a comprobar `=== true` (defensa ante un cambio del filtro); si no, se descarta (REQ-02.2) |
-| `name` | `name: string` | Recortado; vacío → se descarta (REQ-02.25) |
-| `shortDescription` | `shortDescription: string \| null` | Vacío → `null` |
-| `basePrice` | `basePrice: number` | Número (o cadena numérica) finito y > 0; si no → se descarta (REQ-02.25) |
-| `currency` | — | Distinta de `Country.currency` → se descarta con aviso (REQ-02.7, G2-11) |
-| `coverages`, `benefits` | `string[]` | `null` → `[]`; se omiten los `label` vacíos (REQ-02.3) |
-| `order` | `order: number \| null` | Orden: `order` ascendente, `null` al final, luego `name.localeCompare(otro, intlLocale)` y luego `documentId` (REQ-02.4) |
-| `recommended` | `recommended: boolean` | Solo el primero en orden con `true` se destaca (REQ-02.5); función pura `markRecommended` |
+| `documentId` | `id: string` | Persisted identity (G2-9); empty → the plan is discarded |
+| `active` | — | `=== true` is checked again (defense against a change of the filter); otherwise, it is discarded (REQ-02.2) |
+| `name` | `name: string` | Trimmed; empty → discarded (REQ-02.25) |
+| `shortDescription` | `shortDescription: string \| null` | Empty → `null` |
+| `basePrice` | `basePrice: number` | Finite number (or numeric string) > 0; otherwise → discarded (REQ-02.25) |
+| `currency` | — | Different from `Country.currency` → discarded with a warning (REQ-02.7, G2-11) |
+| `coverages`, `benefits` | `string[]` | `null` → `[]`; empty `label`s are omitted (REQ-02.3) |
+| `order` | `order: number \| null` | Order: ascending `order`, `null` last, then `name.localeCompare(other, intlLocale)` and then `documentId` (REQ-02.4) |
+| `recommended` | `recommended: boolean` | Only the first one in order with `true` is highlighted (REQ-02.5); pure function `markRecommended` |
 
-Lista vacía tras filtrar → estado `empty` (REQ-02.22). El resumen comprueba que el plan persistido esté en esta lista (REQ-03.14).
+Empty list after filtering → `empty` state (REQ-02.22). The summary checks that the persisted plan is in this list (REQ-03.14).
 
-### C6 — Factores de precio
+### C6 — Price factors
 
 ```
 GET /api/countries
@@ -279,17 +279,17 @@ GET /api/countries
 }
 ```
 
-Mapeo a `PriceFactorRule[]`, en el orden del array (ADR-0005):
+Mapping to `PriceFactorRule[]`, in array order (ADR-0005):
 
-| DTO | Dominio | Regla |
+| DTO | Domain | Rule |
 |---|---|---|
-| `role`, `operand` | `role`, `operand` | Fuera del catálogo, o combinación incompatible → se descarta |
-| `min`, `max` | `number \| null` | Entero o `null`; `min > max` → se descarta (REQ-02.12) |
-| `multiplier` | `number` | `number` o cadena numérica; no finito o ≤ 0 → se descarta (REQ-02.12) |
+| `role`, `operand` | `role`, `operand` | Outside the catalog, or an incompatible combination → discarded |
+| `min`, `max` | `number \| null` | Integer or `null`; `min > max` → discarded (REQ-02.12) |
+| `multiplier` | `number` | `number` or numeric string; non-finite or ≤ 0 → discarded (REQ-02.12) |
 
-`data.length === 0` (el país se despublicó entre pasos) → `error`. `priceFactors` vacío o `null` → `[]` (precio = precio base, REQ-02.9).
+`data.length === 0` (the country was unpublished between steps) → `error`. Empty or `null` `priceFactors` → `[]` (price = base price, REQ-02.9).
 
-### C7 — Términos y condiciones
+### C7 — Terms and conditions
 
 ```
 GET /api/countries
@@ -318,16 +318,16 @@ GET /api/countries
 }
 ```
 
-Mapeo a `TermsDocument` (ADR-0006). La forma de los nodos `list` y `list-item` del ejemplo se confirma contra la respuesta real del seed antes de fijar la fixture de los tests:
+Mapping to `TermsDocument` (ADR-0006). The shape of the `list` and `list-item` nodes in the example is confirmed against the real seed response before fixing the test fixture:
 
-| DTO | Dominio | Regla |
+| DTO | Domain | Rule |
 |---|---|---|
-| `termsAndConditions` | `TermsBlock[]` | Árbol cerrado (`paragraph`, `heading`, `list`, `text` con marcas); los nodos desconocidos se degradan a texto |
-| `null`, `[]` o sin texto | `unavailable` | "términos no disponibles" (REQ-03.18) |
-| `data.length > 1` | `unavailable` | REQ-03.18 (varios registros) |
-| `data.length === 0` | `error` | País despublicado entre pasos |
+| `termsAndConditions` | `TermsBlock[]` | Closed tree (`paragraph`, `heading`, `list`, `text` with marks); unknown nodes degrade to text |
+| `null`, `[]` or no text | `unavailable` | "terms not available" (REQ-03.18) |
+| `data.length > 1` | `unavailable` | REQ-03.18 (several records) |
+| `data.length === 0` | `error` | Country unpublished between steps |
 
-## 3. Tipos de dominio (resumen)
+## 3. Domain types (summary)
 
 ```ts
 type FieldType = 'text' | 'number' | 'select' | 'date' | 'checkbox';
@@ -344,26 +344,28 @@ interface Plan { id: string; name: string; shortDescription: string | null; base
   coverages: readonly string[]; benefits: readonly string[]; order: number | null; recommended: boolean; }
 interface Step1FieldResult { key: string; type: FieldType; section: Section; role: FieldRole | null;
   label: string; value: string | number | boolean | null; displayValue: string | null; valid: boolean; }
-interface Step1Result { fields: readonly Step1FieldResult[]; isComplete: boolean; } // REQ-01.27, nunca persistido
+interface Step1Result { fields: readonly Step1FieldResult[]; isComplete: boolean; } // REQ-01.27, never persisted
 ```
 
-Los DTOs (`frontend/src/app/core/cms/strapi-dto.ts`) se declaran como `unknown` en la frontera y se estrechan en los mappers (`CLAUDE.md` §8: sin `any`).
+The DTOs (`frontend/src/app/core/cms/strapi-dto.ts`) are declared as `unknown` at the boundary and narrowed in the mappers (`CLAUDE.md` §8: no `any`).
 
-## 4. Huecos detectados (para el orquestador)
+## 4. Gaps found (for the orchestrator)
 
-| Hueco | Propuesta | Por qué no lo decide la arquitectura |
+| Gap | Proposal | Why architecture does not decide it |
 |---|---|---|
-| Qué se muestra en `/` si `country-selection` no está publicado o le falta un texto obligatorio | "error de carga" + "reintentar", sin lista, aplicando la regla de F-00.7 (no hay mensaje genérico de país en `/`) | REQ-01.2 no lo especifica; es comportamiento visible |
-| Combinación rol-operando incompatible en un factor | Se descarta la banda con aviso (como REQ-02.12) | Amplía REQ-02.12 |
+| What is shown on `/` if `country-selection` is not published or is missing a required text | "error de carga" + "reintentar", without the list, applying the F-00.7 rule (there is no country generic message on `/`) | REQ-01.2 does not specify it; it is visible behavior |
+| Incompatible role-operand combination in a factor | The band is discarded with a warning (like REQ-02.12) | It extends REQ-02.12 |
 
-## 5. Referencias
+## 5. References
 
-Consultadas el 2026-11-22:
+Consulted on 2026-11-22:
 
-- REST API (formato de respuesta v5 con `documentId`, endpoints): https://docs.strapi.io/cms/api/rest
-- Parámetros de la REST API (`filters`, `status`, `populate`, `fields`, `sort`, `pagination`): https://docs.strapi.io/cms/api/rest/parameters
-- `status` (por defecto `published`): https://docs.strapi.io/cms/api/rest/status
-- Populate y selección de campos (`populate[0]=component`, `fields[0]=…`; `find` obligatorio en los tipos poblados): https://docs.strapi.io/cms/api/rest/populate-select
-- Filtros (operadores, filtro por relación): https://docs.strapi.io/cms/api/rest/filters
-- Orden y paginación (`pagination[page]`, `pagination[pageSize]` con valor por defecto 25 y límite `api.rest.maxLimit`; `sort[0]=campo:asc`): https://docs.strapi.io/cms/api/rest/sort-pagination
-- Renderer oficial de Blocks (tipos de bloque): https://github.com/strapi/blocks-react-renderer
+- REST API (v5 response format with `documentId`, endpoints): https://docs.strapi.io/cms/api/rest
+- REST API parameters (`filters`, `status`, `populate`, `fields`, `sort`, `pagination`): https://docs.strapi.io/cms/api/rest/parameters
+- `status` (default `published`): https://docs.strapi.io/cms/api/rest/status
+- Populate and field selection (`populate[0]=component`, `fields[0]=…`; `find` required on the populated types): https://docs.strapi.io/cms/api/rest/populate-select
+- Filters (operators, filtering by relation): https://docs.strapi.io/cms/api/rest/filters
+- Sorting and pagination (`pagination[page]`, `pagination[pageSize]` with a default of 25 and the `api.rest.maxLimit` limit; `sort[0]=field:asc`): https://docs.strapi.io/cms/api/rest/sort-pagination
+- Official Blocks renderer (block types): https://github.com/strapi/blocks-react-renderer
+
+> Translated into English on 2026-11-23 (D16); no content change.
