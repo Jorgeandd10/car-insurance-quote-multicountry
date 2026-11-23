@@ -16,13 +16,13 @@ Stack: Angular 22.3 (standalone, signals, zoneless, Signal Forms) · Strapi 5.63
 flowchart LR
     subgraph Host["Host (Windows 11)"]
         B["Navegador<br/>Angular 22 SPA<br/>(sin tokens)"]
-        PW["Playwright (proceso Node)<br/>E2E_STRAPI_WRITE_TOKEN<br/>solo en .env"]
+        PW["Playwright (proceso Node)<br/>sin credenciales<br/>page.route para simular cambios"]
         ADM["Admin de Strapi<br/>(equipo de negocio)"]
     end
 
     subgraph Docker["docker compose"]
         NG["nginx :80 → host :8080<br/>• SPA estático<br/>• /api: GET/HEAD, allowlist exacta<br/>• quita Authorization y Cookie<br/>• Cache-Control: no-store<br/>• rechaza status/publicationFilter"]
-        ST["Strapi 5 :1337<br/>• rol público: solo find (4 tipos)<br/>• middleware published-only<br/>• seed + permisos en bootstrap"]
+        ST["Strapi 5 :1337<br/>• rol público: solo find (4 tipos, G3-2)<br/>• routers only find + middleware published-only<br/>• seed + permisos en bootstrap"]
         DB[("SQLite<br/>(volumen)")]
     end
 
@@ -31,8 +31,7 @@ flowchart LR
     NG -- "proxy (red interna)" --> ST
     ST --- DB
     ADM -- "127.0.0.1:1337/admin<br/>(sesión de admin)" --> ST
-    PW -- "127.0.0.1:1337/api (Bearer, Node)<br/>solo proyecto content-changes" --> ST
-    PW -- "controla el navegador de pruebas" --> B
+    PW -- "controla el navegador de pruebas<br/>e intercepta /api (page.route)" --> B
 ```
 
 Flujo de datos en el navegador:
@@ -128,8 +127,9 @@ cms/
 
 ```
 infra/nginx/                         # Strapi Developer (G1-d): default.conf, Dockerfile (build de Angular + nginx)
-e2e/                                 # QA Engineer: playwright.config.ts, fixtures/ (cms-admin.ts, network-guard.ts),
-                                     # tests/ (flow, states, content-changes, a11y-responsive)
+e2e/                                 # QA Engineer: playwright.config.ts, fixtures/ (network-guard.ts, cms-route.ts:
+                                     # helpers de page.route + route.fetch), tests/ (flow, states, content-changes
+                                     # por intercepción, a11y-responsive). Sin credenciales (G3-3)
 docker-compose.yml · .env.example    # Strapi Developer (G1-d)
 ```
 

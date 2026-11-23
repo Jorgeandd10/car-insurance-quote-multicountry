@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |---|---|
-| Estado | Proposed |
+| Estado | Accepted (2026-11-22, G3) |
 | Fecha | 2026-11-22 |
 | Autor | Software Architect (subagente) |
 | Decisores | Humano (G3) |

@@ -195,9 +195,9 @@ Todos son `string` (o `text` cuando se indica), **obligatorios**, y se cargan un
 
 ## 4. Permisos del rol público
 
-Los aplica `bootstrap` en cada arranque, de forma idempotente: concede estos y **revoca cualquier otro** (ADR-0003).
+**Solo `find`** en cuatro tipos, sin `findOne`. Es una precisión de D4 aprobada en G3-2: D4 fijaba `find`/`findOne` como máximo, y ninguna lectura necesita `findOne`. Los aplica `bootstrap` en cada arranque, de forma idempotente: concede estos y **revoca cualquier otro** (ADR-0003).
 
-| Permiso | Motivo | Peticiones (api-contracts) |
+| Permiso (solo `find`) | Motivo | Peticiones (api-contracts) |
 |---|---|---|
 | `api::country.country.find` | Lista de países, configuración del país, factores, términos | C1, C3, C6, C7 |
 | `api::form-field.form-field.find` | Campos del paso 1 | C4 |
@@ -205,13 +205,15 @@ Los aplica `bootstrap` en cada arranque, de forma idempotente: concede estos y *
 | `api::country-selection.country-selection.find` | Textos de `/` | C2 |
 
 - Sin `findOne`, `create`, `update` ni `delete` en ningún tipo. Sin permisos de `upload`, `users-permissions` (`auth.*`, `user.*`, `role.*`) ni `i18n`. "Enable sign-ups" desactivado.
-- Los routers de los cuatro tipos referencian `global::published-only` en `find` (ADR-0003): fuerza `status=published` y elimina `publicationFilter`.
+- Los routers de los cuatro tipos se declaran con `only: ['find']` y referencian `global::published-only` en `find` (ADR-0003): fuerza `status=published` y elimina `publicationFilter`.
 - El rol `authenticated` no tiene permisos.
-- El token de e2e (ADR-0003) no es un permiso del rol público: es un token de API Custom creado en el admin.
+- No existe ningún token de API ni credencial de escritura para la app ni para los e2e (G3-3). Solo el equipo de negocio escribe, desde el admin de Strapi.
 
-## 5. Decisiones del modelo que necesitan confirmación (G3)
+## 5. Decisiones del modelo (resueltas en G3)
 
-### 5.1 Unicidad de `key` por país (Q-01.13)
+Se conservan las alternativas como registro. La resolución está en `docs/decision-log.md`, sección G3.
+
+### 5.1 Unicidad de `key` por país (Q-01.13) — G3-4: opción A
 
 Strapi solo ofrece `unique` sobre toda la colección; no admite unicidad compuesta (`country` + `key`).
 
@@ -223,17 +225,17 @@ Strapi solo ofrece `unique` sobre toda la colección; no admite unicidad compues
 
 La defensa de la app (C) se mantiene en cualquier caso, porque la exige la spec.
 
-### 5.2 Textos obligatorios en Strapi
+### 5.2 Textos obligatorios en Strapi — G3-5
 
-Recomendado: `required: true` (el negocio no puede publicar un país con textos vacíos). Consecuencia: AC-01.35, AC-02.33 y AC-03.36 se verifican por intercepción y no con un cambio real en Strapi. La alternativa (textos opcionales en Strapi) permite reproducirlos con un cambio real, pero deja publicar un país que muestra el mensaje genérico en lugar del formulario.
+Aprobado: `required: true` (el negocio no puede publicar un país con textos vacíos). Consecuencia: AC-01.35, AC-02.33 y AC-03.36 se verifican por intercepción y no con un cambio real en Strapi. La alternativa (textos opcionales en Strapi) permite reproducirlos con un cambio real, pero deja publicar un país que muestra el mensaje genérico en lugar del formulario.
 
-### 5.3 Leyendas de sección compartidas
+### 5.3 Leyendas de sección compartidas — G3-10
 
-Recomendado: las leyendas `policyholderSectionLabel` y `vehicleSectionLabel` son las mismas en el paso 1 y en el resumen. Si el negocio quiere textos distintos en el resumen, se añaden dos atributos a `ui.summary-step-texts` (caso B).
+Aprobado: las leyendas `policyholderSectionLabel` y `vehicleSectionLabel` son las mismas en el paso 1 y en el resumen. Si el negocio quiere textos distintos en el resumen, se añaden dos atributos a `ui.summary-step-texts` (caso B).
 
-### 5.4 "—" para un opcional vacío (REQ-03.3)
+### 5.4 "—" para un opcional vacío (REQ-03.3) — G3-10
 
-Recomendado: viene de Strapi (`emptyValueLabel`, seed "—"), para cumplir G2-2 al pie de la letra. La alternativa es tratarlo como símbolo fijo en código, lo que exigiría ampliar la excepción de G2-2.
+Aprobado: viene de Strapi (`emptyValueLabel`, seed "—"), para cumplir G2-2 al pie de la letra. La alternativa es tratarlo como símbolo fijo en código, lo que exigiría ampliar la excepción de G2-2.
 
 ## 6. Seed (requisitos para el Strapi Developer)
 
@@ -244,11 +246,12 @@ Ubicación: `cms/src/seed/` (`data/co.ts`, `data/cl.ts`, `seed.ts`, `permissions
 | CO y CL | `Country` publicado con `intlLocale`, `currency`, `minimumAge: 18`, todos los textos y términos (párrafos y una lista) | REQ-01.34, REQ-02.33, REQ-03.15 |
 | CO | Campos: tipo de documento (`select`: cédula de ciudadanía y cédula de extranjería), número de documento (`text`, rol `documentNumber`, `pattern` que admite CC y CE), placa (`text`), marca y ciudad (`select`), fecha de nacimiento (`date`, rol `birthDate`), año del vehículo (`number`, rol `vehicleYear`, `integer`), aceptación de tratamiento de datos (`checkbox`, obligatorio) | REQ-01.34 |
 | CL | Igual que CO con RUT (`text`, rol `documentNumber`) y patente en lugar de placa | REQ-01.34 |
+| CO y CL | 1 campo **en borrador** (nunca publicado, sin rol, opcional) | REQ-01.6, AC-01.11 (verificado contra Strapi real sin escrituras, ADR-0003 §5) |
 | CO y CL | 3 planes publicados y activos (orden y precio distintos, exactamente 1 recomendado), 1 publicado e inactivo, 1 en borrador | REQ-02.33 |
 | CO y CL | `priceFactors` con las bandas de US-02 §6.3 | REQ-02.33 |
 | Global | `country-selection` publicado | REQ-01.2 |
 
-Todos los datos son ficticios (`CLAUDE.md` §6). Las claves siguen la convención de §5.1 si se aprueba la opción A.
+Todos los datos son ficticios (`CLAUDE.md` §6). Las claves siguen la convención de prefijo por país de §5.1 (G3-4).
 
 ## 7. Qué cambia el negocio sin código (caso A) y qué no (caso B)
 
