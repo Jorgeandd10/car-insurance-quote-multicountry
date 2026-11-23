@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Estado | Approved (2026-11-22, G2) |
-| Versión | 0.3 |
+| Versión | 0.4 (cambio post-G2 aprobado por el humano en D14) |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
 | ADRs relacionados | ADR-0001 (multipaís), ADR-0002 (Signal Forms), ADR-0003 (acceso y seguridad), ADR-0004 (estado y navegación), ADR-0007 (pruebas); `docs/architecture/content-model.md`, `api-contracts.md` (Accepted, G3) |
@@ -126,6 +126,7 @@
 | REQ-01.31 | Al entrar al paso 1 (carga inicial, vuelta desde el paso 2 o reintento con éxito) el foco va al encabezado del paso. El indicador de pasos (3 pasos, D7) marca el actual con `aria-current="step"`; sus textos vienen de Strapi. US-01 implementa este armazón y US-02 y US-03 lo reutilizan. | `CLAUDE.md` §8 ("foco gestionado al cambiar de paso"); D7; Q-01.19 → G2-13 | Código (textos: Strapi) | E2E · Manual (G5) |
 | REQ-01.32 | Los cambios de estado de carga, error y vacío se anuncian a los lectores de pantalla (región viva o `role="alert"`). | `CLAUDE.md` §8; requisito técnico Accessibility | Código | Unit (DOM) · Manual (G5) |
 | REQ-01.33 | El paso 1 funciona sin scroll horizontal desde 320 px CSS de ancho hasta escritorio; en pantallas estrechas los campos van en una sola columna. | Requisito técnico Responsive | Código | E2E (viewport 320 y 1280) · Manual (G5) |
+| REQ-01.36 | En cada pantalla del wizard de un país (pasos 1 a 3 y confirmación) hay un enlace visible para volver a la selección de país (`/`). Su texto viene de Strapi por país (`wizardTexts.changeCountryLabel`, obligatorio como el resto de textos, G3-5). Volver no borra los datos guardados del país (D6): al entrar de nuevo en ese país, se recuperan. Es operable con teclado y tiene un área de al menos 24×24 px. | D14 (petición del humano tras G5) | Strapi (texto) + Código | E2E |
 
 ### H. Seed y seguridad
 
@@ -441,6 +442,13 @@ Scenario: Missing text in Strapi is a configuration error
   Then I see the generic error message configured for Chile instead of the form
   And I cannot move to the next step
   And no default text from the code is shown
+
+# AC-01.36 — origen: D14
+Scenario: Go back to the country selection
+  Given I am on any screen of the "/co" quote
+  When I activate the "change country" link configured in Strapi for Colombia
+  Then I see the country selection
+  And when I choose Colombia again my step 1 data is still filled in
 ```
 
 | AC | Escenario | REQ cubiertos |
@@ -480,6 +488,7 @@ Scenario: Missing text in Strapi is a configuration error
 | AC-01.33 | Required checkbox | REQ-01.14 |
 | AC-01.34 | Seed form for each country | REQ-01.34, REQ-01.10 |
 | AC-01.35 | Missing text in Strapi is a configuration error | REQ-01.13 |
+| AC-01.36 | Go back to the country selection | REQ-01.36 |
 
 ## 5. Preguntas abiertas y huecos
 
@@ -606,6 +615,7 @@ Las rutas exactas dependen de la estructura que fije G3; se indica la ubicación
 | AC-01.1, AC-01.2, AC-01.4, AC-01.12, AC-01.13, AC-01.16, AC-01.32, AC-01.34 | E2E sobre el seed de CO y CL (el flujo completo de un país es obligatorio en el PDF) | `e2e/` |
 | AC-01.3, AC-01.10, AC-01.11, AC-01.13 (segunda parte), AC-01.31 (REQ-01.6, REQ-01.8, REQ-01.11, REQ-01.13) | E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) (G3-3) | `e2e/`, `docs/qa/manual-check.md` |
 | AC-01.35 (REQ-01.13) | E2E (intercepción con `page.route`) con un texto obligatorio vacío en la respuesta (G3-5) | `e2e/` |
+| AC-01.36 (REQ-01.36) | E2E sobre el seed de CO | `e2e/` |
 | AC-01.5, AC-01.6, AC-01.21, AC-01.22 | E2E | `e2e/` |
 | AC-01.26, AC-01.27 | E2E (consultas por rol y label, solo teclado) + Manual G5 | `e2e/`, `docs/qa/manual-check.md` |
 | AC-01.28 | E2E con viewport 320 y 1280 + Manual G5 en móvil | `e2e/`, `docs/qa/manual-check.md` |
@@ -619,3 +629,4 @@ Las rutas exactas dependen de la estructura que fije G3; se indica la ubicación
 | 0.1 | 2026-11-22 | Borrador inicial | Fase 3, procedimiento 2.1 de `sdd-traceability` |
 | 0.2 | 2026-11-22 | Aplicadas decisiones G2 | G2 aprobado por el humano |
 | 0.3 | 2026-11-22 | Verificación de AC con cambios en Strapi ajustada a G3-3 | G3 |
+| 0.4 | 2026-11-23 | REQ-01.36 y AC-01.36: enlace para volver a la selección de país | D14 |

@@ -200,6 +200,19 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
   - Las rutas ya eran *lazy* (ADR-0001).
 - **Lo que no cambia:** comportamiento, specs, contenido de Strapi, ningún texto nuevo en código, accesibilidad (AA, foco visible, objetivos de 24 px o más, sin scroll horizontal desde 320 px) e `infra/`.
 
+## D14 — Volver a la selección de país y tarjeta de plan pulsable (2026-11-23)
+
+- **Contexto:** el humano revisó D13 en la app ("Esta quedando muy bien") y planteó tres cuestiones.
+- **Motivo literal del humano:**
+  - "Si acceso a Chile o Colombia, pero quiero devolverme no hay un bootn para regresar a la vista principal, no consideras que sea necesario un boton asi?"
+  - "la idea es q se le pueda dar click a cualquier parte de la \"card\" delm plan que vaya a escoger, y se seleccione [...] tiene q ser en cualquier parte de este"
+- **Análisis del orquestador:** el PDF solo pide volver entre pasos (AC "Keep data when going back") y las specs no cubren volver a la selección de país. Aun así es una mejora clara de usabilidad, y es barata: los datos ya se guardan por país (D6).
+- **Estado:** Aprobado (petición del propio humano).
+- **Cambios en specs aprobadas en G2, señalados de forma explícita:**
+  - US-01 v0.4: REQ-01.36 y AC-01.36, el enlace "cambiar de país". Su texto viene de Strapi en un campo nuevo obligatorio, `wizardTexts.changeCountryLabel` (G2-2, G3-5), así que también cambian el modelo de contenido y el seed.
+  - US-02 v0.4: REQ-02.34 y AC-02.34, toda la tarjeta del plan selecciona el plan. El control sigue siendo el `radio` nativo.
+- **Tercera cuestión (pasarela de pago):** no cambia nada. Ver la respuesta al humano: el PDF dice "a button that leads to a confirmation screen or a mock gateway. Do not integrate real payment gateways or use real card data", y D9 y REQ-03.20 excluyen los campos de tarjeta.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.

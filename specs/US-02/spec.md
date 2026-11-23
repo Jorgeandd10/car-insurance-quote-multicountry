@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Estado | Approved (2026-11-22, G2) |
-| Versión | 0.3 |
+| Versión | 0.4 (cambio post-G2 aprobado por el humano en D14) |
 | Autor | Requirements Analyst (subagente) |
 | Aprobador | Humano (G2) |
 | ADRs relacionados | ADR-0001 (multipaís), ADR-0003 (acceso y seguridad), ADR-0004 (estado y navegación), ADR-0005 (regla de precio), ADR-0007 (pruebas); `docs/architecture/pricing-rule.md`, `content-model.md`, `api-contracts.md` (Accepted, G3) |
@@ -95,6 +95,7 @@ Todas las `Q` se resolvieron en G2 (`docs/decision-log.md`, sección G2). En la 
 | REQ-02.31 | Las peticiones de planes, factores y país son `GET` de solo lectura a través del proxy nginx, sin token en el navegador ni en el bundle. | D4, PDF (Security) | Código + infraestructura | E2E (inspección de red) · Review |
 | REQ-02.32 | Los textos visibles del paso 2 (título, leyenda del grupo, etiqueta de recomendado, botones "volver" y "continuar", mensaje "elige un plan", mensaje de vacío, mensaje de plan no disponible y **mensaje de error genérico del país**) vienen de Strapi por país, como textos de interfaz. Solo hay cuatro textos fijos en código, en español: "cargando", "error de carga", "reintentar" y "país no disponible" (G2-2). Si falta en Strapi un texto obligatorio del paso, es un error de configuración: el paso muestra el mensaje de error genérico del país y no se puede continuar. Si falta también ese mensaje genérico, se usan los textos fijos "error de carga" y "reintentar". **No** hay textos por defecto en código para los textos de Strapi. Definición común con US-01 REQ-01.13. | CLAUDE.md §11 (excepción G2-2), PDF (contexto: "copy" por país), Q-02.13 → G2-2, F-00.7 | Strapi (excepción de 4 textos en Código, G2-2) | Unit (texto ausente → estado de error) · Review |
 | REQ-02.33 | El seed de cada país (CO y CL) incluye, como mínimo: 3 planes publicados y activos con `order` distinto y precio base distinto; exactamente 1 recomendado; 1 plan publicado e inactivo; 1 plan en borrador; los factores de §6.3; y moneda y locale en `Country`. Así AC-02.1, AC-02.2 y AC-02.5 son verificables con `docker compose up`. | PDF (Environment: "seed data for both countries"), AC del PDF | Strapi (seed como código) | E2E · Review |
+| REQ-02.34 | Al hacer clic o tocar en cualquier parte de la tarjeta de un plan, ese plan queda seleccionado, igual que al pulsar su botón de opción. El control sigue siendo el `radio` nativo con su `label` (mismo nombre accesible y mismo comportamiento con teclado, REQ-02.26 y REQ-02.27). | D14 (petición del humano tras G5) | Código | E2E |
 
 ## 4. Criterios de aceptación
 
@@ -366,6 +367,12 @@ Scenario: A step text is missing in Strapi
   And I cannot move on to the summary
   And no default text from the code replaces the missing one
 
+# AC-02.34 — origen: D14
+Scenario: Choose a plan by clicking anywhere on its card
+  Given I am on the plans step of "/co"
+  When I click on the coverages list of "Plan Total"
+  Then "Plan Total" is the selected plan
+
 Scenario: A step text and the generic error message are missing in Strapi
   Given the "continue" text of the plans step is not configured in Strapi for my country
   And the generic error message of my country is not configured either
@@ -410,6 +417,7 @@ Scenario: A step text and the generic error message are missing in Strapi
 | AC-02.31 | Solo lectura sin token | REQ-02.31 |
 | AC-02.32 | Paginación | REQ-02.24 |
 | AC-02.33 | Texto ausente en Strapi | REQ-02.32, REQ-02.21 |
+| AC-02.34 | Clic en cualquier parte de la tarjeta | REQ-02.34 |
 
 REQ sin AC propio: REQ-02.13 (documentación, se verifica en review).
 
@@ -544,6 +552,7 @@ Las rutas exactas de los archivos dependen de la estructura que fije el ADR del 
 | AC-02.1, AC-02.2, AC-02.3 | E2E contra el seed (sin modificar Strapi) | `e2e/` |
 | AC-02.4 | E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) | `e2e/`, `docs/qa/manual-check.md` |
 | AC-02.25 | E2E (intercepción con `page.route`) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) | `e2e/`, `docs/qa/manual-check.md` |
+| AC-02.34 | E2E sobre el seed de CO | `e2e/` |
 | AC-02.16, AC-02.30 | E2E | `e2e/` |
 | AC-02.26, AC-02.28, AC-02.29 | E2E (solo teclado; viewports 320, 375 y 1280) · Manual (G5) | `e2e/`, `docs/qa/` |
 | AC-02.27 | Unit (atributos ARIA) · Manual con lector de pantalla (G5) | `frontend/`, `docs/qa/` |
@@ -558,3 +567,4 @@ Las rutas exactas de los archivos dependen de la estructura que fije el ADR del 
 | 0.2 | 2026-11-22 | Aplicadas decisiones G2 | G2 aprobado por el humano |
 | 0.2 | 2026-11-22 | Alineado mensaje genérico con US-01 | F-00.7 |
 | 0.3 | 2026-11-22 | Verificación de AC con cambios en Strapi ajustada a G3-3 | G3 |
+| 0.4 | 2026-11-23 | REQ-02.34 y AC-02.34: toda la tarjeta del plan selecciona el plan | D14 |
