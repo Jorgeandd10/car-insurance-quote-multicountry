@@ -267,3 +267,9 @@ D-E2E-1 is fixed (AC-03.35 at 320 px green). AC-03.6 with a RUT with dots is sti
 - **Cause, with evidence:** during the run the machine was loaded by 5 translation agents (D16). The Strapi log of the same window shows a request that took `10525 ms`, above the app's 10 s timeout, so the app correctly showed "error de carga". This is the load symptom already documented for this host, not an app defect.
 - **Re-run of the failed tests:** `npx playwright test --last-failed --reporter=line` → `2 passed (44.7s)`.
 - **Conclusion:** the suite stays without `reducedMotion`. Review 003 also got 80/80 with animations. The final full run on an idle machine is recorded in the next section.
+
+## Final run before delivery (2026-11-23)
+
+- **Stack:** `docker compose` built from `c4f5095` (frontend) with the D14 CMS. The later commits only change docs and the e2e config.
+- **Command:** `npx playwright test --reporter=line`, without `reducedMotion`, with no other agents running.
+- **Result:** `80 passed (8.3m)`.
