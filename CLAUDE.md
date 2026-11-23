@@ -52,6 +52,8 @@ docs/decision-log.md   decisiones y rechazos humanos
 reviews/               informes de code review y su resolución
 logs/sessions/         transcripciones originales (NO EDITAR)
 frontend/  cms/  e2e/
+infra/nginx/           proxy GET-only y build de Angular (Strapi Developer, G1-d)
+scripts/               utilidades del flujo (export-session-logs.ps1)
 ```
 
 ## 6. Reglas no negociables
