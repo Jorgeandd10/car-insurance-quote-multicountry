@@ -1,18 +1,32 @@
-# Prueba manual G5 — plantilla
+# Prueba manual G5
 
 | Campo | Valor |
 |---|---|
 | Gate | G5 (prueba manual con teclado y móvil, sin IA) |
 | Quién la ejecuta | Humano |
-| Fecha | |
-| Commit probado (`git rev-parse --short HEAD`) | |
-| Navegador y versión | |
-| Dispositivo móvil (modelo, SO, navegador) o viewport usado | |
-| Lector de pantalla (opcional: NVDA, Narrador, VoiceOver, TalkBack) | |
+| Fecha | 2026-11-23 |
+| Commit probado (`git rev-parse --short HEAD`) | `e2713d2` (pila levantada desde ese commit; comprobado por el orquestador antes de la prueba: `/api/countries` 200, `/admin` 200) |
+| Navegador y versión | Chrome (versión no indicada por el humano) |
+| Dispositivo móvil (modelo, SO, navegador) o viewport usado | No indicado por el humano |
+| Lector de pantalla (opcional: NVDA, Narrador, VoiceOver, TalkBack) | No indicado por el humano |
 
-> Plantilla preparada por el QA Engineer en la Fase 5. **Sin resultados**: la rellena el humano. Cada paso indica el AC que respalda. En "Resultado" escribe `OK`, `Falla` o `No ejecutado`; en "Notas", lo observado (y, si falla, qué esperabas y qué obtuviste).
+> Plantilla preparada por el QA Engineer en la Fase 5; el resultado del humano está en "Resultado registrado". Cada paso indica el AC que respalda. En "Resultado" escribe `OK`, `Falla` o `No ejecutado`; en "Notas", lo observado (y, si falla, qué esperabas y qué obtuviste).
 >
 > Los AC de cambio de contenido (AC-01.3, AC-01.10, AC-01.31, AC-02.4, AC-02.21, AC-02.25, AC-03.15) ya están automatizados por intercepción en `e2e/` (G3-3). Este documento registra la integración real con Strapi, que la intercepción no prueba (ADR-0007, "Consecuencias negativas").
+
+## Resultado registrado (2026-11-23)
+
+El humano ejecutó la prueba siguiendo la versión paso a paso de esta plantilla que el orquestador le dio por chat (mismas partes 0–4 y mismos pasos). Resultado comunicado por el humano, literal:
+
+> "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
+
+Su primer mensaje de resultado ("Ya hice toda la prueba, y quedo super check") pegaba el texto de **ejemplo** que le había dado el orquestador (incluida una falla ficticia en 1.13). El orquestador no lo registró como evidencia y pidió confirmación; la cita anterior es esa confirmación.
+
+Lectura del orquestador:
+
+- Partes 1, 2 y 4: **OK** en todos los pasos, sin defectos. La parte 4 incluye la restauración del seed (4.7).
+- El humano no detalló el dispositivo móvil o el viewport usado, la versión del navegador ni si ejecutó la parte 3, que era opcional. Las tablas siguientes no se rellenan paso a paso para no atribuirle detalles que no dio.
+- **F-00.14** (anuncio de los "cargando" por sección con lector de pantalla) no queda verificado de forma explícita. Sigue **Accepted** como limitación conocida y se documenta en el README.
 
 ## 0. Preparación
 
@@ -83,6 +97,6 @@ El admin solo escucha en `127.0.0.1`. No hay administrador sembrado: el primer a
 
 | Campo | Valor |
 |---|---|
-| Veredicto (Aprobada / Rechazada / Modificada) | |
-| Defectos encontrados (pasos, esperado, obtenido) | |
-| Firma o iniciales | |
+| Veredicto (Aprobada / Rechazada / Modificada) | Aprobada |
+| Defectos encontrados (pasos, esperado, obtenido) | Ninguno |
+| Firma o iniciales | Confirmación del humano por chat (cita en "Resultado registrado") |

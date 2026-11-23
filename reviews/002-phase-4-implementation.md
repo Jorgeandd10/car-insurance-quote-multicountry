@@ -318,7 +318,7 @@ Decisiones humanas de G4 en [`docs/decision-log.md`](../docs/decision-log.md) (m
 | F-02.1 | Corregir | Fixed | `8f763cb` (mismo cambio) |
 | F-03.2 | Corregir | Fixed | `40dfcae`: patrón del RUT de CL con y sin puntos, `maxLength` 12 |
 | F-00.13 | Corregir | Fixed | `40dfcae`: regex de caché con `_` y `-` |
-| F-00.14 | Aceptar; comprobar en G5 | Accepted | Pendiente de la prueba manual con lector de pantalla (G5) |
+| F-00.14 | Aceptar; comprobar en G5 | Accepted | G5 aprobada sin defectos (2026-11-23); el humano no detalló si ejecutó la parte opcional con lector de pantalla, así que queda como limitación conocida en el README |
 
 ### Hallazgo añadido por QA durante la Fase 5
 

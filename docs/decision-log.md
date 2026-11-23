@@ -158,6 +158,14 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
 | F-00.13 | Nit | Corregir (regex de caché de nginx) | `strapi-developer` | "Apruebo el triage de G4" |
 | F-00.14 | Nit | Aceptar; comprobar en G5 | — | "Apruebo el triage de G4" |
 
+## G5 — Prueba manual con teclado y móvil, sin IA (2026-11-23)
+
+- **Presentado:** guía paso a paso por chat derivada de [`docs/qa/manual-check.md`](qa/manual-check.md) (partes 0–4), sobre la pila levantada desde `e2713d2`.
+- **Primer mensaje del humano:** pegaba el texto de ejemplo del orquestador, con una falla ficticia en 1.13. El orquestador no lo registró y pidió los resultados reales.
+- **Estado:** Aprobado. Sin defectos.
+- **Motivo literal del humano:** "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
+- **Alcance no detallado por el humano:** dispositivo o viewport, versión del navegador y la parte 3 (lector de pantalla, opcional). F-00.14 sigue Accepted como limitación conocida; se documenta en el README.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
