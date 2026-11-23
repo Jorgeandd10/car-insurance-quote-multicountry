@@ -1,0 +1,12 @@
+{
+  "name": "car-insurance-quote-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Playwright e2e tests against the docker compose stack (ADR-0007)",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}
