@@ -228,6 +228,37 @@ Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que e
   - `<link>` en `src/index.html` y `theme-color`.
   - Verificado: build OK, y la pila reconstruida sirve los tres iconos con 200.
 
+## G4 — Triage of review 003 (2026-11-23)
+
+- Presented: [`reviews/003-visual-refresh-and-d14.md`](../reviews/003-visual-refresh-and-d14.md) (commit `2a76a89`), verdict "Approved with changes", 0 Blocker / 0 Major.
+
+| Finding | Severity | Decision | Owner | Human's literal reason |
+|---|---|---|---|---|
+| F-00.15 | Minor | Fix: remove `reducedMotion` from the e2e config, re-run the full suite and correct the e2e report (the cause was not isolated) | orchestrator + `qa-engineer` | "Apruebo ambos" (approval of the proposed triage) |
+| F-00.16 | Minor | Fix: the human repeats a short G5 on the current UI | human | "Apruebo ambos" |
+| F-02.2 | Minor | Accept: side effect of the whole-card click the human asked for (D14); keyboard and accessible name unchanged | — | "Apruebo ambos" |
+| F-02.3 | Minor | Fix: misplaced scenario in US-02 | `requirements-analyst` | "Apruebo ambos" |
+| F-00.17 | Nit | Accept: fixing it would rewrite Git history | — | "Apruebo ambos" |
+| F-00.18 | Nit | Accept: minor CSS cleanup, no impact | — | "Apruebo ambos" |
+| F-00.19 | Nit | Fix: retake the README screenshots | orchestrator | "Apruebo ambos" |
+| F-01.1 | Nit | Fix the misleading seed log message; accept the missing backfill test (verified for real on an existing and an empty volume) | orchestrator | "Apruebo ambos" |
+
+- **Note on the approval:** the human answered with the "Apruebo ambos" button of the next-step box (triage + English docs) and then wrote the message quoted in D16. The orchestrator records the button text as the literal answer.
+
+## D16 — All documentation in English (2026-11-23)
+
+- **Context:** `CLAUDE.md` §11 (approved in G1) set documentation in Spanish and code/commits in English. The orchestrator found no language rule in the PDF text it could extract and recommended translating only README and FLOW.
+- **Human's evidence:** the recruiter's email, attached as an image, says the assessment "está redactada y respondida en inglés" ("is written and answered in English").
+- **Human's literal reason:** "Si tenemos que hacerlo en ingles, te adjunto el correo para que veas que el reclutador lo solicito, manos a la obra"
+- **Status:** Approved. **This changes the G1 decision (`CLAUDE.md` §11), as stated explicitly here.**
+- **Scope:** every versioned document is translated into English: `README.md`, `FLOW.md`, `CLAUDE.md`, agents, Skills, specs, ADRs, architecture, reviews, QA reports, traceability, decision log and the Phase 1 analysis.
+- **Exceptions:**
+  - The human's literal quotes in this log stay in Spanish, because they are evidence; an English translation is added next to each one.
+  - `logs/` is never edited (G1-a).
+  - The end-user texts in the Strapi seed stay in Spanish, because the app's users are in Colombia and Chile (G2-2).
+  - Communication between the human and the orchestrator stays in Spanish.
+- **How:** each owning agent translates its own paths in parallel. The translation must be faithful: same IDs, links, tables and meaning. A translation pass that changes content is a defect.
+
 ### Verificaciones que respaldan las decisiones
 
 - Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
