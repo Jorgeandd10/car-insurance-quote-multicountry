@@ -1,26 +1,26 @@
-# Informe de pruebas — US-03 (resumen, términos, pago simulado y confirmación), fase 4d
+# Test report — US-03 (summary, terms, simulated payment and confirmation), phase 4d
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Autor | Angular Developer (subagente) |
-| Fecha | 2026-11-23 |
-| Commit probado | Sin commit propio: árbol de trabajo sobre `f411a8b` (rama `phase-4/implementation`) con los cambios de 4d sin confirmar. El commit lo hace el orquestador |
-| Entorno | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). Sin Strapi: fixtures en formato v5 de `api-contracts.md` (C3 a C7), con el C7 documentado para CO y unos términos ficticios de CL en `frontend/src/app/features/form-step/testing/wizard-harness.ts` |
+| Author | Angular Developer (subagent) |
+| Date | 2026-11-23 |
+| Tested commit | No commit of its own: working tree on top of `f411a8b` (branch `phase-4/implementation`) with the 4d changes uncommitted. The orchestrator makes the commit |
+| Environment | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). No Strapi: fixtures in the v5 format of `api-contracts.md` (C3 to C7), with the documented C7 for CO and some fictitious CL terms in `frontend/src/app/features/form-step/testing/wizard-harness.ts` |
 
-Alcance:
+Scope:
 
 - `features/summary-step/`:
-  - `summary-values.ts`: secciones, valor visible por tipo y enmascarado por rol.
-  - `terms/terms-blocks.ts` y `terms/terms-text.ts`: render de Blocks sin `innerHTML`.
-  - `payment/payment-state.ts` (`canPay`) y `payment/mock-payment-gateway.ts` (`PAYMENT_DELAY_MS` y `QUOTE_RANDOM_FILL` inyectables).
-  - La página del resumen.
-- `features/confirmation/`: página y `confirmationGuard`.
+  - `summary-values.ts`: sections, visible value by type and masking by role.
+  - `terms/terms-blocks.ts` and `terms/terms-text.ts`: Blocks rendering without `innerHTML`.
+  - `payment/payment-state.ts` (`canPay`) and `payment/mock-payment-gateway.ts` (injectable `PAYMENT_DELAY_MS` and `QUOTE_RANDOM_FILL`).
+  - The summary page.
+- `features/confirmation/`: page and `confirmationGuard`.
 
-El resumen reutiliza `Step1ResultReader`, `PlansData`, `buildPlanViews` y `priceInputsFrom`, de modo que el precio sale del mismo cálculo que en el paso 2 (REQ-03.5).
+The summary reuses `Step1ResultReader`, `PlansData`, `buildPlanViews` and `priceInputsFrom`, so the price comes from the same calculation as in step 2 (REQ-03.5).
 
-Las salidas se pegan tal cual. Solo se han quitado los códigos de color ANSI (`sed 's/\x1b\[[0-9;]*m//g'`). Los códigos de salida se capturaron con `set -o pipefail`.
+The outputs are pasted as they are. Only the ANSI color codes were removed (`sed 's/\x1b\[[0-9;]*m//g'`). The exit codes were captured with `set -o pipefail`.
 
-## Comando y salida real
+## Command and real output
 
 ### Build
 
@@ -52,7 +52,7 @@ Application bundle generation complete. [10.780 seconds] - 2026-11-23T06:00:08.8
 Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
 ```
 
-Código de salida: `0`, sin avisos.
+Exit code: `0`, no warnings.
 
 ### Unit tests
 
@@ -530,9 +530,9 @@ Application bundle generation complete. [11.976 seconds] - 2026-11-23T06:01:47.3
    Duration  17.58s (environment 77%, tests 15%, setup 6%, import 2%, transform 1%)
 ```
 
-Código de salida: `0`. Resumen: **45 archivos, 457 tests, 457 pasan, 0 fallan** (388 de las fases 4a a 4c, y 69 nuevos en 6 archivos nuevos).
+Exit code: `0`. Summary: **45 files, 457 tests, 457 pass, 0 fail** (388 from phases 4a to 4c, and 69 new in 6 new files).
 
-### Formato
+### Formatting
 
 ```text
 $ npx prettier --check "src/**/*.{ts,html,css}" vitest-base.config.mts
@@ -540,9 +540,9 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-### `grep` de reglas
+### `grep` of the rules
 
-Ejecutados en `frontend/`. Cada bloque es el comando exacto seguido de su salida.
+Run in `frontend/`. Each block is the exact command followed by its output.
 
 ```text
 $ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>|\$any\(" src --include="*.ts" --include="*.html"
@@ -592,18 +592,18 @@ $ grep -rLE "ChangeDetectionStrategy.OnPush" $(grep -rlE "@Component\(" src/app 
 (sin resultados)
 ```
 
-Lectura:
+Reading:
 
-- No hay `any` (tampoco `$any()` en las plantillas), ni `*ngIf`/`*ngFor`, ni NgModules. Todos los componentes son `OnPush`.
-- **ADR-0006:** fuera de los tests no hay `innerHTML`, `DomSanitizer` ni `bypassSecurityTrust`; las dos líneas que aparecen son el comentario que lo declara. Los tests sí leen `innerHTML`, para comprobar que el documento completo no está en el DOM (AC-03.5, AC-03.6).
-- **D9 y REQ-03.20:** solo hay `GET`, ningún `Math.random` y ningún campo de tarjeta. La única aparición de "card" es el comentario que dice que no la hay.
-- `sessionStorage` solo aparece en `core/storage/`, y el redondeo solo se ejecuta en `domain/pricing/`.
+- There is no `any` (nor `$any()` in the templates), no `*ngIf`/`*ngFor` and no NgModules. Every component is `OnPush`.
+- **ADR-0006:** outside the tests there is no `innerHTML`, `DomSanitizer` or `bypassSecurityTrust`; the two lines that appear are the comment that states it. The tests do read `innerHTML`, to check that the full document is not in the DOM (AC-03.5, AC-03.6).
+- **D9 and REQ-03.20:** there is only `GET`, no `Math.random` and no card field. The only occurrence of "card" is the comment that says there is none.
+- `sessionStorage` only appears in `core/storage/`, and rounding only runs in `domain/pricing/`.
 
-## Cobertura de criterios de US-03
+## US-03 criteria coverage
 
-Las rutas son relativas a `frontend/src/app/`. "E2E" indica la parte que corresponde al QA Engineer en `e2e/` (ADR-0007).
+Paths are relative to `frontend/src/app/`. "E2E" marks the part that belongs to the QA Engineer in `e2e/` (ADR-0007).
 
-| AC | Test (archivo › nombre) | Resultado |
+| AC | Test (file › name) | Result |
 |---|---|---|
 | AC-03.1 | `features/summary-step/summary-step-page.spec.ts › AC-03.1 shows my data, my vehicle data and the chosen plan with its final price` | ✅ Pass |
 | AC-03.2 | `summary-step-page.spec.ts › AC-03.2 shows the terms of the country and the pay button is disabled until they are accepted` | ✅ Pass |
@@ -611,88 +611,88 @@ Las rutas son relativas a `frontend/src/app/`. "E2E" indica la parte que corresp
 | AC-03.4 | `summary-step-page.spec.ts › AC-03.4 AC-03.26 a rejection shows the Strapi message as an alert, keeps everything and allows a retry` | ✅ Pass |
 | AC-03.5 | `summary-step-page.spec.ts › AC-03.5 the Colombian document is masked, the type in clear, and the full value is not in the DOM`; `summary-values.spec.ts › AC-03.5 REQ-03.6 …` | ✅ Pass |
 | AC-03.6 | `summary-step-page.spec.ts › AC-03.6 the Chilean RUT is masked keeping its separators`; `summary-values.spec.ts › AC-03.6 …` | ✅ Pass |
-| AC-03.7 | `domain/masking/mask-document.spec.ts › AC-03.7 …` (6 casos, 4a) | ✅ Pass |
+| AC-03.7 | `domain/masking/mask-document.spec.ts › AC-03.7 …` (6 cases, 4a) | ✅ Pass |
 | AC-03.8 | `summary-values.spec.ts › AC-03.8 …` (3); `summary-step-page.spec.ts › AC-03.8 values are readable …` | ✅ Pass |
-| AC-03.9 | `summary-step-page.spec.ts › AC-03.9 the price is recalculated from the stored plan id and follows a change of step 1` (compara con el precio del paso 2) | ✅ Pass |
+| AC-03.9 | `summary-step-page.spec.ts › AC-03.9 the price is recalculated from the stored plan id and follows a change of step 1` (compares with the step 2 price) | ✅ Pass |
 | AC-03.10 | `summary-step-page.spec.ts › AC-03.10 edit data: full document in step 1, then step 2 with the plan, then the summary with terms unchecked` | ✅ Pass |
 | AC-03.11 | `summary-step-page.spec.ts › AC-03.11 change plan: step 2 with the plan marked, choose another and the summary shows it` | ✅ Pass |
 | AC-03.12 | `summary-step-page.spec.ts › AC-03.12 unchecking the terms disables the pay button again` | ✅ Pass |
 | AC-03.13 | `summary-step-page.spec.ts › AC-03.13 when no terms are published …`, `› … when the published terms are empty …`, `› AC-03.13 when more than one terms record arrives …`; `core/cms/terms-mapper.spec.ts › REQ-03.18 …` (4a) | ✅ Pass |
 | AC-03.14 | `terms/terms-blocks.spec.ts › AC-03.14 HTML in the content is shown as literal text and no element is inserted`; `summary-step-page.spec.ts › AC-03.14 …`; `terms-mapper.spec.ts › AC-03.14 …` (4a) | ✅ Pass |
-| AC-03.15 | `terms-blocks.spec.ts › REQ-03.15 …`; `summary-step-page.spec.ts › AC-03.32 …` (los términos vienen de C7 del país) | ✅ Pass (parte unit). Cambio en Strapi y recarga: E2E por intercepción + G5 |
+| AC-03.15 | `terms-blocks.spec.ts › REQ-03.15 …`; `summary-step-page.spec.ts › AC-03.32 …` (the terms come from the country's C7) | ✅ Pass (unit part). Change in Strapi and reload: E2E by interception + G5 |
 | AC-03.16 | `summary-step-page.spec.ts › AC-03.16 REQ-03.31 while loading, each pending section shows "cargando" and pay is disabled` | ✅ Pass |
 | AC-03.17 | `summary-step-page.spec.ts › AC-03.17 a terms failure shows "error de carga" there; retrying shows them and they can be accepted` | ✅ Pass |
 | AC-03.18 | `features/summary-step/plan-selected-guard.spec.ts › REQ-03.13 …` (4c); `features/form-step/validation/step1-complete-guard.spec.ts › REQ-03.13 …` (4b) | ✅ Pass |
 | AC-03.19 | `summary-step-page.spec.ts › AC-03.19 a stored plan that is no longer available goes to step 2, which warns and selects nothing` | ✅ Pass |
 | AC-03.20 | `summary-step-page.spec.ts › AC-03.20 data that no longer meets the configuration goes to step 1 with the data kept` | ✅ Pass |
 | AC-03.21 | `summary-step-page.spec.ts › AC-03.21 …`; `summary-values.spec.ts › AC-03.21 …` | ✅ Pass |
-| AC-03.22 | `summary-step-page.spec.ts › AC-03.22 a double click, a held Enter or Enter plus click produce exactly one payment attempt` | ✅ Pass. Se simula con clics repetidos: en el navegador, Enter y Espacio sobre un botón generan `click`. El teclado real lo cubre el E2E |
+| AC-03.22 | `summary-step-page.spec.ts › AC-03.22 a double click, a held Enter or Enter plus click produce exactly one payment attempt` | ✅ Pass. It is simulated with repeated clicks: in the browser, Enter and Space on a button generate `click`. The real keyboard is covered by the E2E |
 | AC-03.23 | `summary-step-page.spec.ts › AC-03.3 AC-03.23 while processing the button is locked, keeps the focus and the other controls are disabled` | ✅ Pass |
-| AC-03.24 | `summary-step-page.spec.ts › AC-03.25 REQ-03.21 … and no card fields`, `› AC-03.24 no request other than GET is made while paying …`; `payment/mock-payment-gateway.spec.ts › REQ-03.20 D9 no request of any kind is made` | ✅ Pass (parte unit). Inspección de red real: E2E |
-| AC-03.25 | `summary-step-page.spec.ts › AC-03.25 REQ-03.21 the simulated gateway is in step 3 with "approved" selected by default …`, y los tests de aprobado y rechazado | ✅ Pass |
-| AC-03.26 | `summary-step-page.spec.ts › AC-03.4 AC-03.26 …` (el mensaje desaparece al iniciar el reintento) | ✅ Pass |
-| AC-03.27 | `domain/quote-number/create-quote-number.spec.ts › AC-03.27 …` (4a); `summary-step-page.spec.ts › AC-03.3 AC-03.27 AC-03.28 …` (`CO-20261122-AAAAAA` con fuente fija) | ✅ Pass |
-| AC-03.28 | `features/confirmation/confirmation-page.spec.ts › AC-03.28 AC-03.31 reloading shows the same number …`; `summary-step-page.spec.ts › AC-03.3 AC-03.27 AC-03.28 …` (solo queda `ciq.v1.co.confirmation`, sin documento) | ✅ Pass |
-| AC-03.29 | `summary-step-page.spec.ts › AC-03.29 REQ-03.28 after a successful payment the summary is not reachable: it goes to an empty step 1` | ✅ Pass (parte unit). El "atrás" real del navegador: E2E |
+| AC-03.24 | `summary-step-page.spec.ts › AC-03.25 REQ-03.21 … and no card fields`, `› AC-03.24 no request other than GET is made while paying …`; `payment/mock-payment-gateway.spec.ts › REQ-03.20 D9 no request of any kind is made` | ✅ Pass (unit part). Real network inspection: E2E |
+| AC-03.25 | `summary-step-page.spec.ts › AC-03.25 REQ-03.21 the simulated gateway is in step 3 with "approved" selected by default …`, and the approved and rejected tests | ✅ Pass |
+| AC-03.26 | `summary-step-page.spec.ts › AC-03.4 AC-03.26 …` (the message disappears when the retry starts) | ✅ Pass |
+| AC-03.27 | `domain/quote-number/create-quote-number.spec.ts › AC-03.27 …` (4a); `summary-step-page.spec.ts › AC-03.3 AC-03.27 AC-03.28 …` (`CO-20261122-AAAAAA` with a fixed source) | ✅ Pass |
+| AC-03.28 | `features/confirmation/confirmation-page.spec.ts › AC-03.28 AC-03.31 reloading shows the same number …`; `summary-step-page.spec.ts › AC-03.3 AC-03.27 AC-03.28 …` (only `ciq.v1.co.confirmation` remains, without the document) | ✅ Pass |
+| AC-03.29 | `summary-step-page.spec.ts › AC-03.29 REQ-03.28 after a successful payment the summary is not reachable: it goes to an empty step 1` | ✅ Pass (unit part). The browser's real "back": E2E |
 | AC-03.30 | `confirmation-page.spec.ts › AC-03.30 REQ-03.29 opening the confirmation without a payment in this session goes to step 1` | ✅ Pass |
 | AC-03.31 | `confirmation-page.spec.ts › AC-03.28 AC-03.31 …`, `› AC-03.31 REQ-03.28 "nueva cotización" deletes the confirmation and opens an empty step 1` | ✅ Pass |
 | AC-03.32 | `summary-step-page.spec.ts › AC-03.32 data and terms are separated by country`; `confirmation-page.spec.ts › REQ-03.37 …`; `plan-selected-guard.spec.ts › REQ-03.37 …` | ✅ Pass |
-| AC-03.33 | `summary-step-page.spec.ts › REQ-03.16 the terms region is focusable, scrollable and named by its heading` | ✅ Pass (estructura). Recorrido con Tab, Espacio y flechas: E2E + G5 |
-| AC-03.34 | `summary-step-page.spec.ts › AC-03.34 REQ-03.33 the focus is on the heading …`, `› AC-03.34 REQ-03.17 the checkbox is named by its label and the disabled button points to the hint`, `› AC-03.3 AC-03.23 …` (`aria-live="polite"`, el foco se queda en el botón), `› AC-03.4 AC-03.26 …` (`role="alert"`); `confirmation-page.spec.ts › AC-03.34 REQ-03.33 …` | ✅ Pass (lector de pantalla real: G5) |
-| AC-03.35 | — | ⏭ No cubierto por unit: viewports 320, 375 y 1280. E2E + G5 |
-| AC-03.36 | Filas 1 y 2: `summary-step-page.spec.ts › AC-03.36 a missing checkbox label …`, `› AC-03.36 a missing rejection message …`. Fila 3 (falta también el genérico): `core/cms/country-mapper.spec.ts › REQ-01.13 without genericErrorMessage the configuration is not interpretable` + `country-shell.spec.ts › AC-01.8 …` (4a), que muestran "error de carga" + "reintentar" | ✅ Pass |
+| AC-03.33 | `summary-step-page.spec.ts › REQ-03.16 the terms region is focusable, scrollable and named by its heading` | ✅ Pass (structure). Walk-through with Tab, Space and arrows: E2E + G5 |
+| AC-03.34 | `summary-step-page.spec.ts › AC-03.34 REQ-03.33 the focus is on the heading …`, `› AC-03.34 REQ-03.17 the checkbox is named by its label and the disabled button points to the hint`, `› AC-03.3 AC-03.23 …` (`aria-live="polite"`, the focus stays on the button), `› AC-03.4 AC-03.26 …` (`role="alert"`); `confirmation-page.spec.ts › AC-03.34 REQ-03.33 …` | ✅ Pass (real screen reader: G5) |
+| AC-03.35 | — | ⏭ Not covered by unit: 320, 375 and 1280 viewports. E2E + G5 |
+| AC-03.36 | Rows 1 and 2: `summary-step-page.spec.ts › AC-03.36 a missing checkbox label …`, `› AC-03.36 a missing rejection message …`. Row 3 (the generic message is missing too): `core/cms/country-mapper.spec.ts › REQ-01.13 without genericErrorMessage the configuration is not interpretable` + `country-shell.spec.ts › AC-01.8 …` (4a), which show "error de carga" + "reintentar" | ✅ Pass |
 
-Otros tests nuevos:
+Other new tests:
 
-- `summary-step-page.spec.ts › REQ-03.22 leaving the summary during the payment discards it: no confirmation`, `› REQ-03.32 a failure of the plans …` y `› REQ-03.38 a missing page title …`.
-- `mock-payment-gateway.spec.ts` (REQ-03.24: 1500 ms por defecto e inyectable; aborto).
-- `payment/payment-state.spec.ts` (REQ-03.19: tabla de condiciones).
-- `terms-blocks.spec.ts` (listas ordenadas, marcas anidadas, niveles de encabezado).
-- `confirmation-page.spec.ts` (confirmación corrupta y texto ausente).
+- `summary-step-page.spec.ts › REQ-03.22 leaving the summary during the payment discards it: no confirmation`, `› REQ-03.32 a failure of the plans …` and `› REQ-03.38 a missing page title …`.
+- `mock-payment-gateway.spec.ts` (REQ-03.24: 1500 ms by default and injectable; abort).
+- `payment/payment-state.spec.ts` (REQ-03.19: table of conditions).
+- `terms-blocks.spec.ts` (ordered lists, nested marks, heading levels).
+- `confirmation-page.spec.ts` (corrupt confirmation and missing text).
 
-## Fallos y causa
+## Failures and cause
 
-En la ejecución final no falla ningún test. Estas son las incidencias de la fase, con su causa y su corrección:
+No test fails in the final run. These are the issues of the phase, with their cause and fix:
 
-| # | Síntoma | Causa | Corrección |
+| # | Symptom | Cause | Fix |
 |---|---|---|---|
-| 1 | `ng build`: TS2769 en `summary-values.ts` | Con el `lib` del proyecto, `Intl.NumberFormatOptions.useGrouping` solo admite `boolean`, no `'auto'`. Y `true` no equivale al valor por defecto: en `es`, `'auto'` no agrupa números de 4 cifras y `true` sí | Solo se pasa `{ useGrouping: false }` para el año del vehículo; el resto de números usa el formato por defecto del locale |
-| 2 | Dos tests de `country-shell.spec.ts` (4a) dejaron de pasar: un timeout en `/co/summary` y "D7 the confirmation is not a step" | Es lo esperado: el resumen pide ahora los términos (C7), que el handler de ese spec dejaba pendientes, y `confirmationGuard` envía a `/co/form` cuando no ha habido pago (REQ-03.29) | El handler responde a C7 con la fixture de `api-contracts.md`, y el test de la confirmación guarda antes una confirmación |
-| 3 | Una aserción del test de AC-03.24 no comprobaba nada (`console.warn` sin "POST") | Era un fallo de calidad del test, no de la app | La quité. Lo que se comprueba es que no hay `fetch` ni XHR, que no hay campos de entrada y que la pasarela no hace peticiones |
+| 1 | `ng build`: TS2769 in `summary-values.ts` | With the project's `lib`, `Intl.NumberFormatOptions.useGrouping` only accepts `boolean`, not `'auto'`. And `true` is not the same as the default value: in `es`, `'auto'` does not group 4-digit numbers and `true` does | Only `{ useGrouping: false }` is passed, for the vehicle year; the other numbers use the locale's default format |
+| 2 | Two tests in `country-shell.spec.ts` (4a) stopped passing: a timeout on `/co/summary` and "D7 the confirmation is not a step" | This is expected: the summary now requests the terms (C7), which that spec's handler left pending, and `confirmationGuard` sends to `/co/form` when there has been no payment (REQ-03.29) | The handler answers C7 with the fixture from `api-contracts.md`, and the confirmation test stores a confirmation first |
+| 3 | An assertion in the AC-03.24 test checked nothing (`console.warn` without "POST") | It was a test quality failure, not an app failure | I removed it. What is checked is that there is no `fetch` or XHR, that there are no input fields and that the gateway makes no requests |
 
-**Controles de los propios tests (mutación):**
+**Checks on the tests themselves (mutation):**
 
-- Quitar la guarda de estado de `pay()` hace fallar `AC-03.22 … exactly one payment attempt`.
-- No enmascarar el documento hace fallar 5 tests (AC-03.5 y AC-03.6, en unit y en página, y `REQ-03.6 every field with role documentNumber is masked`).
-- No borrar `ciq.v1.{cc}.step1` tras el pago hace fallar `AC-03.3 AC-03.27 AC-03.28 …` y `AC-03.29 …`.
+- Removing the state guard from `pay()` makes `AC-03.22 … exactly one payment attempt` fail.
+- Not masking the document makes 5 tests fail (AC-03.5 and AC-03.6, in unit and on the page, and `REQ-03.6 every field with role documentNumber is masked`).
+- Not deleting `ciq.v1.{cc}.step1` after the payment makes `AC-03.3 AC-03.27 AC-03.28 …` and `AC-03.29 …` fail.
 
-Después de cada mutación restauré el código y volví a ejecutar la suite completa (salida de arriba).
+After each mutation I restored the code and ran the full suite again (output above).
 
-## Correcciones G4
+## G4 fixes
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Fecha | 2026-11-23 |
-| Hallazgos | F-03.1 (Major) y F-02.1 (Minor) de [`reviews/002-phase-4-implementation.md`](../../reviews/002-phase-4-implementation.md), aprobados en G4 (`docs/decision-log.md`, "G4 — Triage de la review 002") |
-| Base | `91cb85a` (rama `phase-4/implementation`), cambios sin confirmar. El commit lo hace el orquestador |
+| Date | 2026-11-23 |
+| Findings | F-03.1 (Major) and F-02.1 (Minor) from [`reviews/002-phase-4-implementation.md`](../../reviews/002-phase-4-implementation.md), approved in G4 (`docs/decision-log.md`, "G4 — Triage of review 002") |
+| Base | `91cb85a` (branch `phase-4/implementation`), changes uncommitted. The orchestrator makes the commit |
 
-### Causa
+### Cause
 
-ADR-0004 hace que `step1CompleteGuard` deje pasar la navegación cuando falla la configuración del país, para que el shell muestre "error de carga". El mismo ADR exige un respaldo: tras un "reintentar" con éxito, la página vuelve a evaluar `isComplete` y redirige si hace falta. Ninguna página lo hacía. Tras el reintento, el shell pintaba el `router-outlet` y:
+ADR-0004 makes `step1CompleteGuard` let the navigation through when the country configuration fails, so that the shell shows "error de carga". The same ADR requires a backstop: after a successful "reintentar", the page evaluates `isComplete` again and redirects if needed. No page did this. After the retry, the shell rendered the `router-outlet` and:
 
-- en `/plans` (F-02.1) se pedían y mostraban planes con precios calculados sobre un paso 1 incompleto;
-- en `/summary` (F-03.1) se mostraba el resumen y, como `canPay` recibía `dataReady = sections !== null` ("hay textos"), se podía pagar con un paso 1 incompleto o inválido.
+- on `/plans` (F-02.1) plans were requested and shown with prices calculated on an incomplete step 1;
+- on `/summary` (F-03.1) the summary was shown and, since `canPay` received `dataReady = sections !== null` ("there are texts"), it was possible to pay with an incomplete or invalid step 1.
 
-### Corrección
+### Fix
 
-- `features/form-step/validation/step1-backstop.ts` (nuevo): `step1Backstop(step1, code)`. Es un `effect` que, cuando hay `Step1Result` y `isComplete` es falso, navega a `/:cc/form` con `replaceUrl` y conserva los datos. Lo usan las páginas de los pasos 2 y 3.
-- `features/plans-step/plans-step-page.ts`: un `step1 = computed(() => reader.read(config))` que se recalcula cuando llega la configuración, también tras el reintento. Los `params` del `resource` de planes exigen `step1.isComplete`, así que no se pide C5 ni C6 (REQ-02.19), y mientras se redirige la vista es "cargando". El precio usa ese mismo `Step1Result`.
-- `features/summary-step/summary-step-page.ts`: el mismo `step1` alimenta la sección de datos, el respaldo, los `params` de los `resource` de plan y términos (no se pide C5, C6 ni C7 con un paso 1 incompleto) y `canPay`.
-- `features/summary-step/payment/payment-state.ts`: `PayConditions.step1Complete` (`Step1Result.isComplete` con la configuración vigente), exigida por `canPay` además de `dataReady` (REQ-03.19).
+- `features/form-step/validation/step1-backstop.ts` (new): `step1Backstop(step1, code)`. It is an `effect` that, when there is a `Step1Result` and `isComplete` is false, navigates to `/:cc/form` with `replaceUrl` and keeps the data. The step 2 and step 3 pages use it.
+- `features/plans-step/plans-step-page.ts`: a `step1 = computed(() => reader.read(config))` that is recalculated when the configuration arrives, also after the retry. The `params` of the plans `resource` require `step1.isComplete`, so neither C5 nor C6 is requested (REQ-02.19), and while redirecting the view is "cargando". The price uses that same `Step1Result`.
+- `features/summary-step/summary-step-page.ts`: the same `step1` feeds the data section, the backstop, the `params` of the plan and terms `resource` (C5, C6 and C7 are not requested with an incomplete step 1) and `canPay`.
+- `features/summary-step/payment/payment-state.ts`: `PayConditions.step1Complete` (`Step1Result.isComplete` with the current configuration), required by `canPay` in addition to `dataReady` (REQ-03.19).
 
-### Reproducción: los tests fallan sin la corrección
+### Reproduction: the tests fail without the fix
 
-Tests nuevos en `features/form-step/validation/step1-backstop.spec.ts`: fallo de C3 y C4 → "error de carga" → "reintentar" con éxito. Ejecutados contra el código **sin** la corrección:
+New tests in `features/form-step/validation/step1-backstop.spec.ts`: C3 and C4 failure → "error de carga" → successful "reintentar". Run against the code **without** the fix:
 
 ```text
 $ npx ng test --watch=false --reporters=verbose --include "src/app/features/form-step/validation/step1-backstop.spec.ts"
@@ -770,9 +770,9 @@ Received: "/co/summary"
    Duration  28.07s (tests 66%, environment 20%, setup 6%, transform 4%, import 3%)
 ```
 
-Fallan los tres casos que reproducen los hallazgos (se quedan en `/co/plans` y `/co/summary`). Los dos casos de control, con el paso 1 completo, pasan.
+The three cases that reproduce the findings fail (they stay on `/co/plans` and `/co/summary`). The two control cases, with step 1 complete, pass.
 
-Para el test de `canPay` (`payment-state.spec.ts › REQ-03.19 is false with F-03.1 …`), "sin la corrección" significa quitar `c.step1Complete &&` de `canPay`: sin ella, el campo no existe. Mutación, ejecución y restauración:
+For the `canPay` test (`payment-state.spec.ts › REQ-03.19 is false with F-03.1 …`), "without the fix" means removing `c.step1Complete &&` from `canPay`: without the fix, the field does not exist. Mutation, run and restoration:
 
 ```text
 $ # mutación: se quita `    c.step1Complete &&` de payment-state.ts, se ejecuta y se restaura
@@ -785,9 +785,9 @@ exit=1
       Tests  1 failed | 8 passed (9)
 ```
 
-(`0` = ocurrencias de `c.step1Complete` durante la mutación; `exit=1` = código de salida de `ng test`; `1` = la línea restaurada.)
+(`0` = occurrences of `c.step1Complete` during the mutation; `exit=1` = exit code of `ng test`; `1` = the restored line.)
 
-### Con la corrección
+### With the fix
 
 ```text
 $ npx ng test --watch=false --reporters=verbose --include "src/app/features/form-step/validation/step1-backstop.spec.ts" --include "src/app/features/summary-step/payment/payment-state.spec.ts"
@@ -850,11 +850,11 @@ Application bundle generation complete. [26.545 seconds] - 2026-11-23T07:01:36.7
 Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
 ```
 
-Código de salida: `0`, sin avisos.
+Exit code: `0`, no warnings.
 
-### Unit tests (suite completa)
+### Unit tests (full suite)
 
-La salida completa tiene una línea por test. Aquí van, sin editar, las líneas de los tests de estas correcciones y el resumen final:
+The full output has one line per test. Here are, unedited, the lines of the tests for these fixes and the final summary:
 
 ```text
 $ npx ng test --watch=false --reporters=verbose
@@ -871,14 +871,14 @@ $ npx ng test --watch=false --reporters=verbose
    Duration  18.06s (environment 76%, tests 15%, setup 6%, import 2%, transform 1%)
 ```
 
-Código de salida: `0`. Resumen: **46 archivos, 463 tests, 463 pasan, 0 fallan (457 de la fase 4d y 6 nuevos: 5 en el archivo nuevo `step1-backstop.spec.ts` y 1 en `payment-state.spec.ts`)**.
+Exit code: `0`. Summary: **46 files, 463 tests, 463 pass, 0 fail (457 from phase 4d and 6 new: 5 in the new file `step1-backstop.spec.ts` and 1 in `payment-state.spec.ts`)**.
 
-**Incidencia durante la verificación.** Una primera ejecución de la suite completa salió con código `1`: dos tests superaron el timeout de 15 s (`step1-backstop.spec.ts › F-02.1 REQ-02.19 …` con 18 811 ms y `confirmation-page.spec.ts › AC-03.30 …` con 19 591 ms), sin ninguna aserción fallida.
+**Issue during verification.** A first run of the full suite exited with code `1`: two tests exceeded the 15 s timeout (`step1-backstop.spec.ts › F-02.1 REQ-02.19 …` with 18 811 ms and `confirmation-page.spec.ts › AC-03.30 …` with 19 591 ms), with no failed assertion.
 
-- *Causa:* los dos son el primer test con router de su archivo, que carga los chunks lazy en frío. Esa ejecución tardó 98,25 s en lugar de los 18-30 s habituales, porque la pila e2e del `qa-engineer` corría en la misma máquina. Los demás tests de esos archivos pasaron en menos de 1 s, y F-02.1 aislado tardó 7,99 s.
-- *Corrección:* `testTimeout` de 15 000 a 30 000 ms en `frontend/vitest-base.config.mts`, con el motivo documentado. La salida de arriba es la de la ejecución posterior, ya con ese cambio.
+- *Cause:* both are the first test with a router in their file, which loads the lazy chunks cold. That run took 98.25 s instead of the usual 18-30 s, because the `qa-engineer`'s e2e stack was running on the same machine. The other tests in those files passed in under 1 s, and F-02.1 alone took 7.99 s.
+- *Fix:* `testTimeout` from 15 000 to 30 000 ms in `frontend/vitest-base.config.mts`, with the reason documented. The output above is from the later run, already with that change.
 
-### Formato
+### Formatting
 
 ```text
 $ npx prettier --check "src/**/*.{ts,html,css}" vitest-base.config.mts
@@ -886,7 +886,7 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-### `grep` de reglas
+### `grep` of the rules
 
 ```text
 $ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>|\$any\(" src --include="*.ts" --include="*.html"
@@ -948,15 +948,15 @@ src/app/features/summary-step/summary-step-page.ts:194:      step1Complete: this
 src/app/features/summary-step/summary-step-page.ts:220:    step1Backstop(this.step1, () => this.context.code());
 ```
 
-Lectura:
+Reading:
 
-- Las reglas siguen limpias: sin `any`, `*ngIf`/`*ngFor`, NgModules ni `innerHTML` fuera de los tests; `sessionStorage` solo en `core/storage/`; solo `GET`; todos los componentes `OnPush`.
-- `isComplete` lo evalúan ahora el guard, el respaldo y las dos páginas (`step1Complete` en el resumen y `step1()?.isComplete` en los planes), como pide ADR-0004.
+- The rules are still clean: no `any`, `*ngIf`/`*ngFor`, NgModules or `innerHTML` outside the tests; `sessionStorage` only in `core/storage/`; only `GET`; every component `OnPush`.
+- `isComplete` is now evaluated by the guard, the backstop and both pages (`step1Complete` in the summary and `step1()?.isComplete` in the plans), as ADR-0004 requires.
 
-### Cobertura añadida
+### Added coverage
 
-| Hallazgo | Test (archivo › nombre) | Resultado |
+| Finding | Test (file › name) | Result |
 |---|---|---|
-| F-02.1 | `features/form-step/validation/step1-backstop.spec.ts › F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans` (control: `› F-02.1 on /plans, a complete step 1 shows the plans after the retry`) | ✅ Pass (falla sin la corrección) |
-| F-03.1 | `step1-backstop.spec.ts › F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms`, `› F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept` (control: `› F-03.1 on /summary, a complete step 1 shows the summary after the retry`) | ✅ Pass (fallan sin la corrección) |
-| F-03.1 (`canPay`) | `features/summary-step/payment/payment-state.spec.ts › REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded` | ✅ Pass (falla sin la corrección, por mutación) |
+| F-02.1 | `features/form-step/validation/step1-backstop.spec.ts › F-02.1 REQ-02.19 on /plans, an incomplete step 1 goes to the form after the retry, without requesting plans` (control: `› F-02.1 on /plans, a complete step 1 shows the plans after the retry`) | ✅ Pass (fails without the fix) |
+| F-03.1 | `step1-backstop.spec.ts › F-03.1 REQ-03.13 on /summary, no step 1 data goes to the form after the retry, without requesting plans or terms`, `› F-03.1 REQ-03.13 on /summary, a step 1 made incomplete by the configuration goes to the form with the data kept` (control: `› F-03.1 on /summary, a complete step 1 shows the summary after the retry`) | ✅ Pass (fails without the fix) |
+| F-03.1 (`canPay`) | `features/summary-step/payment/payment-state.spec.ts › REQ-03.19 is false with F-03.1 an incomplete or invalid step 1, although its texts are loaded` | ✅ Pass (fails without the fix, by mutation) |

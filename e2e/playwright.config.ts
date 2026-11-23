@@ -28,10 +28,6 @@ export default defineConfig({
     headless: true,
     locale: 'es-CO',
     timezoneId: 'America/Bogota',
-    // D13 adds view and skeleton animations that the app disables under prefers-reduced-motion.
-    // They doubled the suite time on the verified host (4.0 → 7.6 min) and pushed real Strapi
-    // responses past the app's 10 s timeout; the suite checks behaviour, not motion.
-    reducedMotion: 'reduce',
     viewport: { width: 1280, height: 900 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

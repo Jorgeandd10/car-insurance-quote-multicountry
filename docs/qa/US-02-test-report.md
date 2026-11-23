@@ -1,21 +1,21 @@
-# Informe de pruebas — US-02 (lista de planes), fase 4c
+# Test report — US-02 (plan list), phase 4c
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Autor | Angular Developer (subagente) |
-| Fecha | 2026-11-23 |
-| Commit probado | Sin commit propio: árbol de trabajo sobre `f5e47f1` (rama `phase-4/implementation`) con los cambios de 4c sin confirmar. El commit lo hace el orquestador |
-| Entorno | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). Sin Strapi: fixtures en formato v5 de `api-contracts.md` C5 y C6 (`frontend/src/app/features/plans-step/testing/plans-fixtures.ts`, con los factores del seed de `pricing-rule.md` §3) |
+| Author | Angular Developer (subagent) |
+| Date | 2026-11-23 |
+| Tested commit | No commit of its own: working tree on top of `f5e47f1` (branch `phase-4/implementation`) with the 4c changes uncommitted. The orchestrator makes the commit |
+| Environment | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). No Strapi: fixtures in the v5 format of `api-contracts.md` C5 and C6 (`frontend/src/app/features/plans-step/testing/plans-fixtures.ts`, with the seed factors from `pricing-rule.md` §3) |
 
-Alcance:
+Scope:
 
-- `features/plans-step/`: orden y recomendado único (`sort-plans.ts`), selección y su restauración (`plan-selection.ts`), datos de C5 paginado y C6 (`plans-data.ts`), precio y formato (`plan-views.ts`) y la página con sus estados.
-- `domain/pricing/price-inputs.ts`: valores del paso 1 por rol.
-- `features/summary-step/plan-selected-guard.ts` en `/:country/summary`.
+- `features/plans-step/`: order and single recommended plan (`sort-plans.ts`), selection and its restoration (`plan-selection.ts`), paginated C5 data and C6 (`plans-data.ts`), price and format (`plan-views.ts`) and the page with its states.
+- `domain/pricing/price-inputs.ts`: step 1 values by role.
+- `features/summary-step/plan-selected-guard.ts` on `/:country/summary`.
 
-Las salidas se pegan tal cual. Solo se han quitado los códigos de color ANSI (`sed 's/\x1b\[[0-9;]*m//g'`). Los códigos de salida se capturaron con `set -o pipefail`.
+The outputs are pasted as they are. Only the ANSI color codes were removed (`sed 's/\x1b\[[0-9;]*m//g'`). The exit codes were captured with `set -o pipefail`.
 
-## Comando y salida real
+## Command and real output
 
 ### Build
 
@@ -47,7 +47,7 @@ Application bundle generation complete. [9.483 seconds] - 2026-11-23T05:44:55.52
 Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
 ```
 
-Código de salida: `0`.
+Exit code: `0`.
 
 ### Unit tests
 
@@ -456,9 +456,9 @@ Application bundle generation complete. [15.218 seconds] - 2026-11-23T05:45:15.4
    Duration  18.58s (environment 79%, tests 11%, setup 7%, import 2%)
 ```
 
-Código de salida: `0`. Resumen: **39 archivos, 388 tests, 388 pasan, 0 fallan** (336 de las fases 4a y 4b, y 52 nuevos en 6 archivos nuevos).
+Exit code: `0`. Summary: **39 files, 388 tests, 388 pass, 0 fail** (336 from phases 4a and 4b, and 52 new in 6 new files).
 
-### Formato
+### Formatting
 
 ```text
 $ npx prettier --check "src/**/*.{ts,html,css}" vitest-base.config.mts
@@ -466,9 +466,9 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-### `grep` de reglas
+### `grep` of the rules
 
-Ejecutados en `frontend/`. Cada bloque es el comando exacto seguido de su salida.
+Run in `frontend/`. Each block is the exact command followed by its output.
 
 ```text
 $ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>" src --include="*.ts"
@@ -508,28 +508,28 @@ src/app/core/country/country-config.ts:29:  /** ISO 4217 (`COP`, `CLP`). */
 src/app/domain/pricing/format-price.ts:5: * written in code. COP and CLP are shown without decimals. Locale data comes from `Intl` at
 ```
 
-Lectura:
+Reading:
 
-- No hay `any` como tipo, ni `*ngIf`/`*ngFor`, ni NgModules. Todos los componentes son `OnPush`.
-- `sessionStorage` solo aparece en `core/storage/`.
-- `Math.round` solo se ejecuta en `domain/pricing/compute-final-price.ts`; la línea de `plan-views.ts` es un comentario.
-- Solo hay `GET`.
-- No hay símbolos de moneda ni textos de plan en el código: las dos apariciones de `COP`/`CLP` son comentarios de documentación.
+- There is no `any` as a type, no `*ngIf`/`*ngFor` and no NgModules. Every component is `OnPush`.
+- `sessionStorage` only appears in `core/storage/`.
+- `Math.round` only runs in `domain/pricing/compute-final-price.ts`; the line in `plan-views.ts` is a comment.
+- There is only `GET`.
+- There are no currency symbols or plan texts in the code: the two occurrences of `COP`/`CLP` are documentation comments.
 
-## Cobertura de criterios de US-02
+## US-02 criteria coverage
 
-Las rutas son relativas a `frontend/src/app/`. "E2E" indica la parte que corresponde al QA Engineer en `e2e/` (ADR-0007).
+Paths are relative to `frontend/src/app/`. "E2E" marks the part that belongs to the QA Engineer in `e2e/` (ADR-0007).
 
-| AC | Test (archivo › nombre) | Resultado |
+| AC | Test (file › name) | Result |
 |---|---|---|
-| AC-02.1 | `features/plans-step/plans-step-page.spec.ts › AC-02.1 REQ-02.1 shows the active plans of the country in the configured order` | ✅ Pass (E2E contra el seed: QA) |
+| AC-02.1 | `features/plans-step/plans-step-page.spec.ts › AC-02.1 REQ-02.1 shows the active plans of the country in the configured order` | ✅ Pass (E2E against the seed: QA) |
 | AC-02.2 | `plans-step-page.spec.ts › AC-02.2 AC-02.7 only the first recommended plan is highlighted, with a visible text label` | ✅ Pass |
 | AC-02.3 | `plans-step-page.spec.ts › AC-02.3 a selected plan is checked and continue goes to the summary` | ✅ Pass |
 | AC-02.4 | `plans-step-page.spec.ts › AC-02.4 AC-02.22 with no active plans shows the empty message, no continue, and back to step 1` | ✅ Pass |
-| AC-02.5 | `plans-step-page.spec.ts › AC-02.5 the plans of another country are never shown`; `core/cms/plan-mapper.spec.ts › REQ-02.2 …` y `core/cms/cms-queries.spec.ts › REQ-02.2 …` (4a) | ✅ Pass (parte unit). Borrador e inactivo contra el seed real: E2E |
+| AC-02.5 | `plans-step-page.spec.ts › AC-02.5 the plans of another country are never shown`; `core/cms/plan-mapper.spec.ts › REQ-02.2 …` and `core/cms/cms-queries.spec.ts › REQ-02.2 …` (4a) | ✅ Pass (unit part). Draft and inactive against the real seed: E2E |
 | AC-02.6 | `features/plans-step/sort-plans.spec.ts › AC-02.6 orders by order, ties by name, empty order last: Basic, Gold, Plus, Lite` | ✅ Pass |
 | AC-02.7 | `sort-plans.spec.ts › AC-02.7 …`; `plans-step-page.spec.ts › AC-02.2 AC-02.7 …` | ✅ Pass |
-| AC-02.8 | `domain/pricing/format-price.spec.ts › AC-02.8 …` (4a); `features/plans-step/plan-views.spec.ts › AC-02.9 E1 … → $ 1.320.000 (with U+00A0)`; `plans-step-page.spec.ts › AC-02.9 AC-02.8 …`, `› AC-02.8 Chile shows CLP …` | ✅ Pass (se compara con ` ` literal, sin normalizar espacios) |
+| AC-02.8 | `domain/pricing/format-price.spec.ts › AC-02.8 …` (4a); `features/plans-step/plan-views.spec.ts › AC-02.9 E1 … → $ 1.320.000 (with U+00A0)`; `plans-step-page.spec.ts › AC-02.9 AC-02.8 …`, `› AC-02.8 Chile shows CLP …` | ✅ Pass (compared with a literal ` `, without normalizing spaces) |
 | AC-02.9 | `domain/pricing/compute-final-price.spec.ts › AC-02.9 E1 … E6` (4a); `plan-views.spec.ts › AC-02.9 E1 …`, `› AC-02.9 E4 and E6 …`; `plans-step-page.spec.ts › AC-02.9 AC-02.8 each plan shows its final price from the step 1 data …` | ✅ Pass |
 | AC-02.10 | `plans-step-page.spec.ts › AC-02.10 …`; `plan-views.spec.ts › AC-02.10 …`; `compute-final-price.spec.ts`, `price-factor-mapper.spec.ts › AC-02.10 …` (4a) | ✅ Pass |
 | AC-02.11 | `domain/pricing/price-inputs.spec.ts › AC-02.11 …`; `compute-final-price.spec.ts › AC-02.11 …` (4a) | ✅ Pass |
@@ -542,49 +542,49 @@ Las rutas son relativas a `frontend/src/app/`. "E2E" indica la parte que corresp
 | AC-02.18 | `plans-step-page.spec.ts › AC-02.18 continue without a selection shows the Strapi message on the group and moves the focus to it`, `› REQ-02.15 the message is removed once a plan is chosen` | ✅ Pass |
 | AC-02.19 | `plans-step-page.spec.ts › AC-02.19 the selection survives a reload` | ✅ Pass |
 | AC-02.20 | `plans-step-page.spec.ts › AC-02.20 the selection is kept per country` | ✅ Pass |
-| AC-02.21 | `features/plans-step/plan-selection.spec.ts › AC-02.21 REQ-02.17 …`; `plans-step-page.spec.ts › AC-02.21 a stored plan that is no longer available is discarded with an announced notice` | ✅ Pass (cambio real en el admin: E2E por intercepción + G5) |
-| AC-02.22 | `features/form-step/validation/step1-complete-guard.spec.ts › AC-02.22 …` (2, de 4b; siguen sin pedir planes) | ✅ Pass |
+| AC-02.21 | `features/plans-step/plan-selection.spec.ts › AC-02.21 REQ-02.17 …`; `plans-step-page.spec.ts › AC-02.21 a stored plan that is no longer available is discarded with an announced notice` | ✅ Pass (real change in the admin: E2E by interception + G5) |
+| AC-02.22 | `features/form-step/validation/step1-complete-guard.spec.ts › AC-02.22 …` (2, from 4b; they still do not request plans) | ✅ Pass |
 | AC-02.23 | `plans-step-page.spec.ts › AC-02.23 REQ-02.20 while loading shows the fixed "cargando" as status and no continue` | ✅ Pass |
 | AC-02.24 | `plans-step-page.spec.ts › AC-02.24 REQ-02.21 a failure shows "error de carga" and "reintentar"; retrying lists the plans`, `› REQ-02.21 a failure of the price factors is also "error de carga" …` | ✅ Pass |
-| AC-02.25 | — | ⏭ No cubierto por unit: cambio en Strapi y recarga. E2E por intercepción + G5 (G3-3). La parte unit, que se piden de nuevo en cada entrada, está en `› REQ-02.23 …` |
-| AC-02.26 | `plans-step-page.spec.ts › REQ-02.26 the buttons are back (button) and continue (submit of the form)`, `› AC-02.17 REQ-02.14 … (one radio group)` | ✅ Pass (estructura). Tab, flechas y Espacio: E2E + G5 |
-| AC-02.27 | `plans-step-page.spec.ts › AC-02.27 the group has a name and each option names the plan, price and recommendation`; `› REQ-02.3 … as lists …` | ✅ Pass (lector de pantalla real: G5) |
+| AC-02.25 | — | ⏭ Not covered by unit: change in Strapi and reload. E2E by interception + G5 (G3-3). The unit part, that they are requested again on every entry, is in `› REQ-02.23 …` |
+| AC-02.26 | `plans-step-page.spec.ts › REQ-02.26 the buttons are back (button) and continue (submit of the form)`, `› AC-02.17 REQ-02.14 … (one radio group)` | ✅ Pass (structure). Tab, arrows and Space: E2E + G5 |
+| AC-02.27 | `plans-step-page.spec.ts › AC-02.27 the group has a name and each option names the plan, price and recommendation`; `› REQ-02.3 … as lists …` | ✅ Pass (real screen reader: G5) |
 | AC-02.28 | `plans-step-page.spec.ts › AC-02.28 the focus is on the heading of the step and the indicator marks step 2` | ✅ Pass |
-| AC-02.29 | — | ⏭ No cubierto por unit: viewports 320, 375 y 1280. E2E + G5 |
+| AC-02.29 | — | ⏭ Not covered by unit: 320, 375 and 1280 viewports. E2E + G5 |
 | AC-02.30 | `plans-step-page.spec.ts › AC-02.16 AC-02.30 …` | ✅ Pass |
-| AC-02.31 | `core/cms/cms-client.spec.ts › REQ-01.35 sends a GET …` (4a) | ✅ Pass (parte unit). Inspección de red: E2E |
+| AC-02.31 | `core/cms/cms-client.spec.ts › REQ-01.35 sends a GET …` (4a) | ✅ Pass (unit part). Network inspection: E2E |
 | AC-02.32 | `cms-client.spec.ts › AC-02.32 REQ-02.24 walks every page …` (4a); `plans-step-page.spec.ts › AC-02.32 more plans than the default page size are all listed` | ✅ Pass |
-| AC-02.33 | Escenario 1: `plans-step-page.spec.ts › AC-02.33 a missing continue text shows the generic error, no plans, and no plan request`. Escenario 2 (falta también el genérico): `core/cms/country-mapper.spec.ts › REQ-01.13 without genericErrorMessage the configuration is not interpretable` + `country-shell.spec.ts › AC-01.8 …` (4a), que muestran "error de carga" + "reintentar" | ✅ Pass |
+| AC-02.33 | Scenario 1: `plans-step-page.spec.ts › AC-02.33 a missing continue text shows the generic error, no plans, and no plan request`. Scenario 2 (the generic message is missing too): `core/cms/country-mapper.spec.ts › REQ-01.13 without genericErrorMessage the configuration is not interpretable` + `country-shell.spec.ts › AC-01.8 …` (4a), which show "error de carga" + "reintentar" | ✅ Pass |
 
-Otros tests nuevos:
+Other new tests:
 
-- `features/summary-step/plan-selected-guard.spec.ts` (5): sin plan → paso 2; con plan → resumen; un paso 1 incompleto tiene prioridad; separación por país (REQ-03.37); un plan corrupto cuenta como "sin plan".
-- `plans-step-page.spec.ts › REQ-02.16 G2-9 only the documentId of the plan is stored`, `› REQ-02.3 …` y `› REQ-02.23 the plans are requested again on every entry to the step`.
+- `features/summary-step/plan-selected-guard.spec.ts` (5): no plan → step 2; with a plan → summary; an incomplete step 1 takes priority; separation by country (REQ-03.37); a corrupt plan counts as "no plan".
+- `plans-step-page.spec.ts › REQ-02.16 G2-9 only the documentId of the plan is stored`, `› REQ-02.3 …` and `› REQ-02.23 the plans are requested again on every entry to the step`.
 
-## Fallos y causa
+## Failures and cause
 
-En la ejecución final no falla ningún test. Estas son las incidencias de la fase, con su causa y su corrección:
+No test fails in the final run. These are the issues of the phase, with their cause and fix:
 
-| # | Síntoma | Causa | Corrección |
+| # | Symptom | Cause | Fix |
 |---|---|---|---|
-| 1 | Cuatro tests veían la etiqueta del plan como "Plan PlusRecomendado$ 1.320.000" | **Fallo real de accesibilidad.** Angular elimina por defecto los nodos de texto que solo contienen espacios entre elementos (`preserveWhitespaces: false`), y el nombre accesible concatena los `span` en línea sin separador: un lector de pantalla leería "PlusRecomendado" | `&ngsp;` (la entidad de Angular que conserva un espacio) entre el nombre, la etiqueta "recomendado" y el precio, en `plans-step-page.html`. AC-02.27 compara el nombre completo exacto |
-| 2 | `AC-02.23` agotaba los 15 s | Fallo del test: con C5 pendiente para siempre, `open()` esperaba a `whenStable()`, que nunca llega mientras el `resource()` está cargando | El test navega con el harness y llama a `detectChanges()` sin esperar estabilidad, como el test de carga del shell de 4a |
-| 3 | Tras la corrección 1, cuatro tests comparaban dos cadenas que se veían iguales | Fallo del helper del test: `labelOf` normalizaba con `/\s+/g`, y en JavaScript `\s` incluye U+00A0, así que convertía el espacio no separable del precio en uno normal | Solo se colapsan espacios ASCII (`/[ \t\r\n]+/g`), con un comentario. Así el test sigue detectando una regresión de AC-02.8 |
-| 4 | `step1-complete-guard.spec.ts › REQ-03.13 the summary also requires a complete step 1` esperaba `/co/summary` | Es lo esperado: con el paso 1 completo pero sin plan, `planSelectedGuard` envía a `/co/plans` (REQ-03.13) | El test guarda también un plan antes de abrir el resumen |
-| 5 | Dos tests de `country-shell.spec.ts` (4a) agotaban los 15 s al abrir `/co/plans` y `/co/summary` | Ahora la página de planes pide C5 y C6, y el handler de ese spec dejaba pendientes las peticiones que no conocía | El handler responde a C5 y C6 con las fixtures de `api-contracts.md`, y el helper guarda un plan para el resumen |
+| 1 | Four tests saw the plan label as "Plan PlusRecomendado$ 1.320.000" | **Real accessibility failure.** By default Angular removes the text nodes that only contain whitespace between elements (`preserveWhitespaces: false`), and the accessible name concatenates the inline `span` elements without a separator: a screen reader would read "PlusRecomendado" | `&ngsp;` (the Angular entity that keeps a space) between the name, the "recomendado" label and the price, in `plans-step-page.html`. AC-02.27 compares the exact full name |
+| 2 | `AC-02.23` used up the 15 s | Test failure: with C5 pending forever, `open()` waited for `whenStable()`, which never arrives while the `resource()` is loading | The test navigates with the harness and calls `detectChanges()` without waiting for stability, like the shell loading test from 4a |
+| 3 | After fix 1, four tests compared two strings that looked equal | Failure of the test helper: `labelOf` normalized with `/\s+/g`, and in JavaScript `\s` includes U+00A0, so it turned the price's non-breaking space into a normal one | Only ASCII spaces are collapsed (`/[ \t\r\n]+/g`), with a comment. This way the test still detects an AC-02.8 regression |
+| 4 | `step1-complete-guard.spec.ts › REQ-03.13 the summary also requires a complete step 1` expected `/co/summary` | This is expected: with step 1 complete but no plan, `planSelectedGuard` sends to `/co/plans` (REQ-03.13) | The test also stores a plan before opening the summary |
+| 5 | Two tests in `country-shell.spec.ts` (4a) used up the 15 s when opening `/co/plans` and `/co/summary` | Now the plans page requests C5 and C6, and that spec's handler left the requests it did not know pending | The handler answers C5 and C6 with the fixtures from `api-contracts.md`, and the helper stores a plan for the summary |
 
-**Controles de los propios tests (mutación):**
+**Checks on the tests themselves (mutation):**
 
-- Mantener un plan guardado que ya no está disponible (`discarded: false`) hace fallar `plan-selection.spec.ts › AC-02.21 REQ-02.17 …` y `› REQ-02.22 …`, y `plans-step-page.spec.ts › AC-02.21 …`.
-- Poner primero los planes sin `order` hace fallar `sort-plans.spec.ts › AC-02.6 …`.
+- Keeping a stored plan that is no longer available (`discarded: false`) makes `plan-selection.spec.ts › AC-02.21 REQ-02.17 …` and `› REQ-02.22 …`, and `plans-step-page.spec.ts › AC-02.21 …` fail.
+- Putting the plans without `order` first makes `sort-plans.spec.ts › AC-02.6 …` fail.
 
-Después de cada mutación restauré el código y volví a ejecutar la suite completa (salida de arriba).
+After each mutation I restored the code and ran the full suite again (output above).
 
 ## D14 (2026-11-23)
 
-Alcance: REQ-02.34 / AC-02.34, toda la tarjeta del plan selecciona el plan. Se hace con un pseudo-elemento `::after` del `label` que cubre la tarjeta; el control sigue siendo el `radio` nativo.
+Scope: REQ-02.34 / AC-02.34, the whole plan card selects the plan. It is done with an `::after` pseudo-element of the `label` that covers the card; the control is still the native `radio`.
 
-Commit probado: ninguno propio. Árbol de trabajo sobre `47443de` (rama `style/sura-visual-refresh`) con los cambios de D14 sin confirmar. Las salidas se pegan tal cual, salvo dos cosas: se han quitado los códigos ANSI y las líneas en blanco repetidas. En la ejecución verbose se filtran las líneas del spec de esta historia (`grep`), y lo indico donde se hace.
+Tested commit: none of its own. Working tree on top of `47443de` (branch `style/sura-visual-refresh`) with the D14 changes uncommitted. The outputs are pasted as they are, except for two things: the ANSI codes and the repeated blank lines were removed. In the verbose run, the lines of this story's spec are filtered (`grep`), and I say so where it is done.
 
 ### Build
 
@@ -620,7 +620,7 @@ Application bundle generation complete. [21.507 seconds] - 2026-11-23T21:27:04.8
 Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
 ```
 
-### Unit tests (suite completa)
+### Unit tests (full suite)
 
 ```text
 $ npx ng test --watch=false
@@ -639,7 +639,7 @@ $ echo $?
 0
 ```
 
-### Unit tests del cambio (reporter verbose, líneas del spec afectado)
+### Unit tests of the change (verbose reporter, lines of the affected spec)
 
 ```text
 $ npx ng test --watch=false --reporters=verbose --include src/app/features/wizard-shell/country-shell.spec.ts --include src/app/features/plans-step/plans-step-page.spec.ts
@@ -679,19 +679,19 @@ $ npx ng test --watch=false --reporters=verbose --include src/app/features/wizar
    Duration  12.24s (tests 38%, environment 38%, setup 15%, import 4%, transform 4%, worker 1%)
 ```
 
-Para no recortar la salida, aquí solo se filtran las líneas de `plans-step-page.spec.ts`. El total de la ejecución (44 tests en 2 archivos) incluye `country-shell.spec.ts`, que está en `US-01-test-report.md`.
+To avoid trimming the output, only the `plans-step-page.spec.ts` lines are filtered here. The run's total (44 tests in 2 files) includes `country-shell.spec.ts`, which is in `US-01-test-report.md`.
 
-### Cobertura de AC-02.34
+### AC-02.34 coverage
 
-| AC / REQ | Test (archivo › nombre) | Resultado |
+| AC / REQ | Test (file › name) | Result |
 |---|---|---|
-| AC-02.34, REQ-02.34 (precondiciones) | `features/plans-step/plans-step-page.spec.ts › AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan` | ✅ Pass |
-| AC-02.34 (clic en la lista de coberturas) | — | ⏭ No cubierto por unit. jsdom no tiene layout ni *hit testing*, así que un clic en el `li` no llega al pseudo-elemento del `label`. Lo cubre el E2E (QA) |
+| AC-02.34, REQ-02.34 (preconditions) | `features/plans-step/plans-step-page.spec.ts › AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan` | ✅ Pass |
+| AC-02.34 (click on the coverage list) | — | ⏭ Not covered by unit. jsdom has no layout or *hit testing*, so a click on the `li` does not reach the `label` pseudo-element. The E2E (QA) covers it |
 
-El unit test comprueba lo que la técnica necesita: en cada tarjeta el único elemento interactivo es el `radio` (ningún otro elemento capturaría el clic) y un clic en el `label`, que es lo que pinta el pseudo-elemento, selecciona el plan.
+The unit test checks what the technique needs: in each card the only interactive element is the `radio` (no other element would capture the click) and a click on the `label`, which is what the pseudo-element paints, selects the plan.
 
-Comprobación visual (script desechable de Playwright contra `ng serve` en el puerto 4300). Un clic real del ratón en el primer elemento de coberturas de "Plan Total" lo selecciona (`checked=true`), y un clic en la descripción del primer plan también, tanto a 375 como a 1280 px. No hay scroll horizontal.
+Visual check (throwaway Playwright script against `ng serve` on port 4300). A real mouse click on the first coverage item of "Plan Total" selects it (`checked=true`), and so does a click on the description of the first plan, at both 375 and 1280 px. There is no horizontal scroll.
 
-**Nota para el E2E de AC-02.34:** `locator('li').click()` de Playwright no hace el clic: su comprobación de accionabilidad informa de `<label class="plan-label"> intercepts pointer events` y reintenta hasta el timeout. Es lo esperado, porque el `label` cubre la tarjeta a propósito. Usa `click({ force: true })` en el `li` o `page.mouse.click()` en sus coordenadas: es el mismo clic real en ese punto, sin la comprobación de interceptación.
+**Note for the AC-02.34 E2E:** Playwright's `locator('li').click()` does not perform the click: its actionability check reports `<label class="plan-label"> intercepts pointer events` and retries until the timeout. This is expected, because the `label` covers the card on purpose. Use `click({ force: true })` on the `li` or `page.mouse.click()` at its coordinates: it is the same real click at that point, without the interception check.
 
-**Contrapartida aceptada:** el texto de la tarjeta no se puede seleccionar con el ratón, porque la capa del `label` lo cubre. Es contenido de solo lectura y el humano pidió que toda la tarjeta fuera pulsable. El teclado y el nombre accesible no cambian (REQ-02.26, REQ-02.27).
+**Accepted trade-off:** the card text cannot be selected with the mouse, because the `label` layer covers it. It is read-only content and the human asked for the whole card to be clickable. The keyboard and the accessible name do not change (REQ-02.26, REQ-02.27).

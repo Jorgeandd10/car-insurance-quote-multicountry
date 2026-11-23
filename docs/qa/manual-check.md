@@ -1,102 +1,104 @@
-# Prueba manual G5
+# G5 manual test
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Gate | G5 (prueba manual con teclado y móvil, sin IA) |
-| Quién la ejecuta | Humano |
-| Fecha | 2026-11-23 |
-| Commit probado (`git rev-parse --short HEAD`) | `e2713d2` (pila levantada desde ese commit; comprobado por el orquestador antes de la prueba: `/api/countries` 200, `/admin` 200) |
-| Navegador y versión | Chrome (versión no indicada por el humano) |
-| Dispositivo móvil (modelo, SO, navegador) o viewport usado | No indicado por el humano |
-| Lector de pantalla (opcional: NVDA, Narrador, VoiceOver, TalkBack) | No indicado por el humano |
+| Gate | G5 (manual test with keyboard and mobile, without AI) |
+| Who runs it | Human |
+| Date | 2026-11-23 |
+| Tested commit (`git rev-parse --short HEAD`) | `e2713d2` (stack started from that commit; checked by the orchestrator before the test: `/api/countries` 200, `/admin` 200) |
+| Browser and version | Chrome (version not stated by the human) |
+| Mobile device (model, OS, browser) or viewport used | Not stated by the human |
+| Screen reader (optional: NVDA, Narrator, VoiceOver, TalkBack) | Not stated by the human |
 
-> Plantilla preparada por el QA Engineer en la Fase 5; el resultado del humano está en "Resultado registrado". Cada paso indica el AC que respalda. En "Resultado" escribe `OK`, `Falla` o `No ejecutado`; en "Notas", lo observado (y, si falla, qué esperabas y qué obtuviste).
+> Template prepared by the QA Engineer in Phase 5; the human's result is in "Recorded result". Each step states the AC it backs. In "Result" write `OK`, `Fails` or `Not run`; in "Notes", what you observed (and, if it fails, what you expected and what you got).
 >
-> Los AC de cambio de contenido (AC-01.3, AC-01.10, AC-01.31, AC-02.4, AC-02.21, AC-02.25, AC-03.15) ya están automatizados por intercepción en `e2e/` (G3-3). Este documento registra la integración real con Strapi, que la intercepción no prueba (ADR-0007, "Consecuencias negativas").
+> The content-change AC (AC-01.3, AC-01.10, AC-01.31, AC-02.4, AC-02.21, AC-02.25, AC-03.15) are already automated by interception in `e2e/` (G3-3). This document records the real integration with Strapi, which interception does not test (ADR-0007, "Negative consequences").
 
-## Resultado registrado (2026-11-23)
+## Recorded result (2026-11-23)
 
-El humano ejecutó la prueba siguiendo la versión paso a paso de esta plantilla que el orquestador le dio por chat (mismas partes 0–4 y mismos pasos). Resultado comunicado por el humano, literal:
+The human ran the test following the step-by-step version of this template that the orchestrator gave them by chat (same parts 0–4 and same steps). Result reported by the human, literally:
 
 > "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
+>
+> (English translation: "Well, no, the results are that everything was OK, no error came up in what you asked me to test")
 
-Su primer mensaje de resultado ("Ya hice toda la prueba, y quedo super check") pegaba el texto de **ejemplo** que le había dado el orquestador (incluida una falla ficticia en 1.13). El orquestador no lo registró como evidencia y pidió confirmación; la cita anterior es esa confirmación.
+Their first result message ("Ya hice toda la prueba, y quedo super check"; in English: "I already did the whole test, and it came out all checked") pasted the **example** text that the orchestrator had given them (including a fictitious failure in 1.13). The orchestrator did not record it as evidence and asked for confirmation; the quote above is that confirmation.
 
-Lectura del orquestador:
+Orchestrator's reading:
 
-- Partes 1, 2 y 4: **OK** en todos los pasos, sin defectos. La parte 4 incluye la restauración del seed (4.7).
-- El humano no detalló el dispositivo móvil o el viewport usado, la versión del navegador ni si ejecutó la parte 3, que era opcional. Las tablas siguientes no se rellenan paso a paso para no atribuirle detalles que no dio.
-- **F-00.14** (anuncio de los "cargando" por sección con lector de pantalla) no queda verificado de forma explícita. Sigue **Accepted** como limitación conocida y se documenta en el README.
+- Parts 1, 2 and 4: **OK** in every step, with no defects. Part 4 includes restoring the seed (4.7).
+- The human did not detail the mobile device or viewport used, the browser version, or whether they ran part 3, which was optional. The tables below are not filled in step by step so as not to attribute to them details they did not give.
+- **F-00.14** (announcement of the per-section "cargando" with a screen reader) is not explicitly verified. It stays **Accepted** as a known limitation and is documented in the README.
 
-## 0. Preparación
+## 0. Preparation
 
-| # | Paso | AC | Resultado | Notas |
+| # | Step | AC | Result | Notes |
 |---|---|---|---|---|
-| 0.1 | En la raíz del repositorio: `docker compose up -d` (con `.env` creado desde `.env.example`). Esperar a que `http://localhost:8080/api/countries` responda 200. | AC-01.34 | | |
-| 0.2 | Abrir una ventana nueva o privada del navegador (`sessionStorage` vacío). | — | | |
-| 0.3 | Para el móvil real: averiguar la IP del equipo en la red local y abrir `http://<IP>:8080` en el móvil (el puerto 8080 se publica en todas las interfaces; nota 2 de `phase-4-implementation-notes.md`). | AC-01.28, AC-02.29, AC-03.35 | | |
+| 0.1 | At the repository root: `docker compose up -d` (with `.env` created from `.env.example`). Wait until `http://localhost:8080/api/countries` answers 200. | AC-01.34 | | |
+| 0.2 | Open a new or private browser window (empty `sessionStorage`). | — | | |
+| 0.3 | For the real mobile device: find the machine's IP on the local network and open `http://<IP>:8080` on the phone (port 8080 is published on all interfaces; note 2 of `phase-4-implementation-notes.md`). | AC-01.28, AC-02.29, AC-03.35 | | |
 
-## 1. Recorrido completo de Colombia solo con teclado (sin ratón ni touchpad)
+## 1. Full Colombia journey with the keyboard only (no mouse or touchpad)
 
-Datos ficticios: tipo "Cédula de ciudadanía", número `1234567890`, nacimiento `10/05/2000`, ciudad Bogotá, autorización marcada, placa `ABC123`, Marca A, año `2018`.
+Fictitious data: type "Cédula de ciudadanía", number `1234567890`, birth date `10/05/2000`, city Bogotá, authorization checked, plate `ABC123`, Marca A, year `2018`.
 
-| # | Paso | AC | Resultado | Notas |
+| # | Step | AC | Result | Notes |
 |---|---|---|---|---|
-| 1.1 | Abrir `http://localhost:8080/`. Con Tab llegar al enlace "Colombia" y pulsar Enter. | AC-01.5 | | |
-| 1.2 | En el paso 1 el foco está en el título y el indicador marca el paso 1. El foco es siempre visible. | AC-01.27 | | |
-| 1.3 | Con Tab y Shift+Tab recorrer los 8 campos en orden (tipo, número, fecha, ciudad, autorización, placa, marca, año). Elegir opciones de los select con flechas, marcar la casilla con Espacio y escribir la fecha con el teclado. | AC-01.27, AC-01.1 | | |
-| 1.4 | Dejar el número de documento como `12AB` y pulsar Enter en un campo de texto: se queda en el paso 1, ve el mensaje configurado junto al campo y el foco va al primer campo inválido. | AC-01.2, AC-01.16, AC-01.27 | | |
-| 1.5 | Corregir el número (`1234567890`) y pulsar Enter en el campo de placa: pasa al paso 2 sin usar el ratón. | AC-01.27, AC-01.32 | | |
-| 1.6 | En el paso 2 el foco está en el título. Con Tab llegar al grupo de planes, cambiar con flechas a "Plan Plus" (marcado como "Recomendado"), confirmar con Espacio. | AC-02.26, AC-02.2, AC-02.28 | | |
-| 1.7 | Comprobar que los precios se ven en pesos colombianos sin decimales ("$ 1.320.000" para Plan Plus). | AC-02.8 | | |
-| 1.8 | Tab hasta "Volver" y Enter: los datos del paso 1 siguen ahí. Volver a continuar con el teclado y comprobar que "Plan Plus" sigue elegido. | AC-01.4, AC-02.30 | | |
-| 1.9 | Tab hasta "Continuar" y Enter: llega al resumen con el foco en el título. | AC-02.26, AC-03.34 | | |
-| 1.10 | En el resumen: datos del asegurado y del vehículo con sus etiquetas, documento como `******7890`, tipo de documento en claro, plan y precio final. | AC-03.1, AC-03.5, AC-03.8 | | |
-| 1.11 | Recorrer con Tab y Shift+Tab: "Editar datos", "Cambiar plan", región de términos, casilla, selector de resultado, "Pagar". Desplazar los términos con flechas o AvPág. | AC-03.33 | | |
-| 1.12 | Con "Pagar" deshabilitado, marcar la casilla con Espacio: "Pagar" se habilita. Desmarcar: se deshabilita. Volver a marcar. | AC-03.2, AC-03.12 | | |
-| 1.13 | Con flechas elegir "Pago rechazado" y pulsar Enter en "Pagar": durante ~1,5 s se ve "Procesando el pago…" y el botón no reacciona; después aparece el mensaje de rechazo, se sigue en el resumen con los datos y la casilla marcada. | AC-03.4, AC-03.23, AC-03.26 | | |
-| 1.14 | Con flechas elegir "Pago aprobado" y pulsar Enter en "Pagar" (mantener Enter pulsado un momento): se ve la confirmación con el número `CO-AAAAMMDD-XXXXXX`, el plan y el precio pagado, una sola vez. | AC-03.3, AC-03.22, AC-03.25, AC-03.31 | | |
-| 1.15 | Usar "atrás" del navegador (Alt+Flecha izquierda): no aparece un resumen con "Pagar"; se ve el paso 1 vacío. | AC-03.29 | | |
+| 1.1 | Open `http://localhost:8080/`. With Tab reach the "Colombia" link and press Enter. | AC-01.5 | | |
+| 1.2 | On step 1 the focus is on the heading and the indicator marks step 1. The focus is always visible. | AC-01.27 | | |
+| 1.3 | With Tab and Shift+Tab go through the 8 fields in order (type, number, date, city, authorization, plate, brand, year). Choose select options with the arrows, check the checkbox with Space and type the date with the keyboard. | AC-01.27, AC-01.1 | | |
+| 1.4 | Leave the document number as `12AB` and press Enter in a text field: it stays on step 1, the configured message is shown next to the field and the focus goes to the first invalid field. | AC-01.2, AC-01.16, AC-01.27 | | |
+| 1.5 | Correct the number (`1234567890`) and press Enter in the plate field: it moves to step 2 without using the mouse. | AC-01.27, AC-01.32 | | |
+| 1.6 | On step 2 the focus is on the heading. With Tab reach the plans group, move with the arrows to "Plan Plus" (marked as "Recomendado"), confirm with Space. | AC-02.26, AC-02.2, AC-02.28 | | |
+| 1.7 | Check that the prices are shown in Colombian pesos without decimals ("$ 1.320.000" for Plan Plus). | AC-02.8 | | |
+| 1.8 | Tab to "Volver" and Enter: the step 1 data is still there. Continue again with the keyboard and check that "Plan Plus" is still selected. | AC-01.4, AC-02.30 | | |
+| 1.9 | Tab to "Continuar" and Enter: it reaches the summary with the focus on the heading. | AC-02.26, AC-03.34 | | |
+| 1.10 | In the summary: policyholder and vehicle data with their labels, document as `******7890`, document type in clear, plan and final price. | AC-03.1, AC-03.5, AC-03.8 | | |
+| 1.11 | Go through with Tab and Shift+Tab: "Editar datos", "Cambiar plan", terms region, checkbox, result selector, "Pagar". Scroll the terms with the arrows or Page Down. | AC-03.33 | | |
+| 1.12 | With "Pagar" disabled, check the checkbox with Space: "Pagar" becomes enabled. Uncheck it: it becomes disabled. Check it again. | AC-03.2, AC-03.12 | | |
+| 1.13 | With the arrows choose "Pago rechazado" and press Enter on "Pagar": for ~1.5 s "Procesando el pago…" is shown and the button does not react; then the rejection message appears, and you stay on the summary with the data and the checkbox checked. | AC-03.4, AC-03.23, AC-03.26 | | |
+| 1.14 | With the arrows choose "Pago aprobado" and press Enter on "Pagar" (hold Enter down for a moment): the confirmation is shown with the number `CO-AAAAMMDD-XXXXXX`, the plan and the price paid, only once. | AC-03.3, AC-03.22, AC-03.25, AC-03.31 | | |
+| 1.15 | Use the browser's "back" (Alt+Left arrow): no summary with "Pagar" appears; the empty step 1 is shown. | AC-03.29 | | |
 
-## 2. Móvil real o viewport de 375 px
+## 2. Real mobile device or 375 px viewport
 
-Si no hay móvil real, usar las herramientas de desarrollo del navegador con un dispositivo de 375 px de ancho (y opcionalmente 320 px). Indicar arriba qué se usó.
+If there is no real mobile device, use the browser's developer tools with a 375 px wide device (and optionally 320 px). State above what was used.
 
-| # | Paso | AC | Resultado | Notas |
+| # | Step | AC | Result | Notes |
 |---|---|---|---|---|
-| 2.1 | Paso 1: no hay desplazamiento horizontal; todos los campos y "Continuar" se ven y se pueden usar con el dedo; el teclado del móvil para el año es numérico y la fecha abre el selector nativo. | AC-01.28 | | |
-| 2.2 | Paso 2: los planes se apilan en una columna, sin desplazamiento horizontal; cada plan, su precio y "Continuar" son alcanzables. | AC-02.29 | | |
-| 2.3 | Resumen: una columna, sin desplazamiento horizontal; los términos se leen y se desplazan; la casilla, las opciones de pago y los botones son fáciles de tocar (≥ 24×24 px). Prestar atención a la casilla de términos a 320 px (defecto D-E2E-1 de `docs/qa/e2e-report.md`). | AC-03.35 | | |
-| 2.4 | Pagar con "Pago aprobado": la confirmación se ve completa sin desplazamiento horizontal. | AC-03.35 | | |
-| 2.5 | Repetir un recorrido corto en `/cl` (RUT `12345678-5`, patente `BCDF12`): precios en pesos chilenos ("$38.985" para Plan Full con año 2012 y nacimiento 15/03/2004) y RUT enmascarado `*****678-5`. | AC-01.34, AC-02.8, AC-03.6 | | |
+| 2.1 | Step 1: there is no horizontal scroll; every field and "Continuar" can be seen and used with a finger; the mobile keyboard for the year is numeric and the date opens the native picker. | AC-01.28 | | |
+| 2.2 | Step 2: the plans stack in one column, with no horizontal scroll; each plan, its price and "Continuar" are reachable. | AC-02.29 | | |
+| 2.3 | Summary: one column, no horizontal scroll; the terms can be read and scrolled; the checkbox, the payment options and the buttons are easy to tap (≥ 24×24 px). Pay attention to the terms checkbox at 320 px (defect D-E2E-1 in `docs/qa/e2e-report.md`). | AC-03.35 | | |
+| 2.4 | Pay with "Pago aprobado": the confirmation is fully visible with no horizontal scroll. | AC-03.35 | | |
+| 2.5 | Repeat a short journey on `/cl` (RUT `12345678-5`, plate `BCDF12`): prices in Chilean pesos ("$38.985" for Plan Full with year 2012 and birth date 15/03/2004) and masked RUT `*****678-5`. | AC-01.34, AC-02.8, AC-03.6 | | |
 
-## 3. Lector de pantalla (opcional)
+## 3. Screen reader (optional)
 
-| # | Paso | AC | Resultado | Notas |
+| # | Step | AC | Result | Notes |
 |---|---|---|---|---|
-| 3.1 | Paso 1: cada campo se anuncia con su etiqueta y su ayuda; al fallar la validación se anuncia el error asociado. | AC-01.26 | | |
-| 3.2 | Paso 2: el grupo se anuncia con "Planes disponibles"; cada opción con nombre, "Recomendado" si aplica, precio y estado seleccionado. | AC-02.27 | | |
-| 3.3 | Resumen: la casilla se anuncia con su etiqueta; "Pagar" deshabilitado lee la indicación de aceptar los términos; "Procesando el pago…" se anuncia; el rechazo se anuncia como alerta. | AC-03.34 | | |
-| 3.4 | Confirmación: el foco está en el título y el número de cotización se lee. | AC-03.34 | | |
+| 3.1 | Step 1: each field is announced with its label and its help text; when validation fails the associated error is announced. | AC-01.26 | | |
+| 3.2 | Step 2: the group is announced as "Planes disponibles"; each option with its name, "Recomendado" if it applies, price and selected state. | AC-02.27 | | |
+| 3.3 | Summary: the checkbox is announced with its label; the disabled "Pagar" reads the instruction to accept the terms; "Procesando el pago…" is announced; the rejection is announced as an alert. | AC-03.34 | | |
+| 3.4 | Confirmation: the focus is on the heading and the quote number is read. | AC-03.34 | | |
 
-## 4. Cambio real en el admin de Strapi (G3-3)
+## 4. Real change in the Strapi admin (G3-3)
 
-El admin solo escucha en `127.0.0.1`. No hay administrador sembrado: el primer acceso registra al superadmin (nota 5 de `phase-4-implementation-notes.md`). Usar datos ficticios y una contraseña que no se reutilice; **no** guardarla en el repositorio.
+The admin only listens on `127.0.0.1`. No administrator is seeded: the first access registers the super admin (note 5 of `phase-4-implementation-notes.md`). Use fictitious data and a password that is not reused; do **not** store it in the repository.
 
-| # | Paso | AC | Resultado | Notas |
+| # | Step | AC | Result | Notes |
 |---|---|---|---|---|
-| 4.1 | Abrir `http://127.0.0.1:1337/admin` y crear el superadmin (nombre y correo ficticios). | — | | |
-| 4.2 | Content Manager → Form Field → crear un campo nuevo para Colombia: key `co_licenseNumber`, label "Número de licencia de conducción", type `text`, required `true`, section `policyholder`, order `6`, mensaje de error "Ingresa el número de tu licencia.", relación country = Colombia. **Publicar**. | AC-01.3 | | |
-| 4.3 | En la app, recargar `http://localhost:8080/co/form` (F5): el campo nuevo aparece después de la autorización, sin cambiar código ni reconstruir. Dejarlo vacío y continuar: se ve su mensaje y no avanza. | AC-01.3, REQ-01.6 | | |
-| 4.4 | Con un plan elegido en el paso 2 (por ejemplo "Plan Total"), en el admin: Content Manager → Plan → "Plan Total" de Colombia → `active` = `false` → **Publicar**. | AC-02.25, AC-02.21 | | |
-| 4.5 | Recargar `http://localhost:8080/co/plans`: "Plan Total" ya no aparece, ningún plan queda elegido y se anuncia "El plan que elegiste ya no está disponible." | AC-02.25, AC-02.21 | | |
-| 4.6 | (Opcional) Cambiar el multiplicador de una banda de factores de precio de Colombia, publicar y recargar el paso 2: los precios cambian. | AC-02.25 | | |
-| 4.7 | Dejar el seed como estaba: despublicar o borrar el campo de 4.2 y volver a activar "Plan Total" (o recrear el volumen de Strapi). Anotar cómo se restauró. | — | | |
+| 4.1 | Open `http://127.0.0.1:1337/admin` and create the super admin (fictitious name and email). | — | | |
+| 4.2 | Content Manager → Form Field → create a new field for Colombia: key `co_licenseNumber`, label "Número de licencia de conducción", type `text`, required `true`, section `policyholder`, order `6`, error message "Ingresa el número de tu licencia.", relation country = Colombia. **Publish**. | AC-01.3 | | |
+| 4.3 | In the app, reload `http://localhost:8080/co/form` (F5): the new field appears after the authorization, without changing code or rebuilding. Leave it empty and continue: its message is shown and it does not advance. | AC-01.3, REQ-01.6 | | |
+| 4.4 | With a plan selected in step 2 (for example "Plan Total"), in the admin: Content Manager → Plan → Colombia's "Plan Total" → `active` = `false` → **Publish**. | AC-02.25, AC-02.21 | | |
+| 4.5 | Reload `http://localhost:8080/co/plans`: "Plan Total" no longer appears, no plan stays selected and "El plan que elegiste ya no está disponible." is announced. | AC-02.25, AC-02.21 | | |
+| 4.6 | (Optional) Change the multiplier of one of Colombia's price factor bands, publish and reload step 2: the prices change. | AC-02.25 | | |
+| 4.7 | Leave the seed as it was: unpublish or delete the field from 4.2 and reactivate "Plan Total" (or recreate the Strapi volume). Note how it was restored. | — | | |
 
-## 5. Cierre
+## 5. Closing
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Veredicto (Aprobada / Rechazada / Modificada) | Aprobada |
-| Defectos encontrados (pasos, esperado, obtenido) | Ninguno |
-| Firma o iniciales | Confirmación del humano por chat (cita en "Resultado registrado") |
+| Verdict (Approved / Rejected / Modified) | Approved |
+| Defects found (steps, expected, obtained) | None |
+| Signature or initials | Human's confirmation by chat (quote in "Recorded result") |
