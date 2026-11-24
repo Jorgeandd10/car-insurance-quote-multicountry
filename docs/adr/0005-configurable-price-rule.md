@@ -1,114 +1,116 @@
-# ADR-0005 — Regla de precio configurable: factores por país y función pura
+# ADR-0005 — Configurable price rule: factors per country and a pure function
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Accepted (2026-11-22, G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisores | Humano (G3) |
-| Motivado por | D8 · G2-1, G2-8, G2-9, G2-13 · REQ-02.6, REQ-02.8, REQ-02.9, REQ-02.10, REQ-02.11, REQ-02.12, REQ-02.13, REQ-02.23, REQ-03.4, REQ-03.5 |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Deciders | Human (G3) |
+| Motivated by | D8 · G2-1, G2-8, G2-9, G2-13 · REQ-02.6, REQ-02.8, REQ-02.9, REQ-02.10, REQ-02.11, REQ-02.12, REQ-02.13, REQ-02.23, REQ-03.4, REQ-03.5 |
 
-## Contexto y problema
+## Context and problem
 
-El PDF dice: "The final price may be adjusted by a simulated rule based on the step 1 data. The rule is documented." D8 fijó factores por país en Strapi más una función pura, y G2-8 aprobó el algoritmo: `Math.round(basePrice × Π multiplicadores)`, con operandos `vehicleAge` y `ageInYears`, bandas inclusivas por país y enlace por rol (G2-1). Falta decidir cómo se modelan los factores en Strapi, la firma exacta de la función y cómo se comparte entre el paso 2 y el resumen (G2-9). La documentación pedida por REQ-02.13 está en [`docs/architecture/pricing-rule.md`](../architecture/pricing-rule.md).
+The PDF says: "The final price may be adjusted by a simulated rule based on the step 1 data. The rule is documented." D8 set factors per country in Strapi plus a pure function, and G2-8 approved the algorithm: `Math.round(basePrice × Π multipliers)`, with operands `vehicleAge` and `ageInYears`, inclusive bands per country and linking by role (G2-1). It remains to decide how the factors are modeled in Strapi, the exact signature of the function and how it is shared between step 2 and the summary (G2-9). The documentation required by REQ-02.13 is in [`docs/architecture/pricing-rule.md`](../architecture/pricing-rule.md).
 
-## Factores de decisión
+## Decision drivers
 
-- El negocio cambia bandas, multiplicadores, orden y el rol al que aplican sin código (REQ-02.9).
-- "Primera banda en el orden configurado" (REQ-02.12): el orden tiene que ser explícito y fácil de editar.
-- Los factores se piden en cada entrada al paso 2 y al resumen (REQ-02.23, REQ-03.5), sin pedir de nuevo los textos.
-- Función pura y determinista con fecha inyectada (REQ-02.8).
-- El mismo resultado en el paso 2 y en el resumen (REQ-03.5).
+- The business changes bands, multipliers, order and the role they apply to without code (REQ-02.9).
+- "First band in the configured order" (REQ-02.12): the order has to be explicit and easy to edit.
+- The factors are requested on every entry to step 2 and to the summary (REQ-02.23, REQ-03.5), without requesting the texts again.
+- Pure, deterministic function with an injected date (REQ-02.8).
+- The same result in step 2 and in the summary (REQ-03.5).
 
-## Opciones consideradas
+## Considered options
 
-1. **Componente repetible `pricing.price-factor` dentro de `Country`** (`priceFactors`), en el orden del array.
-2. **Colección `price-factor`** con relación a `Country` y un campo `order`.
-3. **Campo JSON** `priceRules` en `Country`.
+1. **Repeatable component `pricing.price-factor` inside `Country`** (`priceFactors`), in array order.
+2. **`price-factor` collection** with a relation to `Country` and an `order` field.
+3. **JSON field** `priceRules` on `Country`.
 
-## Decisión
+## Decision
 
-Opción elegida: **1. Componente repetible en `Country`**.
+Chosen option: **1. Repeatable component on `Country`**.
 
-**Modelo (Strapi):**
+**Model (Strapi):**
 
-| Atributo | Tipo | Obligatorio | Notas |
+| Attribute | Type | Required | Notes |
 |---|---|---|---|
-| `role` | enumeration `vehicleYear`, `birthDate` | Sí | Roles de US-01 que usa la regla (G2-1) |
-| `operand` | enumeration `vehicleAge`, `ageInYears` | Sí | Operandos fijos en código (G2-8) |
-| `min` | integer | No | Vacío = sin límite inferior |
-| `max` | integer | No | Vacío = sin límite superior |
-| `multiplier` | decimal | Sí | Debe ser > 0 y finito |
+| `role` | enumeration `vehicleYear`, `birthDate` | Yes | US-01 roles used by the rule (G2-1) |
+| `operand` | enumeration `vehicleAge`, `ageInYears` | Yes | Operands fixed in code (G2-8) |
+| `min` | integer | No | Empty = no lower bound |
+| `max` | integer | No | Empty = no upper bound |
+| `multiplier` | decimal | Yes | Must be > 0 and finite |
 
-Se piden con una proyección que no incluye los textos: `GET /api/countries?filters[code][$eq]={cc}&fields[0]=code&populate[0]=priceFactors` (C6 en api-contracts).
+They are requested with a projection that does not include the texts: `GET /api/countries?filters[code][$eq]={cc}&fields[0]=code&populate[0]=priceFactors` (C6 in api-contracts).
 
-**Funciones puras** (`frontend/src/app/domain/pricing/`):
+**Pure functions** (`frontend/src/app/domain/pricing/`):
 
 ```ts
 export type PriceRole = 'vehicleYear' | 'birthDate';
 export type PriceOperand = 'vehicleAge' | 'ageInYears';
 export interface PriceFactorRule { role: PriceRole; operand: PriceOperand; min: number | null; max: number | null; multiplier: number; }
-export interface PriceInputs { vehicleYear: number | null; birthDate: string | null; } // valores por rol, desde Step1Result
+export interface PriceInputs { vehicleYear: number | null; birthDate: string | null; } // values by role, from Step1Result
 export interface AppliedFactor { role: PriceRole; operand: PriceOperand; x: number | null; multiplier: number; }
 export function computeFinalPrice(basePrice: number, inputs: PriceInputs, rules: readonly PriceFactorRule[], referenceDate: string /* YYYY-MM-DD */): { finalPrice: number; appliedFactors: AppliedFactor[] };
 export function formatPrice(amount: number, intlLocale: string, currency: string): string;
 ```
 
-- Algoritmo idéntico a US-02 §6.3:
-  1. Descartar las reglas inválidas.
-  2. Agrupar por (`role`, `operand`).
-  3. Calcular `x` (`vehicleAge = max(0, año(ref) − año)`; `ageInYears` con la misma función `ageInYears` que usa la mayoría de edad de US-01, en `domain/dates/`).
-  4. El factor es la primera banda con `min ≤ x ≤ max` o, si no hay ninguna, 1.
-  5. `Math.round` una sola vez al final.
-- **Combinación rol-operando incompatible** (`birthDate` con `vehicleAge` o `vehicleYear` con `ageInYears`): el mapper la descarta con aviso, igual que una banda inválida. Es una extensión de REQ-02.12 que necesita confirmación humana (ver Decisiones para G3).
-- `PriceInputs` se obtiene por **rol** desde `Step1Result`, nunca por `key` (REQ-02.10). Si hay varios campos con el mismo rol (G2-5 lo permite), se usa el primero en el orden de pantalla. Para el precio no hay ambigüedad práctica, porque todos deben ser válidos para que `isComplete` sea verdadero. Se documenta como regla determinista.
-- `formatPrice` usa `new Intl.NumberFormat(intlLocale, { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0 })` (REQ-02.6). Fijar 0 decimales es una decisión aprobada en la spec para COP y CLP. Una moneda con decimales exigiría superseder este ADR.
-- **Compartida por el paso 2 y el resumen:** las dos páginas llaman a `computeFinalPrice` con el mismo `Step1Result`, los mismos factores recién pedidos y `todayLocal(clock())`. Nada de precio se persiste (G2-9).
-- `basePrice` es `integer` en Strapi (unidades enteras de la moneda, `min: 1`), lo que evita ambigüedades de serialización de los decimales. `multiplier` es `decimal`, y el mapper acepta un `number` o un `string` numérico, y descarta todo lo que no sea finito.
+- Algorithm identical to US-02 §6.3:
+  1. Discard the invalid rules.
+  2. Group by (`role`, `operand`).
+  3. Compute `x` (`vehicleAge = max(0, year(ref) − year)`; `ageInYears` with the same `ageInYears` function that the US-01 legal age uses, in `domain/dates/`).
+  4. The factor is the first band with `min ≤ x ≤ max` or, if there is none, 1.
+  5. `Math.round` only once at the end.
+- **Incompatible role-operand combination** (`birthDate` with `vehicleAge` or `vehicleYear` with `ageInYears`): the mapper discards it with a warning, just like an invalid band. It is an extension of REQ-02.12 that needs human confirmation (see Decisions for G3).
+- `PriceInputs` is obtained by **role** from `Step1Result`, never by `key` (REQ-02.10). If there are several fields with the same role (G2-5 allows it), the first one in screen order is used. For the price there is no practical ambiguity, because all of them must be valid for `isComplete` to be true. It is documented as a deterministic rule.
+- `formatPrice` uses `new Intl.NumberFormat(intlLocale, { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 0 })` (REQ-02.6). Setting 0 decimals is a decision approved in the spec for COP and CLP. A currency with decimals would require superseding this ADR.
+- **Shared by step 2 and the summary:** both pages call `computeFinalPrice` with the same `Step1Result`, the same freshly requested factors and `todayLocal(clock())`. Nothing about the price is persisted (G2-9).
+- `basePrice` is an `integer` in Strapi (whole currency units, `min: 1`), which avoids decimal serialization ambiguities. `multiplier` is a `decimal`, and the mapper accepts a `number` or a numeric `string`, and discards anything that is not finite.
 
-## Consecuencias
+## Consequences
 
-- **Positivas:**
-  - El negocio edita todas las bandas de un país en una sola pantalla del admin y las reordena arrastrando; el orden es el del array y no hace falta un campo `order`.
-  - No hay bandas sin país ni bandas de un país en otro: el componente pertenece a `Country`.
-  - Función pura, tabla E1–E6 como unit test, y el mismo código en el paso 2 y en el resumen.
-- **Negativas:**
-  - Cambiar un factor exige volver a publicar `Country` completo (ADR-0001), y un borrador pendiente de textos del mismo país bloquea publicar el factor.
-  - Se pide `Country` dos veces en un mismo flujo (configuración una vez por carga y factores en cada entrada), con proyecciones distintas.
-  - `role` y `operand` son redundantes (cada rol tiene un único operando válido). Se conservan porque G2-8 los aprobó así y porque permiten operandos nuevos sobre el mismo rol, pero exigen la regla de descarte de combinaciones incompatibles.
-  - `basePrice` entero no admite monedas con céntimos.
-- **Riesgos y mitigación:**
-  - *Serialización de `decimal` en la REST API* (número o cadena según la base de datos): la documentación consultada no lo precisa. El mapper acepta ambos, y un unit test cubre los dos casos.
-  - *Bandas que cambian cerca de la fecha del e2e:* el e2e fija el reloj (ADR-0007).
+- **Positive:**
+  - The business edits all the bands of a country on a single admin screen and reorders them by dragging; the order is the array order and no `order` field is needed.
+  - There are no bands without a country nor bands of one country in another: the component belongs to `Country`.
+  - Pure function, table E1–E6 as a unit test, and the same code in step 2 and in the summary.
+- **Negative:**
+  - Changing a factor requires republishing the whole `Country` (ADR-0001), and a pending draft of texts for the same country blocks publishing the factor.
+  - `Country` is requested twice in the same flow (configuration once per load and factors on every entry), with different projections.
+  - `role` and `operand` are redundant (each role has a single valid operand). They are kept because G2-8 approved them that way and because they allow new operands on the same role, but they require the rule for discarding incompatible combinations.
+  - An integer `basePrice` does not support currencies with cents.
+- **Risks and mitigation:**
+  - *Serialization of `decimal` in the REST API* (number or string depending on the database): the documentation consulted does not specify it. The mapper accepts both, and a unit test covers both cases.
+  - *Bands that change close to the e2e date:* the e2e fixes the clock (ADR-0007).
 
-### Confirmación
+### Confirmation
 
-- Unit: `computeFinalPrice` con E1–E6, AC-02.10, AC-02.11, AC-02.12 y AC-02.13; `formatPrice` con las cadenas exactas de AC-02.8 (U+00A0 en `es-CO`); mapper de factores (multiplicador 0, `min > max`, combinación incompatible, decimal como cadena).
-- E2E: AC-02.9 (con reloj fijado), AC-02.16, AC-02.25 (cambio de factor y recarga, ADR-0003) y AC-03.9.
-- Review: `grep -rn "Math.round" frontend/src/app` → solo en `domain/pricing/`.
+- Unit: `computeFinalPrice` with E1–E6, AC-02.10, AC-02.11, AC-02.12 and AC-02.13; `formatPrice` with the exact strings of AC-02.8 (U+00A0 in `es-CO`); factor mapper (multiplier 0, `min > max`, incompatible combination, decimal as a string).
+- E2E: AC-02.9 (with the clock fixed), AC-02.16, AC-02.25 (factor change and reload, ADR-0003) and AC-03.9.
+- Review: `grep -rn "Math.round" frontend/src/app` → only in `domain/pricing/`.
 
-## Pros y contras de las opciones
+## Pros and cons of the options
 
-### 1. Componente repetible en `Country` (elegida)
+### 1. Repeatable component on `Country` (chosen)
 
-- A favor: orden nativo; edición agrupada por país; ningún documento huérfano; una petición pequeña con proyección.
-- En contra: se publica con todo el país; redundancia entre rol y operando.
+- For: native order; editing grouped by country; no orphan documents; a small request with a projection.
+- Against: it is published with the whole country; redundancy between role and operand.
 
-### 2. Colección `price-factor`
+### 2. `price-factor` collection
 
-- A favor: publicación por banda; se pide sin tocar `Country`; permisos separados.
-- En contra: necesita un campo `order` con sus empates y vacíos (otra regla de desempate). Puede haber bandas sin país. Hace falta otro permiso público y otra ruta en la allowlist. El negocio edita bandas sueltas sin ver el conjunto.
+- For: publication per band; requested without touching `Country`; separate permissions.
+- Against: it needs an `order` field with its ties and gaps (another tie-breaking rule). There can be bands without a country. Another public permission and another allowlist route are needed. The business edits loose bands without seeing the whole set.
 
-### 3. Campo JSON
+### 3. JSON field
 
-- A favor: máxima flexibilidad sin cambiar el esquema.
-- En contra: el admin no valida nada (un error de sintaxis rompe la regla); no es "configurable por el negocio" en un sentido razonable.
+- For: maximum flexibility without changing the schema.
+- Against: the admin validates nothing (a syntax error breaks the rule); it is not "configurable by the business" in any reasonable sense.
 
-## Referencias
+## References
 
-Consultadas el 2026-11-22:
+Consulted on 2026-11-22:
 
-- Strapi 5, populate de componentes (`populate[0]=component-name`) y selección de campos: https://docs.strapi.io/cms/api/rest/populate-select
-- Strapi 5, tipos de atributo (`integer`, `decimal`, `enumeration`, `component` repetible): https://docs.strapi.io/cms/backend-customization/models
-- MDN, constructor `Intl.NumberFormat` (`style: 'currency'`, `currency` obligatorio, `minimumFractionDigits`/`maximumFractionDigits`): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat
-- Formato de moneda en Node 24.22.3 (`es-CO` → `24 a0 31 2e …`, `es-CL` → `24 33 38 2e …`): `reviews/000-G2-specs-cross-consistency.md` (ejecución real, F-00.6)
+- Strapi 5, populate of components (`populate[0]=component-name`) and field selection: https://docs.strapi.io/cms/api/rest/populate-select
+- Strapi 5, attribute types (`integer`, `decimal`, `enumeration`, repeatable `component`): https://docs.strapi.io/cms/backend-customization/models
+- MDN, `Intl.NumberFormat` constructor (`style: 'currency'`, `currency` required, `minimumFractionDigits`/`maximumFractionDigits`): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat
+- Currency formatting in Node 24.22.3 (`es-CO` → `24 a0 31 2e …`, `es-CL` → `24 33 38 2e …`): `reviews/000-G2-specs-cross-consistency.md` (real run, F-00.6)
+
+> Translated into English on 2026-11-23 (D16); no content change.

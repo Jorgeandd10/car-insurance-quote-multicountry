@@ -1,200 +1,202 @@
-# ADR-0004 — Estado del wizard, carga de datos, persistencia y navegación
+# ADR-0004 — Wizard state, data loading, persistence and navigation
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Accepted (2026-11-22, G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisores | Humano (G3) |
-| Motivado por | D6, D7, D9 · G2-9, G2-10, G2-11, G2-12, G2-13 · REQ-01.3, REQ-01.4, REQ-01.6, REQ-01.18, REQ-01.23 a REQ-01.27, REQ-01.31, REQ-02.16 a REQ-02.23, REQ-02.30, REQ-03.1, REQ-03.5, REQ-03.9 a REQ-03.14, REQ-03.19, REQ-03.21 a REQ-03.32, REQ-03.37 |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Deciders | Human (G3) |
+| Motivated by | D6, D7, D9 · G2-9, G2-10, G2-11, G2-12, G2-13 · REQ-01.3, REQ-01.4, REQ-01.6, REQ-01.18, REQ-01.23 to REQ-01.27, REQ-01.31, REQ-02.16 to REQ-02.23, REQ-02.30, REQ-03.1, REQ-03.5, REQ-03.9 to REQ-03.14, REQ-03.19, REQ-03.21 to REQ-03.32, REQ-03.37 |
 
-## Contexto y problema
+## Context and problem
 
-El wizard tiene 3 pasos más una confirmación (D7) y persiste en `sessionStorage` separado por país (D6). Las specs fijan reglas que se cruzan entre las tres historias:
+The wizard has 3 steps plus a confirmation (D7) and persists in `sessionStorage`, separated by country (D6). The specs set rules that cut across the three stories:
 
-- Solo se guardan valores; `isComplete` se calcula cada vez con la configuración vigente y nunca se persiste (G2-10, F-00.5).
-- Del plan solo se persiste su `documentId`, y el precio se recalcula (G2-9).
-- La aceptación de términos, el resultado elegido y el estado de pago no se persisten (US-03 §6.2).
-- Tras un pago exitoso se borra el estado del país y queda una confirmación mínima sin datos personales (REQ-03.28).
-- La configuración del país se pide una vez por carga de la app (Q-01.20). Los planes y factores, en cada entrada al paso 2 (REQ-02.23) y al resumen (REQ-03.5, REQ-03.14).
+- Only values are stored; `isComplete` is computed each time with the current configuration and is never persisted (G2-10, F-00.5).
+- Only the plan's `documentId` is persisted, and the price is recomputed (G2-9).
+- The terms acceptance, the chosen outcome and the payment state are not persisted (US-03 §6.2).
+- After a successful payment the country's state is cleared and a minimal confirmation with no personal data remains (REQ-03.28).
+- The country configuration is requested once per app load (Q-01.20). Plans and factors, on every entry to step 2 (REQ-02.23) and to the summary (REQ-03.5, REQ-03.14).
 
-Hay que decidir el formato y las claves de almacenamiento, dónde vive el estado, cómo se cargan los datos con estados explícitos, cómo funcionan las guardas y cómo se protege el pago.
+We need to decide the storage format and keys, where the state lives, how data is loaded with explicit states, how the guards work and how the payment is protected.
 
-## Factores de decisión
+## Decision drivers
 
-- Estado con `signal`/`computed`, zoneless, sin NgModules (D2, `CLAUDE.md` §8).
-- Lógica en funciones puras (reconciliación, `isComplete`, precio, enmascarado, número de cotización).
-- Separación estricta por país (REQ-01.25, REQ-03.37).
-- Tolerancia a datos corruptos o manipulados (US-01 5.4).
-- Estados de carga, error y vacío en cada llamada, con "cargando" anunciado (REQ-01.3, REQ-02.20, REQ-03.31).
-- Sin dependencias nuevas.
+- State with `signal`/`computed`, zoneless, no NgModules (D2, `CLAUDE.md` §8).
+- Logic in pure functions (reconciliation, `isComplete`, price, masking, quote number).
+- Strict separation by country (REQ-01.25, REQ-03.37).
+- Tolerance to corrupted or tampered data (US-01 5.4).
+- Loading, error and empty states on every call, with "cargando" announced (REQ-01.3, REQ-02.20, REQ-03.31).
+- No new dependencies.
 
-## Opciones consideradas
+## Considered options
 
-**Formato de persistencia**
+**Persistence format**
 
-1. **P1. Una clave por país y por tipo de dato** (`ciq.v1.{cc}.step1`, `.plan`, `.confirmation`), JSON validado al leer.
-2. **P2. Un único objeto por país** (`ciq.{cc}` con `step1`, `plan`, `confirmation`).
-3. **P3. Librería de estado con persistencia** (p. ej. `@ngrx/signals` con un plugin de almacenamiento).
+1. **P1. One key per country and per data type** (`ciq.v1.{cc}.step1`, `.plan`, `.confirmation`), JSON validated on read.
+2. **P2. A single object per country** (`ciq.{cc}` with `step1`, `plan`, `confirmation`).
+3. **P3. State library with persistence** (e.g. `@ngrx/signals` with a storage plugin).
 
-**Carga de datos**
+**Data loading**
 
-1. **L1. `resource()` de Angular** (estable desde v22) con un *loader* que llama a `CmsClient` (`HttpClient`), que pagina y mapea.
-2. **L2. `httpResource()`** (estable desde v22) directamente sobre cada URL.
-3. **L3. `HttpClient` + señales de estado escritas a mano.**
+1. **L1. Angular `resource()`** (stable since v22) with a *loader* that calls `CmsClient` (`HttpClient`), which paginates and maps.
+2. **L2. `httpResource()`** (stable since v22) directly on each URL.
+3. **L3. `HttpClient` + hand-written state signals.**
 
-**Guardas de navegación**
+**Navigation guards**
 
-1. **G1. Guards funcionales `canActivate`** que esperan la configuración del país (en memoria) y devuelven `RedirectCommand`, más un indicador "cargando" mientras la navegación está pendiente.
-2. **G2. Comprobación dentro de cada página**, que redirige con `router.navigate(..., { replaceUrl: true })` tras cargar.
+1. **G1. Functional `canActivate` guards** that wait for the country configuration (in memory) and return `RedirectCommand`, plus a "cargando" indicator while navigation is pending.
+2. **G2. Check inside each page**, which redirects with `router.navigate(..., { replaceUrl: true })` after loading.
 
-## Decisión
+## Decision
 
-Opción elegida: **P1 + L1 + G1** (con la comprobación de G2 como respaldo tras un reintento).
+Chosen option: **P1 + L1 + G1** (with the G2 check as a fallback after a retry).
 
-### Persistencia (P1)
+### Persistence (P1)
 
-Acceso a través de `WizardStorage` (`frontend/src/app/core/storage/`), que recibe el `Storage` por un token `WIZARD_STORAGE` (por defecto `sessionStorage`, sustituible en los tests).
+Access through `WizardStorage` (`frontend/src/app/core/storage/`), which receives the `Storage` through a `WIZARD_STORAGE` token (by default `sessionStorage`, replaceable in tests).
 
-| Clave | Contenido (JSON) | Dueño | Se borra |
+| Key | Content (JSON) | Owner | Cleared |
 |---|---|---|---|
-| `ciq.v1.{cc}.step1` | `{ "values": { "<fieldKey>": string \| number \| boolean \| null } }` | US-01 | Tras un pago exitoso |
-| `ciq.v1.{cc}.plan` | `{ "planDocumentId": "<documentId>" }` | US-02 | Tras un pago exitoso; al descartar un plan no disponible (REQ-02.17) |
-| `ciq.v1.{cc}.confirmation` | `{ "quoteNumber": "CO-20261122-7K3F9Q", "planName": "...", "finalPrice": 1320000, "currency": "COP", "paidAt": "2026-11-22T15:04:05.000Z" }` | US-03 | Con "nueva cotización" |
+| `ciq.v1.{cc}.step1` | `{ "values": { "<fieldKey>": string \| number \| boolean \| null } }` | US-01 | After a successful payment |
+| `ciq.v1.{cc}.plan` | `{ "planDocumentId": "<documentId>" }` | US-02 | After a successful payment; when discarding an unavailable plan (REQ-02.17) |
+| `ciq.v1.{cc}.confirmation` | `{ "quoteNumber": "CO-20261122-7K3F9Q", "planName": "...", "finalPrice": 1320000, "currency": "COP", "paidAt": "2026-11-22T15:04:05.000Z" }` | US-03 | With "new quote" |
 
-- `{cc}` es el código del país en minúsculas de la URL ya validado. `v1` es la versión del esquema: si cambia, se usa `v2` y las claves `v1` se ignoran y se eliminan.
-- **No se guarda nada más:** ni configuración, ni planes, ni precios, ni factores, ni términos, ni `isComplete`, ni la aceptación de términos, ni el resultado del pago (REQ-01.6, REQ-02.23, G2-9, G2-10, REQ-03.12).
-- **Lectura defensiva:** si el JSON no se puede interpretar o no tiene la forma esperada, se descarta esa clave y se avisa en consola sin datos personales (5.4). Un valor de tipo inesperado se descarta individualmente.
-- **Escritura del paso 1:** un `effect()` en `DynamicForm` escribe en cada cambio del modelo los valores **normalizados**: `text` recortado, `NaN` → `null`, `date` como `YYYY-MM-DD` (REQ-01.23, Q-01.16). `action` vuelve a escribir al continuar. Mientras se escribe, el modelo conserva el texto sin recortar, y al salir del campo se sustituye por el recortado.
-- El documento y la fecha de nacimiento quedan en claro en `sessionStorage` (Q-01.15, Q-03.23); se documenta en el README.
+- `{cc}` is the already validated lowercase country code from the URL. `v1` is the schema version: if it changes, `v2` is used and the `v1` keys are ignored and removed.
+- **Nothing else is stored:** no configuration, plans, prices, factors, terms, `isComplete`, terms acceptance or payment outcome (REQ-01.6, REQ-02.23, G2-9, G2-10, REQ-03.12).
+- **Defensive read:** if the JSON cannot be parsed or does not have the expected shape, that key is discarded and a console warning is logged without personal data (5.4). A value of an unexpected type is discarded individually.
+- **Step 1 write:** an `effect()` in `DynamicForm` writes the **normalized** values on every model change: trimmed `text`, `NaN` → `null`, `date` as `YYYY-MM-DD` (REQ-01.23, Q-01.16). `action` writes again on continue. While typing, the model keeps the untrimmed text, and when leaving the field it is replaced by the trimmed one.
+- The document and the birth date remain in plain text in `sessionStorage` (Q-01.15, Q-03.23); this is documented in the README.
 
-### Estado en memoria
+### In-memory state
 
-- `CountryConfigStore` (`providedIn: 'root'`) mantiene un `Map<cc, ResourceRef<CountryConfig>>`. `CountryConfig` = país + textos + `FormConfig`. Se crea al entrar en el país y **no se vuelve a pedir** al navegar entre pasos, solo al recargar o al pulsar "reintentar" (Q-01.20).
-- `Step1State` deriva del almacenamiento y de la configuración:
-  - `reconcileStep1(config, stored) → Step1Model`: función pura con la tabla 5.4.
-  - `evaluateStep1(config, values, { today, minimumAge }) → Step1Result`: función pura. Para cada campo vigente devuelve `key`, `type`, `section`, `role`, `value`, `displayValue` (etiqueta de la opción en `select`) y `valid`, más `isComplete` (REQ-01.27). `isComplete` es `false` si la configuración no está `ready` (vacía, no disponible o con error).
-  - `isComplete` es un `computed` sobre esas funciones: se recalcula al leerlo y nunca se escribe.
-- Los planes y factores se piden con `resource()` creado por la página (paso 2 y resumen), así que se cancelan al salir y se vuelven a pedir en cada entrada (REQ-02.23).
-- Los términos, con su propio `resource()` en el resumen, para mostrar la carga y el error en esa sección (REQ-03.31, REQ-03.32, AC-03.17).
+- `CountryConfigStore` (`providedIn: 'root'`) holds a `Map<cc, ResourceRef<CountryConfig>>`. `CountryConfig` = country + texts + `FormConfig`. It is created when entering the country and **is not requested again** when navigating between steps, only on reload or when pressing "reintentar" (Q-01.20).
+- `Step1State` derives from the storage and the configuration:
+  - `reconcileStep1(config, stored) → Step1Model`: pure function with table 5.4.
+  - `evaluateStep1(config, values, { today, minimumAge }) → Step1Result`: pure function. For each current field it returns `key`, `type`, `section`, `role`, `value`, `displayValue` (option label for `select`) and `valid`, plus `isComplete` (REQ-01.27). `isComplete` is `false` if the configuration is not `ready` (empty, unavailable or with an error).
+  - `isComplete` is a `computed` over those functions: it is recomputed when read and never written.
+- Plans and factors are requested with a `resource()` created by the page (step 2 and summary), so they are cancelled on leaving and requested again on every entry (REQ-02.23).
+- The terms, with their own `resource()` in the summary, to show loading and error in that section (REQ-03.31, REQ-03.32, AC-03.17).
 
-### Carga de datos (L1) y estados
+### Data loading (L1) and states
 
-- `CmsClient` (`core/cms/`) hace la petición `GET`, aplica un **timeout de 10 000 ms** (REQ-02.21 deja el valor al ADR), recorre las páginas si `pageCount > 1` (REQ-02.24), valida la forma global y entrega DTOs. Los mappers convierten los DTOs en dominio (api-contracts).
-- `resource()` expone el estado de carga, el error y el valor, y permite recargar. Las páginas derivan un único `viewState`: `loading` | `error` | `configError` (falta un texto, G2-2) | `empty` | `unavailable` (G2-5) | `ready`.
-  - `loading` → "cargando" con `role="status"`.
-  - `error` → "error de carga" + "reintentar" con `role="alert"`.
-  - `configError` → mensaje genérico del país o, si también falta, "error de carga" (F-00.7).
-- Sin reintentos automáticos: solo el botón "reintentar" (REQ-01.4).
-- Los 4 textos fijos (G2-2) están en un único archivo, `core/ui-state/fixed-texts.ts`.
+- `CmsClient` (`core/cms/`) makes the `GET` request, applies a **10 000 ms timeout** (REQ-02.21 leaves the value to the ADR), walks the pages if `pageCount > 1` (REQ-02.24), validates the overall shape and delivers DTOs. The mappers convert DTOs into domain objects (api-contracts).
+- `resource()` exposes the loading state, the error and the value, and allows reloading. The pages derive a single `viewState`: `loading` | `error` | `configError` (a text is missing, G2-2) | `empty` | `unavailable` (G2-5) | `ready`.
+  - `loading` → "cargando" with `role="status"`.
+  - `error` → "error de carga" + "reintentar" with `role="alert"`.
+  - `configError` → the country's generic message or, if that is also missing, "error de carga" (F-00.7).
+- No automatic retries: only the "reintentar" button (REQ-01.4).
+- The 4 fixed texts (G2-2) are in a single file, `core/ui-state/fixed-texts.ts`.
 
-### Navegación y guardas (G1)
+### Navigation and guards (G1)
 
-| Ruta | Guard | Regla | Redirección |
+| Route | Guard | Rule | Redirect |
 |---|---|---|---|
-| `/:country` (shell) | `countryCaseGuard` | Segmento en mayúsculas | Misma URL en minúsculas (ADR-0001) |
-| `/:country/plans` | `step1CompleteGuard` | Espera `CountryConfig`. Si está `ready` y `isComplete` es falso | `/:country/form`, sin pedir planes (REQ-02.19, AC-02.22) |
-| `/:country/summary` | `step1CompleteGuard`, `planSelectedGuard` | `isComplete` falso → paso 1; sin `ciq.v1.{cc}.plan` → paso 2 | REQ-03.13, AC-03.18 |
-| `/:country/confirmation` | `confirmationGuard` | Sin `ciq.v1.{cc}.confirmation` válido | `/:country/form` (REQ-03.29) |
+| `/:country` (shell) | `countryCaseGuard` | Uppercase segment | Same URL in lowercase (ADR-0001) |
+| `/:country/plans` | `step1CompleteGuard` | Waits for `CountryConfig`. If it is `ready` and `isComplete` is false | `/:country/form`, without requesting plans (REQ-02.19, AC-02.22) |
+| `/:country/summary` | `step1CompleteGuard`, `planSelectedGuard` | `isComplete` false → step 1; no `ciq.v1.{cc}.plan` → step 2 | REQ-03.13, AC-03.18 |
+| `/:country/confirmation` | `confirmationGuard` | No valid `ciq.v1.{cc}.confirmation` | `/:country/form` (REQ-03.29) |
 
-- Los guards devuelven `true` si la configuración **falla** al cargar. La página muestra entonces "error de carga" y, tras un "reintentar" con éxito, vuelve a evaluar `isComplete` y redirige si hace falta (respaldo G2).
-- Mientras un guard espera, el componente raíz muestra "cargando" (señal derivada de los eventos del `Router`: `NavigationStart` → `true`; `NavigationEnd`, `NavigationCancel` o `NavigationError` → `false`). Así se cumple REQ-02.20 cuando se entra por URL.
-- **Plan no disponible en el resumen** (REQ-03.14, G2-11): el resumen carga los planes y, si el plan persistido no está en la lista vigente, navega a `/:country/plans` sin borrar nada. El paso 2 detecta el mismo caso, descarta la selección y muestra el aviso (REQ-02.17). Así hay una única implementación del descarte.
-- **Desde el resumen** (REQ-03.9 a REQ-03.11): "editar datos" → `/form`; desde ahí continuar → `/plans` con el plan preseleccionado → `/summary`.
-- **Foco al cambiar de paso** (REQ-01.31, REQ-02.28, REQ-03.33): cada página enfoca su `<h1 tabindex="-1">` con `afterNextRender`, y el shell actualiza `document.title` con el título del paso (texto de Strapi).
+- The guards return `true` if the configuration **fails** to load. The page then shows "error de carga" and, after a successful "reintentar", evaluates `isComplete` again and redirects if needed (G2 fallback).
+- While a guard is waiting, the root component shows "cargando" (a signal derived from `Router` events: `NavigationStart` → `true`; `NavigationEnd`, `NavigationCancel` or `NavigationError` → `false`). This satisfies REQ-02.20 when entering by URL.
+- **Plan not available in the summary** (REQ-03.14, G2-11): the summary loads the plans and, if the persisted plan is not in the current list, navigates to `/:country/plans` without clearing anything. Step 2 detects the same case, discards the selection and shows the notice (REQ-02.17). This way there is a single implementation of the discard.
+- **From the summary** (REQ-03.9 to REQ-03.11): "edit data" → `/form`; from there continue → `/plans` with the plan preselected → `/summary`.
+- **Focus when changing step** (REQ-01.31, REQ-02.28, REQ-03.33): each page focuses its `<h1 tabindex="-1">` with `afterNextRender`, and the shell updates `document.title` with the step title (Strapi text).
 
-### Pago simulado y confirmación (D9, G2-12)
+### Simulated payment and confirmation (D9, G2-12)
 
-- Estado local de `SummaryStepPage`, sin persistir:
+- Local state of `SummaryStepPage`, not persisted:
   - `termsAccepted = signal(false)`
   - `outcome = signal<'approved' | 'rejected'>('approved')`
   - `payment = signal<'idle' | 'processing' | 'rejected'>('idle')`
-- `canPay = computed(...)` con los datos cargados y válidos, el plan válido, los términos cargados y aceptados, y `payment() !== 'processing'` (REQ-03.19).
-- `pay()` sale de inmediato si `payment() === 'processing'`. Es la **guarda en el estado**, independiente del atributo `disabled` (REQ-03.23). Después cambia el estado a `processing` y llama a `MockPaymentGateway.pay(outcome, abortSignal)`, que resuelve tras `PAYMENT_DELAY_MS` (token, 1500 ms por defecto; REQ-03.24). No hace ninguna petición (REQ-03.20).
-- Al destruir la página se aborta el pago pendiente (`DestroyRef`) y su resultado se ignora (REQ-03.22).
-- **Éxito**, en este orden:
-  1. Genera el número con `createQuoteNumber(cc, now, randomSource)`, una función pura con `crypto.getRandomValues` inyectado (REQ-03.26).
-  2. Escribe `confirmation`.
-  3. Borra `step1` y `plan`.
-  4. Navega a `/:country/confirmation` con `replaceUrl: true`.
+- `canPay = computed(...)` with the data loaded and valid, the plan valid, the terms loaded and accepted, and `payment() !== 'processing'` (REQ-03.19).
+- `pay()` returns immediately if `payment() === 'processing'`. This is the **guard in the state**, independent of the `disabled` attribute (REQ-03.23). Then it changes the state to `processing` and calls `MockPaymentGateway.pay(outcome, abortSignal)`, which resolves after `PAYMENT_DELAY_MS` (token, 1500 ms by default; REQ-03.24). It makes no request (REQ-03.20).
+- When the page is destroyed, the pending payment is aborted (`DestroyRef`) and its result is ignored (REQ-03.22).
+- **Success**, in this order:
+  1. Generates the number with `createQuoteNumber(cc, now, randomSource)`, a pure function with `crypto.getRandomValues` injected (REQ-03.26).
+  2. Writes `confirmation`.
+  3. Clears `step1` and `plan`.
+  4. Navigates to `/:country/confirmation` with `replaceUrl: true`.
 
-  Si se vuelve atrás después, el resumen redirige al paso 1 vacío porque `isComplete` es falso (REQ-03.28, AC-03.29).
-- **Rechazo:** `payment.set('rejected')`, mensaje con `role="alert"`; se conservan los datos y la aceptación de términos (REQ-03.30).
-- **Nueva cotización:** borra `confirmation` y navega a `/:country/form`.
+  If the user goes back afterwards, the summary redirects to an empty step 1 because `isComplete` is false (REQ-03.28, AC-03.29).
+- **Rejection:** `payment.set('rejected')`, message with `role="alert"`; the data and the terms acceptance are kept (REQ-03.30).
+- **New quote:** clears `confirmation` and navigates to `/:country/form`.
 
-## Consecuencias
+## Consequences
 
-- **Positivas:**
-  - Cada clave tiene un único dueño y un ciclo de vida claro. Si una clave está corrupta, solo se pierde esa (p. ej., el paso 1), como pide 5.4.
-  - `isComplete` no puede quedar obsoleto porque no existe en el almacenamiento (F-00.5).
-  - `resource()` aporta la cancelación por `AbortSignal` al salir de la página o al recargar, y un estado uniforme para carga, error y reintento.
-  - Las redirecciones ocurren antes de pintar el paso y antes de pedir planes (AC-02.22).
-- **Negativas:**
-  - Tres claves por país: el borrado tras el pago son dos operaciones, sin atomicidad. Si la pestaña muere entre las dos, puede quedar un `plan` huérfano, que es inofensivo porque sin `step1` el resumen redirige al paso 1.
-  - El documento queda en claro en `sessionStorage` mientras dura la cotización (riesgo aceptado en G2).
-  - Los guards esperan una petición HTTP: la primera navegación por URL directa a `/plans` o `/summary` muestra el "cargando" global antes que el del paso.
-  - Hay dos lugares que evalúan `isComplete` (guard y página tras un reintento); se mitiga usando la misma función pura.
-  - No se impide pagar en una pestaña duplicada (limitación aceptada, REQ-03.23).
-- **Riesgos y mitigación:**
-  - *Nombres exactos de las señales de `ResourceRef`:* la guía de `httpResource` documenta `value()`, `hasValue()`, `error()` e `isLoading()`. El Angular Developer confirma en la referencia de `ResourceRef` el método de recarga antes de implementarlo.
-  - *El `effect()` de escritura se ejecuta con el modelo inicial y sobrescribe lo guardado antes de reconciliar:* el modelo se inicializa con los valores ya reconciliados, así que la primera escritura es idempotente. Hay un unit test que lo verifica (AC-01.21).
+- **Positive:**
+  - Each key has a single owner and a clear life cycle. If a key is corrupted, only that one is lost (e.g. step 1), as 5.4 requires.
+  - `isComplete` cannot become stale because it does not exist in storage (F-00.5).
+  - `resource()` provides cancellation via `AbortSignal` when leaving the page or reloading, and a uniform state for loading, error and retry.
+  - Redirects happen before rendering the step and before requesting plans (AC-02.22).
+- **Negative:**
+  - Three keys per country: clearing after payment is two operations, without atomicity. If the tab dies between the two, an orphan `plan` may remain, which is harmless because without `step1` the summary redirects to step 1.
+  - The document remains in plain text in `sessionStorage` for the duration of the quote (risk accepted in G2).
+  - The guards wait for an HTTP request: the first navigation by direct URL to `/plans` or `/summary` shows the global "cargando" before the step's.
+  - There are two places that evaluate `isComplete` (guard and page after a retry); this is mitigated by using the same pure function.
+  - Paying in a duplicated tab is not prevented (accepted limitation, REQ-03.23).
+- **Risks and mitigation:**
+  - *Exact names of the `ResourceRef` signals:* the `httpResource` guide documents `value()`, `hasValue()`, `error()` and `isLoading()`. The Angular Developer confirms the reload method in the `ResourceRef` reference before implementing it.
+  - *The write `effect()` runs with the initial model and overwrites what was stored before reconciling:* the model is initialized with the already reconciled values, so the first write is idempotent. A unit test verifies it (AC-01.21).
 
-### Confirmación
+### Confirmation
 
-- Unit: `reconcileStep1` (AC-01.23, AC-01.24), `evaluateStep1` (AC-01.29), `WizardStorage` (JSON corrupto, tipos inesperados, separación por país: AC-01.22), guards (AC-02.22, AC-03.18, AC-03.30), `SummaryStepPage` con `PAYMENT_DELAY_MS = 0` y contador de intentos (AC-03.22, AC-03.23), `createQuoteNumber` (AC-03.27).
+- Unit: `reconcileStep1` (AC-01.23, AC-01.24), `evaluateStep1` (AC-01.29), `WizardStorage` (corrupted JSON, unexpected types, separation by country: AC-01.22), guards (AC-02.22, AC-03.18, AC-03.30), `SummaryStepPage` with `PAYMENT_DELAY_MS = 0` and an attempt counter (AC-03.22, AC-03.23), `createQuoteNumber` (AC-03.27).
 - E2E: AC-01.4, AC-01.21, AC-02.19, AC-02.20, AC-02.30, AC-03.10, AC-03.11, AC-03.28, AC-03.29.
-- Review: `grep -rn "localStorage\|serviceWorker\|isComplete.*setItem" frontend/src` sin resultados; las únicas llamadas a `sessionStorage` están en `core/storage/`.
+- Review: `grep -rn "localStorage\|serviceWorker\|isComplete.*setItem" frontend/src` with no results; the only `sessionStorage` calls are in `core/storage/`.
 
-## Pros y contras de las opciones
+## Pros and cons of the options
 
-### P1. Una clave por país y por dato (elegida)
+### P1. One key per country and per data item (chosen)
 
-- A favor: corrupción aislada; dueño claro por historia; fácil de inspeccionar en los e2e (AC-01.29: "no completed flag stored").
-- En contra: varias escrituras al limpiar; más claves.
+- For: isolated corruption; clear owner per story; easy to inspect in the e2e tests (AC-01.29: "no completed flag stored").
+- Against: several writes when clearing; more keys.
 
-### P2. Un objeto por país
+### P2. One object per country
 
-- A favor: una sola escritura y un borrado atómico.
-- En contra: si el JSON se corrompe se pierde todo el país, no solo el paso 1 (la tabla 5.4 dice "todo lo del paso 1"). Cada historia reescribe el objeto completo, lo que acopla a las tres.
+- For: a single write and an atomic clear.
+- Against: if the JSON is corrupted the whole country is lost, not just step 1 (table 5.4 says "everything from step 1"). Each story rewrites the whole object, which couples the three.
 
-### P3. Librería de estado con persistencia
+### P3. State library with persistence
 
-- A favor: patrones ya hechos (hidratación, selectores).
-- En contra: dependencia nueva sin necesidad real (`CLAUDE.md` §6); el estado es pequeño.
+- For: ready-made patterns (hydration, selectors).
+- Against: a new dependency without real need (`CLAUDE.md` §6); the state is small.
 
-### L1. `resource()` + `CmsClient` (elegida)
+### L1. `resource()` + `CmsClient` (chosen)
 
-- A favor: estable en v22; el *loader* asíncrono permite paginar y mapear en un solo paso; cancela al destruirse.
-- En contra: añade un nivel de indirección respecto a `httpResource`.
+- For: stable in v22; the asynchronous *loader* allows paginating and mapping in a single step; cancels when destroyed.
+- Against: adds a level of indirection compared to `httpResource`.
 
 ### L2. `httpResource()`
 
-- A favor: muy conciso; usa `HttpClient` (con interceptores); opción `parse` para validar.
-- En contra: una URL por recurso. Recorrer las páginas (REQ-02.24) y combinar las peticiones de configuración (país + campos) exige componer varios recursos a mano.
+- For: very concise; uses `HttpClient` (with interceptors); `parse` option for validation.
+- Against: one URL per resource. Walking the pages (REQ-02.24) and combining the configuration requests (country + fields) requires composing several resources by hand.
 
-### L3. `HttpClient` + señales manuales
+### L3. `HttpClient` + manual signals
 
-- A favor: control total y API muy conocida.
-- En contra: reimplementa cancelación, estado y recarga en cada página, con más superficie para errores en los estados de carga.
+- For: full control and a very well-known API.
+- Against: reimplements cancellation, state and reload in every page, with more surface for errors in the loading states.
 
-### G1. Guards funcionales (elegida)
+### G1. Functional guards (chosen)
 
-- A favor: la redirección ocurre antes de activar el componente, así que no se piden planes (AC-02.22). Es el mecanismo idiomático de Angular.
-- En contra: hace falta un indicador global de navegación pendiente; un guard que falla al cargar debe dejar pasar la navegación.
+- For: the redirect happens before activating the component, so no plans are requested (AC-02.22). It is the idiomatic Angular mechanism.
+- Against: a global pending-navigation indicator is needed; a guard that fails to load must let the navigation through.
 
-### G2. Comprobación en la página
+### G2. Check in the page
 
-- A favor: el estado de carga es local y natural.
-- En contra: el componente llega a activarse y podría pedir planes antes de decidir; la lógica de acceso queda repartida entre páginas.
+- For: the loading state is local and natural.
+- Against: the component gets activated and could request plans before deciding; the access logic is spread across pages.
 
-## Referencias
+## References
 
-Consultadas el 2026-11-22:
+Consulted on 2026-11-22:
 
-- Angular, `resource()` (estable desde v22.0, cancelación con `AbortSignal`): https://angular.dev/api/core/resource
-- Angular, `httpResource` (estable desde v22.0): https://angular.dev/api/common/http/httpResource
-- Angular, guía de `httpResource` (`value`, `hasValue`, `error`, `isLoading`, `parse`, interceptores): https://angular.dev/guide/http/http-resource
+- Angular, `resource()` (stable since v22.0, cancellation with `AbortSignal`): https://angular.dev/api/core/resource
+- Angular, `httpResource` (stable since v22.0): https://angular.dev/api/common/http/httpResource
+- Angular, `httpResource` guide (`value`, `hasValue`, `error`, `isLoading`, `parse`, interceptors): https://angular.dev/guide/http/http-resource
 - Angular, guards (`CanActivateFn`, `RedirectCommand`): https://angular.dev/guide/routing/route-guards
-- Angular, zoneless por defecto (v21+), `TestBed` zoneless: https://angular.dev/guide/zoneless
-- MDN, `crypto.getRandomValues` (criptográficamente fuerte, disponible también fuera de contextos seguros): https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
-- Strapi 5, paginación (`pagination[page]`, `pagination[pageSize]`, `meta.pagination.pageCount`): https://docs.strapi.io/cms/api/rest/sort-pagination
+- Angular, zoneless by default (v21+), zoneless `TestBed`: https://angular.dev/guide/zoneless
+- MDN, `crypto.getRandomValues` (cryptographically strong, also available outside secure contexts): https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
+- Strapi 5, pagination (`pagination[page]`, `pagination[pageSize]`, `meta.pagination.pageCount`): https://docs.strapi.io/cms/api/rest/sort-pagination
+
+> Translated into English on 2026-11-23 (D16); no content change.

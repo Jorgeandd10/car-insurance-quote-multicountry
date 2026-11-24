@@ -7,24 +7,52 @@
 }
 
 legend {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0;
+  color: var(--color-text);
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
 .plans {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  align-items: stretch;
 }
 
+/*
+ * Plan cards (D13): white, soft shadow, 2 px border so states never shift the content.
+ * Hover lifts the card; recommended has a yellow top accent and a primary border; selected is
+ * dark blue on the light-blue surface. The card shows the focus of its radio as a halo.
+ */
 .plan {
+  position: relative;
   display: grid;
+  cursor: pointer;
   grid-template-columns: auto 1fr;
   align-content: start;
   column-gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #8a8a8a;
-  border-radius: 0.5rem;
+  padding: var(--card-padding);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.plan:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.plan:has(input:focus-visible) {
+  box-shadow: var(--focus-halo), var(--shadow-md);
 }
 
 .plan > :not(input) {
@@ -32,11 +60,24 @@ legend {
 }
 
 .plan--recommended {
-  border: 3px solid #0b57d0;
+  border-color: var(--color-primary);
 }
 
-.plan--selected {
-  background: #eef3fd;
+.plan--recommended::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 0.3125rem;
+  border-radius: 0 0 0.3125rem 0.3125rem;
+  background: var(--color-accent);
+}
+
+.plan--selected,
+.plan--selected:hover {
+  border-color: var(--color-primary-dark);
+  background: var(--color-surface);
 }
 
 input[type='radio'] {
@@ -45,62 +86,118 @@ input[type='radio'] {
   width: 24px;
   height: 24px;
   margin: 0.125rem 0 0;
+  accent-color: var(--color-primary-dark);
+  cursor: pointer;
+}
+
+/* The radio stays above the card overlay, so a click on it hits the native control itself. */
+.plan input[type='radio'] {
+  position: relative;
+  z-index: 1;
 }
 
 .plan-label {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.5rem;
+  align-items: center;
+  gap: 0.375rem 0.625rem;
   cursor: pointer;
 }
 
+/*
+ * The whole card selects the plan (REQ-02.34, D14): an empty pseudo-element of the label covers
+ * the card (its containing block is `.plan`), so a click on the description, coverages or
+ * benefits is a click on the label, which checks the native radio. Nothing is added to the DOM
+ * or to the accessible name; the radio is the only interactive element of the card. Trade-off:
+ * the card text cannot be selected with the mouse (it is read-only plan content).
+ */
+.plan-label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--radius-lg) - 2px);
+}
+
 .plan-name {
+  font-size: 1.1875rem;
   font-weight: 700;
 }
 
 .plan-price {
   flex-basis: 100%;
-  font-size: 1.25rem;
-  font-weight: 700;
+  margin-top: 0.375rem;
+  color: var(--color-primary-dark);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Recommended is shown as text, not only by colour (REQ-02.5, WCAG 1.4.1). */
 .badge {
-  padding: 0 0.5rem;
-  border-radius: 1rem;
-  background: #0b57d0;
-  color: #ffffff;
-  font-size: 0.875rem;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .plan-description {
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
+  color: var(--color-text-muted);
 }
 
 .list-title {
-  margin: 0.75rem 0 0.25rem;
-  font-weight: 600;
+  margin: 1.25rem 0 0.375rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(0 51 160 / 0.12);
+  font-size: 0.9375rem;
+  font-weight: 700;
 }
 
 ul {
+  display: grid;
+  gap: 0.25rem;
   margin: 0;
   padding-left: 1.25rem;
+}
+
+li::marker {
+  color: var(--color-primary);
 }
 
 .notice,
 .error {
   margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-surface-soft);
   font-weight: 600;
 }
 
 .error {
-  color: #b3261e;
+  border-left-color: var(--color-error);
+  background: var(--color-error-surface);
+  color: var(--color-error);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 30rem) {
+  .actions button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan:hover {
+    transform: none;
+  }
 }

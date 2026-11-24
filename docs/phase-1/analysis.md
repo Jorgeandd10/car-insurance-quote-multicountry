@@ -1,86 +1,86 @@
-# Fase 1 — Análisis y contextualización
+# Phase 1 — Analysis and contextualization
 
-> Origen: sesión en claude.ai (chat agéntico), 2026-11-22. Este documento es el entregable de la Fase 1.
-> Estado: **aprobado en G0 (2026-11-22)**. D1–D11 registradas en [`docs/decision-log.md`](../decision-log.md).
-> Nota posterior (misma fecha): el humano decidió continuar el proyecto en **Claude Code local**; esto modifica D1 (ver al final).
-> Revisión local (misma fecha): entorno re-verificado en la máquina local y recomendación de **D5 cambiada** a Signal Forms antes del gate (ver secciones "Entorno verificado (local)" y 7).
+> Origin: session in claude.ai (agentic chat), 2026-11-22. This document is the Phase 1 deliverable.
+> Status: **approved in G0 (2026-11-22)**. D1–D11 recorded in [`docs/decision-log.md`](../decision-log.md).
+> Later note (same date): the human decided to continue the project in **local Claude Code**; this modifies D1 (see the end).
+> Local review (same date): environment re-verified on the local machine and the **D5 recommendation changed** to Signal Forms before the gate (see sections "Verified environment (local)" and 7).
 
-Fuente principal de requisitos: `docs/assessment/Technical assessment -Frontend.pdf`.
-Contexto operativo: `docs/assessment/master-prompt.md`.
-No se encontraron contradicciones entre ambos. Matices: el PDF exige el e2e para **al menos un país** y pide **justificar la herramienta** de IA elegida.
+Main source of requirements: `docs/assessment/Technical assessment -Frontend.pdf`.
+Operational context: `docs/assessment/master-prompt.md`.
+No contradictions were found between the two. Nuances: the PDF requires the e2e for **at least one country** and asks to **justify the AI tool** chosen.
 
-## Entorno verificado (sandbox cloud de claude.ai — debe re-verificarse en local)
+## Verified environment (claude.ai cloud sandbox — must be re-verified locally)
 
-| Elemento | Estado |
+| Item | Status |
 |---|---|
 | Node 22.23 / npm 10.9 / Git 2.43 | OK |
-| Angular CLI | Última estable 22.3.0 (cumple "21+"). `@angular/core@22` exige Node `^22.22.3 \|\| ^24.15.0 \|\| >=26` |
-| Strapi | Última 5.63.0. Exige Node `>=22 <=26` |
-| Docker | CLI presente, daemon no disponible y Docker Hub bloqueado en el sandbox |
-| Playwright | CDN de navegadores bloqueado; Google Chrome del sistema disponible |
+| Angular CLI | Latest stable 22.3.0 (meets "21+"). `@angular/core@22` requires Node `^22.22.3 \|\| ^24.15.0 \|\| >=26` |
+| Strapi | Latest 5.63.0. Requires Node `>=22 <=26` |
+| Docker | CLI present, daemon not available and Docker Hub blocked in the sandbox |
+| Playwright | Browser CDN blocked; system Google Chrome available |
 
-## Entorno verificado (local, Windows 11) — 2026-11-22
+## Verified environment (local, Windows 11) — 2026-11-22
 
-| Elemento | Salida real | Resultado |
+| Item | Real output | Result |
 |---|---|---|
-| Node | `v24.22.3` | Cumple Angular 22 (`^24.15.0`) y Strapi 5.63 (`>=22 <=26`) |
-| npm | `11.19.1` | OK (no se actualiza a npm 12) |
-| Git | `2.47.0.windows.1`, `core.autocrlf=true`, remote `origin` en GitHub | OK |
-| Docker | `29.7.2`; `docker info`: Docker Desktop, linux/x86_64, 8 CPU, ~3,7 GiB RAM | Daemon activo |
+| Node | `v24.22.3` | Meets Angular 22 (`^24.15.0`) and Strapi 5.63 (`>=22 <=26`) |
+| npm | `11.19.1` | OK (not upgraded to npm 12) |
+| Git | `2.47.0.windows.1`, `core.autocrlf=true`, remote `origin` on GitHub | OK |
+| Docker | `29.7.2`; `docker info`: Docker Desktop, linux/x86_64, 8 CPU, ~3.7 GiB RAM | Daemon running |
 | Docker Compose | `v5.5.0` | OK |
-| Docker Hub | `registry-1.docker.io/v2/` → 401 (respuesta normal sin autenticación) | Accesible |
-| Navegadores | Chrome `159.0.8154.13`, Edge `158.0.4370.33`; caché `ms-playwright` vacía | Playwright usará `channel: 'chrome'` salvo que se apruebe descargar Chromium |
-| Puertos 80, 1337, 3000, 4200, 8080 | Libres | OK |
-| Versiones npm | `@angular/core 22.3.0`, `@strapi/strapi 5.63.0`, `@playwright/test 1.65.1`, `vitest 5.1.1` | Coinciden con el análisis |
+| Docker Hub | `registry-1.docker.io/v2/` → 401 (normal response without authentication) | Reachable |
+| Browsers | Chrome `159.0.8154.13`, Edge `158.0.4370.33`; `ms-playwright` cache empty | Playwright will use `channel: 'chrome'` unless downloading Chromium is approved |
+| Ports 80, 1337, 3000, 4200, 8080 | Free | OK |
+| npm versions | `@angular/core 22.3.0`, `@strapi/strapi 5.63.0`, `@playwright/test 1.65.1`, `vitest 5.1.1` | Match the analysis |
 
-Fuentes oficiales verificadas: Signal Forms "Stable (v22+)" ([angular.dev](https://angular.dev/guide/forms/signals/comparison)); test runner por defecto Vitest con `jsdom` ([guía de testing](https://angular.dev/guide/testing), [`ng test`](https://angular.dev/cli/test)).
+Official sources verified: Signal Forms "Stable (v22+)" ([angular.dev](https://angular.dev/guide/forms/signals/comparison)); default test runner Vitest with `jsdom` ([testing guide](https://angular.dev/guide/testing), [`ng test`](https://angular.dev/cli/test)).
 
-## 1. Interpretación ejecutiva
+## 1. Executive interpretation
 
-El 65 % de la nota evalúa el proceso agéntico; el 35 % la aplicación. La app es un wizard de cotización (CO/CL) con un único build Angular, donde Strapi gobierna formulario, planes y términos por país.
+65 % of the grade evaluates the agentic process; 35 % the application. The app is a quote wizard (CO/CL) with a single Angular build, where Strapi governs the form, plans and terms per country.
 
-Hay que demostrar: agentes con responsabilidades separadas, puntos de control humanos reales, trazabilidad verificable (US → spec → ADR → código → tests → review) y evidencia auténtica.
+We must show: agents with separate responsibilities, real human checkpoints, verifiable traceability (US → spec → ADR → code → tests → review) and authentic evidence.
 
-Vacíos detectados en las historias (a formalizar en specs):
+Gaps detected in the stories (to be formalized in specs):
 
-- Cómo se selecciona el país.
-- Mayoría de edad: ¿18 en ambos? ¿configurable?
-- Límite inclusivo del año del vehículo (¿exactamente 20 años se acepta?).
-- Varios planes marcados como recomendados.
-- Moneda del plan distinta a la del país.
-- Regla de precio que depende de un campo que el negocio puede eliminar.
-- Qué campo es el documento y cuántos dígitos se muestran al enmascarar.
-- Cómo forzar un pago rechazado de forma determinista para el e2e.
-- Datos persistidos vs. cambios de configuración o planes que dejan de estar activos.
+- How the country is selected.
+- Legal age: 18 in both? Configurable?
+- Inclusive limit of the vehicle year (is exactly 20 years accepted?).
+- Several plans marked as recommended.
+- Plan currency different from the country's.
+- Price rule that depends on a field the business may remove.
+- Which field is the document and how many digits are shown when masking.
+- How to force a rejected payment deterministically for the e2e.
+- Persisted data vs. configuration changes or plans that stop being active.
 
-## 2. Arquitectura propuesta
+## 2. Proposed architecture
 
 ```
-Navegador ──► nginx (Angular estático + proxy /api GET-only con allowlist) ──► Strapi 5 (SQLite + seed)
+Browser ──► nginx (static Angular + GET-only /api proxy with allowlist) ──► Strapi 5 (SQLite + seed)
 ```
 
-**Frontend (Angular 22):** standalone, zoneless, Signals, `@if`/`@for`. País en la ruta (`/co/...`, `/cl/...`) validado por guard. `CountryContext` (signal). `CmsApiClient` tipado con mappers DTO→dominio. `DynamicFormComponent` con registro de validadores tipados (`required`, `pattern`, `min`/`max`, `minAge`, `yearRange` relativo). `QuoteStore` con signals + sessionStorage por país. Funciones puras de precio, enmascarado y validación. Pasarela de pago simulada.
+**Frontend (Angular 22):** standalone, zoneless, Signals, `@if`/`@for`. Country in the route (`/co/...`, `/cl/...`) validated by a guard. `CountryContext` (signal). Typed `CmsApiClient` with DTO→domain mappers. `DynamicFormComponent` with a registry of typed validators (`required`, `pattern`, `min`/`max`, `minAge`, relative `yearRange`). `QuoteStore` with signals + sessionStorage per country. Pure functions for price, masking and validation. Simulated payment gateway.
 
-**Backend (Strapi 5):** `Country` (código, moneda, locale, edad mínima), `FormField` (key, label, type, required, helpText, errorMessage, order, section, masked, opciones y validaciones como componentes, relación a Country), `Plan` (coberturas/beneficios como componentes, order, recommended, active, Country), `Terms` (por país). Seed y permisos públicos como código en `bootstrap` (idempotente). Rol público solo `find`/`findOne`.
+**Backend (Strapi 5):** `Country` (code, currency, locale, minimum age), `FormField` (key, label, type, required, helpText, errorMessage, order, section, masked, options and validations as components, relation to Country), `Plan` (coverages/benefits as components, order, recommended, active, Country), `Terms` (per country). Seed and public permissions as code in `bootstrap` (idempotent). Public role only `find`/`findOne`.
 
-**Seguridad:** ningún token en el navegador; nginx solo deja pasar `GET` a la allowlist; credenciales de admin en `.env` (solo `.env.example` en el repo).
+**Security:** no token in the browser; nginx only lets `GET` through to the allowlist; admin credentials in `.env` (only `.env.example` in the repo).
 
-**Calidad:** Vitest (unit), Playwright (e2e), `docker compose up` como único comando.
+**Quality:** Vitest (unit), Playwright (e2e), `docker compose up` as the single command.
 
-## 3. Equipo de agentes propuesto
+## 3. Proposed agent team
 
-| Agente | Herramientas | Salida | Ajuste |
+| Agent | Tools | Output | Adjustment |
 |---|---|---|---|
-| Requirements Analyst | Read, Grep, Write (`specs/`) | Spec con IDs, Gherkin y lista de vacíos/preguntas | — |
-| Software Architect | Read, Write (`docs/adr/`, `docs/architecture/`), WebSearch | ADRs MADR, modelo de contenido, contratos de API | Verifica versiones reales |
-| Strapi Developer | Read, Edit, Write, Bash (`cms/`) | Content types, seed, permisos como código | — |
-| Angular Developer | Read, Edit, Write, Bash (`frontend/`) | Componentes, store, validadores + unit tests | Dueño de los unit tests |
-| QA Engineer | Read, Write (`e2e/`, `docs/qa/`), Bash | Plan de pruebas trazado a AC, e2e, informe con salida real | No toca código de producción |
-| Code Reviewer | Read, Grep, Bash (solo lint/test), Write (`reviews/`) | Informe con hallazgos, severidad, archivo:línea | Absorbe la revisión de seguridad (checklist en Skill). No corrige código |
+| Requirements Analyst | Read, Grep, Write (`specs/`) | Spec with IDs, Gherkin and list of gaps/questions | — |
+| Software Architect | Read, Write (`docs/adr/`, `docs/architecture/`), WebSearch | MADR ADRs, content model, API contracts | Verifies real versions |
+| Strapi Developer | Read, Edit, Write, Bash (`cms/`) | Content types, seed, permissions as code | — |
+| Angular Developer | Read, Edit, Write, Bash (`frontend/`) | Components, store, validators + unit tests | Owner of the unit tests |
+| QA Engineer | Read, Write (`e2e/`, `docs/qa/`), Bash | Test plan traced to AC, e2e, report with real output | Does not touch production code |
+| Code Reviewer | Read, Grep, Bash (lint/test only), Write (`reviews/`) | Report with findings, severity, file:line | Absorbs the security review (checklist in Skill). Does not fix code |
 
-Skills propuestas: `sdd-traceability` (plantillas spec/ADR/review + convención de IDs `US-01 → REQ-01.3 → AC-01.2 → F-01`, commits `[US-01][REQ-01.3]`) y `country-content` (procedimiento para añadir campo/plan/validador/país de punta a punta).
+Proposed Skills: `sdd-traceability` (spec/ADR/review templates + ID convention `US-01 → REQ-01.3 → AC-01.2 → F-01`, commits `[US-01][REQ-01.3]`) and `country-content` (procedure to add a field/plan/validator/country end to end).
 
-## 4. Estructura del repositorio
+## 4. Repository structure
 
 ```
 ├── README.md · FLOW.md · CLAUDE.md · docker-compose.yml · .env.example
@@ -94,54 +94,54 @@ Skills propuestas: `sdd-traceability` (plantillas spec/ADR/review + convención 
 ├── frontend/ · cms/ · e2e/
 ```
 
-## 5. Plan por fases
+## 5. Plan by phases
 
-| Fase | Entregables | Gate humano |
+| Phase | Deliverables | Human gate |
 |---|---|---|
-| 1 Análisis | Este documento | G0 aprobar estrategia |
-| 2 Flujo agéntico | CLAUDE.md, agentes, skills, FLOW.md borrador | G1 |
-| 3 Specs y ADRs | 3 specs, ADR multipaís y otros, modelo de contenido | G2 specs, G3 ADRs |
-| 4 Implementación | Strapi+seed → base Angular → US-01 → US-02 → US-03 | Demo por historia |
-| 5 Validación | Tests ejecutados, review independiente, fixes, re-review | G4 triage hallazgos, G5 prueba manual teclado/móvil sin IA |
-| 6 Entrega | README, FLOW, matriz, `docker compose up` verificado | G6 |
+| 1 Analysis | This document | G0 approve strategy |
+| 2 Agentic flow | CLAUDE.md, agents, skills, FLOW.md draft | G1 |
+| 3 Specs and ADRs | 3 specs, multi-country ADR and others, content model | G2 specs, G3 ADRs |
+| 4 Implementation | Strapi+seed → Angular base → US-01 → US-02 → US-03 | Demo per story |
+| 5 Validation | Tests executed, independent review, fixes, re-review | G4 findings triage, G5 manual keyboard/mobile test without AI |
+| 6 Delivery | README, FLOW, matrix, `docker compose up` verified | G6 |
 
-Rechazo en cualquier gate: vuelve al agente productor con el feedback registrado en `docs/decision-log.md`.
+Rejection at any gate: it goes back to the producing agent with the feedback recorded in `docs/decision-log.md`.
 
-## 6. Riesgos
+## 6. Risks
 
-**Técnicos:** verificación de Docker; formato de respuesta de Strapi 5 (`documentId`, Draft & Publish) → mappers + tests de contrato; "reflejar al recargar" → sin caché agresiva; validaciones relativas a fecha/edad → cálculo date-only; formato COP/CLP sin decimales con `Intl`; madurez de Signal Forms en v22.
+**Technical:** Docker verification; Strapi 5 response format (`documentId`, Draft & Publish) → mappers + contract tests; "reflect on reload" → no aggressive caching; date/age-relative validations → date-only computation; COP/CLP format without decimals with `Intl`; maturity of Signal Forms in v22.
 
-**Metodológicos:** autenticidad de los logs; hallazgos triviales o inventados → exigir archivo:línea y commit de cierre; deriva de alcance o pérdida de contexto → specs como fuente de verdad + CLAUDE.md; sobreingeniería vs. tiempo.
+**Methodological:** authenticity of the logs; trivial or invented findings → require file:line and a closing commit; scope drift or loss of context → specs as source of truth + CLAUDE.md; over-engineering vs. time.
 
-**Actualización tras la verificación local (2026-11-22):**
+**Update after the local verification (2026-11-22):**
 
-- Resueltos: verificación de Docker (daemon activo, Docker Hub accesible); madurez de Signal Forms (estable en v22); autenticidad de los logs (las transcripciones JSONL originales de Claude Code quedan en local).
-- Siguen: formato de Strapi 5, sin caché agresiva, fechas date-only, formato COP/CLP y los riesgos metodológicos.
-- Nuevos:
-  - `core.autocrlf=true`: los `.sh` y entrypoints llegarían con CRLF a contenedores Linux → `.gitattributes` con `eol=lf`.
-  - Módulos nativos (`better-sqlite3`): no montar `node_modules` desde Windows; instalar dentro de la imagen con base Debian (`node:24-*-slim`).
-  - ~3,7 GiB de RAM en Docker: el build del admin de Strapi puede ir justo; se comprueba al ejecutarlo.
-  - Playwright sin navegadores descargados: usar Chrome del sistema o pedir permiso para descargar Chromium.
-  - Exportación de logs: copiar (sin editar) los JSONL de `~/.claude/projects/` a `logs/sessions/` al cierre de cada fase.
+- Resolved: Docker verification (daemon running, Docker Hub reachable); maturity of Signal Forms (stable in v22); authenticity of the logs (the original Claude Code JSONL transcripts stay local).
+- Remaining: Strapi 5 format, no aggressive caching, date-only dates, COP/CLP format and the methodological risks.
+- New:
+  - `core.autocrlf=true`: `.sh` files and entrypoints would reach Linux containers with CRLF → `.gitattributes` with `eol=lf`.
+  - Native modules (`better-sqlite3`): do not mount `node_modules` from Windows; install inside the image with a Debian base (`node:24-*-slim`).
+  - ~3.7 GiB of RAM in Docker: the Strapi admin build may be tight; it is checked when running it.
+  - Playwright without downloaded browsers: use the system Chrome or ask for permission to download Chromium.
+  - Log export: copy (without editing) the JSONL files from `~/.claude/projects/` to `logs/sessions/` at the close of each phase.
 
-## 7. Decisiones de G0 (aprobadas el 2026-11-22)
+## 7. G0 decisions (approved on 2026-11-22)
 
-Detalle, veredicto y motivo literal en [`docs/decision-log.md`](../decision-log.md).
+Detail, verdict and literal reason in [`docs/decision-log.md`](../decision-log.md).
 
-| # | Decisión | Recomendación | Estado |
+| # | Decision | Recommendation | Status |
 |---|---|---|---|
-| D1 | Entorno de trabajo y repo | *(actualizada, ver nota)* | Aprobada |
-| D2 | Versión de Angular | 22 | Aprobada |
-| D3 | Estrategia multipaís | Colección `Country` + relaciones (no i18n); país en la URL `/co`, `/cl` | Aprobada |
-| D4 | Acceso a Strapi | Rol público read-only + nginx GET-only; sin tokens ni BFF | Aprobada |
-| D5 | Formularios | ~~Reactive Forms tipados, salvo que Signal Forms sea estable en v22~~ → **Signal Forms** (verificado estable en v22; ADR en Fase 3) | Aprobada (recomendación cambiada) |
-| D6 | Persistencia | sessionStorage por país | Aprobada |
-| D7 | Pasos del wizard | 3 + pantalla de confirmación | Aprobada |
-| D8 | Regla de precio | Factores por país configurables en Strapi + función pura documentada | Aprobada |
-| D9 | Pago simulado | Pasarela mock con resultado elegido (éxito/rechazo), sin campos de tarjeta | Aprobada |
-| D10 | SDD | Variante propia ligera vía Skill (no Spec Kit) | Aprobada |
-| D11 | Equipo de agentes y Skills | Los de la sección 3 | Aprobada |
+| D1 | Work environment and repo | *(updated, see note)* | Approved |
+| D2 | Angular version | 22 | Approved |
+| D3 | Multi-country strategy | `Country` collection + relations (no i18n); country in the URL `/co`, `/cl` | Approved |
+| D4 | Access to Strapi | Read-only public role + GET-only nginx; no tokens or BFF | Approved |
+| D5 | Forms | ~~Typed Reactive Forms, unless Signal Forms is stable in v22~~ → **Signal Forms** (verified stable in v22; ADR in Phase 3) | Approved (recommendation changed) |
+| D6 | Persistence | sessionStorage per country | Approved |
+| D7 | Wizard steps | 3 + confirmation screen | Approved |
+| D8 | Price rule | Per-country factors configurable in Strapi + documented pure function | Approved |
+| D9 | Simulated payment | Mock gateway with a chosen result (success/rejection), no card fields | Approved |
+| D10 | SDD | Own lightweight variant via a Skill (not Spec Kit) | Approved |
+| D11 | Agent team and Skills | Those of section 3 | Approved |
 
-### Nota posterior sobre D1
+### Later note on D1
 
-Decisión del humano (2026-11-22): el proyecto continúa en **Claude Code local** sobre un repositorio GitHub propio (inicialmente descrito como privado; **es público** por requisito del reclutador, ver "Cambio de D1" en `docs/decision-log.md`). Motivos: los subagentes de `.claude/agents/` se cargan de forma nativa, las transcripciones JSONL originales quedan en `~/.claude/projects/` (requisito de "logs sin editar"), Docker se puede verificar en la máquina y `git push` usa las credenciales del humano. Esta fase (claude.ai) se conserva como exportación en `logs/sessions/`.
+Human's decision (2026-11-22): the project continues in **local Claude Code** on the human's own GitHub repository (initially described as private; **it is public** because the recruiter requires it, see "D1 change" in `docs/decision-log.md`). Reasons: the subagents in `.claude/agents/` load natively, the original JSONL transcripts stay in `~/.claude/projects/` (requirement of "unedited logs"), Docker can be verified on the machine and `git push` uses the human's credentials. This phase (claude.ai) is kept as an export in `logs/sessions/`.

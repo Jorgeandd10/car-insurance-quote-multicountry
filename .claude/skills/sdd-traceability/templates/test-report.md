@@ -1,25 +1,25 @@
-# Informe de pruebas — US-0X / E2E
+# Test report — US-0X / E2E
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Autor | QA Engineer · Angular Developer (subagente) |
-| Fecha | YYYY-MM-DD |
-| Commit probado | `<sha>` |
-| Entorno | Node ..., navegador ..., `docker compose` ... |
+| Author | QA Engineer · Angular Developer (subagent) |
+| Date | YYYY-MM-DD |
+| Commit tested | `<sha>` |
+| Environment | Node ..., browser ..., `docker compose` ... |
 
-## Comando y salida real
+## Command and real output
 
 ```text
-$ <comando exacto>
-<salida completa o, si es muy larga, el resumen final sin editar>
+$ <exact command>
+<full output or, if it is very long, the final summary unedited>
 ```
 
-## Cobertura de criterios
+## Criteria coverage
 
-| AC / REQ | Test (archivo › nombre) | Resultado |
+| AC / REQ | Test (file › name) | Result |
 |---|---|---|
-| AC-0X.1 | `frontend/src/.../x.spec.ts › AC-0X.1 ...` | ✅ Pass · ❌ Fail · ⏭ No cubierto (motivo) |
+| AC-0X.1 | `frontend/src/.../x.spec.ts › AC-0X.1 ...` | ✅ Pass · ❌ Fail · ⏭ Not covered (reason) |
 
-## Fallos y causa
+## Failures and cause
 
-Para cada fallo: causa analizada, corrección propuesta y commit que lo corrige.
+For each failure: analyzed cause, proposed fix and the commit that fixes it.

@@ -1,25 +1,25 @@
 # US-03 — Summary and payment
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Approved (2026-11-22, G2) |
-| Versión | 0.2 |
-| Autor | Requirements Analyst (subagente) |
-| Aprobador | Humano (G2) |
-| ADRs relacionados | ADR-0001 (multipaís), ADR-0003 (acceso y seguridad), ADR-0004 (estado, navegación y pago simulado), ADR-0005 (regla de precio), ADR-0006 (términos), ADR-0007 (pruebas); `docs/architecture/content-model.md`, `api-contracts.md` (Accepted, G3) |
-| Decisiones relacionadas | D3, D4, D6, D7, D8, D9, D10 · G2-1, G2-2, G2-5, G2-6, G2-8, G2-9, G2-10, G2-11, G2-12, G2-13 |
-| Specs relacionadas | `specs/US-01/spec.md` y `specs/US-02/spec.md` (dependencias en la sección 6.3) |
-| Revisión relacionada | `reviews/000-G2-specs-cross-consistency.md` (F-00.1, F-00.3, F-00.4, F-00.5) |
+| Status | Approved (2026-11-22, G2) |
+| Version | 0.5 (translated into English under D16) |
+| Author | Requirements Analyst (subagent) |
+| Approver | Human (G2) |
+| Related ADRs | ADR-0001 (multi-country), ADR-0003 (access and security), ADR-0004 (state, navigation and simulated payment), ADR-0005 (price rule), ADR-0006 (terms), ADR-0007 (testing); `docs/architecture/content-model.md`, `api-contracts.md` (Accepted, G3) |
+| Related decisions | D3, D4, D6, D7, D8, D9, D10 · G2-1, G2-2, G2-5, G2-6, G2-8, G2-9, G2-10, G2-11, G2-12, G2-13 |
+| Related specs | `specs/US-01/spec.md` and `specs/US-02/spec.md` (dependencies in section 6.3) |
+| Related review | `reviews/000-G2-specs-cross-consistency.md` (F-00.1, F-00.3, F-00.4, F-00.5) |
 
-> **Cómo leer esta spec.** Todas las `Q` quedaron resueltas en G2 (`docs/decision-log.md`, sección "G2"). Un `REQ` con origen `Q-03.n → G2-n` deriva de la respuesta aprobada en esa decisión. Los nombres de content types, campos, rutas y claves de almacenamiento que aparecen aquí son descriptivos; los nombres reales los fija el Software Architect en G3.
+> **How to read this spec.** All the `Q`s were resolved in G2 (`docs/decision-log.md`, section "G2"). A `REQ` with origin `Q-03.n → G2-n` derives from the answer approved in that decision. The names of content types, fields, routes and storage keys that appear here are descriptive; the real names are set by the Software Architect in G3.
 
-## 1. Historia (literal del PDF)
+## 1. Story (literal from the PDF)
 
 > As a person who chose a plan, I want to review a summary of my quote and pay, so that I become insured.
 
-**Contexto (literal):** Before paying, the person must confirm their data and accept the terms and conditions, whose text varies by country and is managed by the business team from Strapi. Payment is simulated for this test.
+**Context (literal):** Before paying, the person must confirm their data and accept the terms and conditions, whose text varies by country and is managed by the business team from Strapi. Payment is simulated for this test.
 
-**Reglas de negocio (literales):**
+**Business rules (literal):**
 
 1. The summary shows the policyholder's data, the vehicle's data and the chosen plan with its final price.
 2. The document number is shown partially masked.
@@ -28,7 +28,7 @@
 5. The payment cannot be submitted twice.
 6. On successful payment, a confirmation with a simulated quote number is shown.
 
-**Reglas de alcance del PDF que aplican (literales):**
+**PDF scope rules that apply (literal):**
 
 - "Payment is simulated: a button that leads to a confirmation screen or a mock gateway. Do not integrate real payment gateways or use real card data."
 - "Use fictitious data only."
@@ -36,141 +36,141 @@
 - Accessibility: "The wizard can be completed using only the keyboard, and fields have accessible labels".
 - Responsive: "Works on mobile and desktop".
 
-## 2. Alcance
+## 2. Scope
 
-- **Incluido:**
-  - Paso 3 del wizard (resumen): datos del asegurado y del vehículo, plan elegido y precio final, documento enmascarado.
-  - Términos y condiciones por país desde Strapi y casilla de aceptación.
-  - Acciones "editar datos" (paso 1) y "cambiar plan" (paso 2) desde el resumen.
-  - Pasarela de pago simulada dentro del paso 3, con resultado elegido (aprobado/rechazado) y sin campos de tarjeta (D9, G2-12).
-  - Pantalla de confirmación con número de cotización simulado (D7: 3 pasos + confirmación).
-  - Protección contra doble envío, mensaje de rechazo y reintento.
-  - Estados de carga, vacío y error de las llamadas que necesita el resumen; accesibilidad y responsive del paso 3 y de la confirmación.
-  - Comportamiento de los datos persistidos (D6) al entrar al resumen, tras un rechazo y tras un pago exitoso.
-- **Fuera de alcance:**
-  - Pasarelas reales, datos de tarjeta o bancarios (PDF, D9).
-  - Registrar la cotización o el pago en Strapi o en cualquier backend: el rol público solo lee y el proxy solo deja pasar `GET` (D4).
-  - Emisión real de póliza, envío de correos, descarga de PDF.
-  - Definición de la regla de precio (US-02, D8, G2-8): US-03 la **consume**.
-  - Validaciones del formulario del paso 1 (US-01): US-03 usa el indicador `isComplete` que expone US-01 (G2-10).
+- **Included:**
+  - Step 3 of the wizard (summary): policyholder and vehicle data, chosen plan and final price, masked document.
+  - Terms and conditions per country from Strapi and acceptance checkbox.
+  - "Edit data" (step 1) and "change plan" (step 2) actions from the summary.
+  - Simulated payment gateway inside step 3, with a chosen result (approved/rejected) and without card fields (D9, G2-12).
+  - Confirmation screen with a simulated quote number (D7: 3 steps + confirmation).
+  - Protection against double submission, rejection message and retry.
+  - Loading, empty and error states of the calls the summary needs; accessibility and responsive layout of step 3 and of the confirmation.
+  - Behavior of the persisted data (D6) on entering the summary, after a rejection and after a successful payment.
+- **Out of scope:**
+  - Real gateways, card or bank data (PDF, D9).
+  - Recording the quote or the payment in Strapi or in any backend: the public role only reads and the proxy only lets `GET` through (D4).
+  - Real policy issuance, sending emails, PDF download.
+  - Definition of the price rule (US-02, D8, G2-8): US-03 **consumes** it.
+  - Validations of the step 1 form (US-01): US-03 uses the `isComplete` flag exposed by US-01 (G2-10).
 
-## 3. Requisitos
+## 3. Requirements
 
-Columna **Config**: `Strapi` = lo cambia el negocio sin despliegue; `Código` = fijo en el frontend; `Strapi + Código` = el contenido viene de Strapi y la lógica o el formato están en código.
+**Config** column: `Strapi` = the business changes it without a deployment; `Code` = fixed in the frontend; `Strapi + Code` = the content comes from Strapi and the logic or the format are in code.
 
-### 3.1 Resumen de datos y plan
+### 3.1 Data and plan summary
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.1 | El resumen muestra todos los datos del paso 1 (asegurado y vehículo) del país de la URL, tomados del resultado del paso 1 que expone US-01 (REQ-01.27) a partir del estado persistido para ese país. | PDF regla 1; AC del PDF "Complete summary"; D6 | Strapi + Código (qué campos hay: Strapi; lectura del estado: código) | Unit · E2E |
-| REQ-03.2 | Cada dato se muestra con el **label** configurado en Strapi para su campo (nunca la clave técnica), agrupado en las secciones `policyholder` y `vehicle` en ese orden fijo, con la leyenda de cada sección desde Strapi, y dentro de cada sección en el orden configurado. | PDF regla 1; Q-03.3 → G2-6 | Strapi (label, sección del campo, leyenda, orden) + Código (catálogo y orden de secciones) | Unit |
-| REQ-03.3 | Los valores se muestran legibles según su tipo: `select` muestra el label de la opción (el valor visible de REQ-01.27, no el valor interno); `checkbox` muestra el texto de sí/no configurado; `date` se muestra con el formato del locale del país sin desplazar el día por zona horaria; `number` con el formato numérico del locale; un campo opcional vacío se muestra como "—". | Q-03.4 → G2-13 | Strapi + Código (labels y textos: Strapi; formateo `Intl`: código) | Unit |
-| REQ-03.4 | El resumen muestra el plan elegido con su nombre, descripción corta, coberturas, beneficios y **precio final** en la moneda y el formato del país (COP y CLP sin decimales), sin desglose entre precio base y ajuste. | PDF regla 1; US-02 regla "price in the country's currency"; Q-03.5 → G2-13 | Strapi + Código (plan, moneda y locale: Strapi; formato `Intl`: código) | Unit · E2E |
-| REQ-03.5 | El precio final del resumen se recalcula al cargar el resumen a partir del **id del plan guardado** (único dato del plan que se persiste), con la **misma función pura** que usa el paso 2 (D8, G2-8: `Math.round(basePrice × Π multiplicadores)`), los datos del paso 1 y el plan y los factores vigentes en Strapi. Para los mismos datos y la misma configuración, paso 2 y resumen muestran el mismo valor. | D8; PDF regla 1; Q-03.6 → G2-9; G2-8 | Strapi + Código (factores: Strapi; función: código) | Unit |
+| REQ-03.1 | The summary shows all the step 1 data (policyholder and vehicle) of the URL's country, taken from the step 1 result exposed by US-01 (REQ-01.27) from the state persisted for that country. | PDF rule 1; PDF AC "Complete summary"; D6 | Strapi + Code (which fields exist: Strapi; reading the state: code) | Unit · E2E |
+| REQ-03.2 | Each data item is shown with the **label** configured in Strapi for its field (never the technical key), grouped in the `policyholder` and `vehicle` sections in that fixed order, with each section's legend from Strapi, and within each section in the configured order. | PDF rule 1; Q-03.3 → G2-6 | Strapi (label, field section, legend, order) + Code (section catalog and order) | Unit |
+| REQ-03.3 | The values are shown readably according to their type: `select` shows the option label (the display value of REQ-01.27, not the internal value); `checkbox` shows the configured yes/no text; `date` is shown with the format of the country's locale without shifting the day by time zone; `number` with the number format of the locale; an empty optional field is shown as "—". | Q-03.4 → G2-13 | Strapi + Code (labels and texts: Strapi; `Intl` formatting: code) | Unit |
+| REQ-03.4 | The summary shows the chosen plan with its name, short description, coverages, benefits and **final price** in the country's currency and format (COP and CLP without decimals), with no breakdown between base price and adjustment. | PDF rule 1; US-02 rule "price in the country's currency"; Q-03.5 → G2-13 | Strapi + Code (plan, currency and locale: Strapi; `Intl` format: code) | Unit · E2E |
+| REQ-03.5 | The summary's final price is recalculated when the summary loads, from the **stored plan id** (the only plan data that is persisted), with the **same pure function** that step 2 uses (D8, G2-8: `Math.round(basePrice × Π multipliers)`), the step 1 data and the current plan and factors in Strapi. For the same data and the same configuration, step 2 and the summary show the same value. | D8; PDF rule 1; Q-03.6 → G2-9; G2-8 | Strapi + Code (factors: Strapi; function: code) | Unit |
 
-### 3.2 Documento enmascarado
+### 3.2 Masked document
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.6 | Los campos con **rol `documentNumber`** (rol asignado en Strapi según el catálogo de US-01, REQ-01.28) se muestran parcialmente enmascarados en el resumen y en cualquier pantalla posterior. Si varios campos tienen ese rol, se enmascaran todos. El tipo de documento (campo distinto, sin ese rol) se muestra en claro. El valor completo no aparece en el DOM de esas pantallas (ni en texto, ni en atributos, ni en nombres accesibles). Si no hay ningún campo con ese rol, el formulario de US-01 ya está "no disponible" (G2-5) y no se llega al resumen. | PDF regla 2; Q-03.1 → G2-1; G2-5; F-00.1 | Strapi + Código (rol del campo: Strapi; catálogo de roles y enmascarado: código) | Unit · E2E |
-| REQ-03.7 | El enmascarado lo hace una función pura con esta regla: se cuentan solo los caracteres alfanuméricos; quedan visibles los últimos `min(4, floor(n/2))`; el resto de alfanuméricos se sustituye por `*`; los separadores (`.`, `-`, espacio) se conservan. Misma regla en CO y CL. | Q-03.2 → G2-13 | Código | Unit |
-| REQ-03.8 | El enmascarado es solo de presentación: el estado del wizard conserva el valor completo para que "editar datos" lo muestre completo en el paso 1. | PDF regla 3; AC del PDF de US-01 "Keep data when going back"; Q-03.23 → G2-13 | Código | Unit · E2E |
+| REQ-03.6 | The fields with **role `documentNumber`** (role assigned in Strapi according to the US-01 catalog, REQ-01.28) are shown partially masked in the summary and on any later screen. If several fields have that role, all of them are masked. The document type (a different field, without that role) is shown in clear. The full value does not appear in the DOM of those screens (not in text, nor in attributes, nor in accessible names). If no field has that role, the US-01 form is already "unavailable" (G2-5) and the summary is not reached. | PDF rule 2; Q-03.1 → G2-1; G2-5; F-00.1 | Strapi + Code (field role: Strapi; role catalog and masking: code) | Unit · E2E |
+| REQ-03.7 | The masking is done by a pure function with this rule: only alphanumeric characters are counted; the last `min(4, floor(n/2))` remain visible; the rest of the alphanumerics are replaced with `*`; the separators (`.`, `-`, space) are kept. Same rule in CO and CL. | Q-03.2 → G2-13 | Code | Unit |
+| REQ-03.8 | The masking is presentation only: the wizard state keeps the full value so that "edit data" shows it in full in step 1. | PDF rule 3; US-01 PDF AC "Keep data when going back"; Q-03.23 → G2-13 | Code | Unit · E2E |
 
-### 3.3 Volver a editar, cambiar de plan y guardas
+### 3.3 Going back to edit, changing the plan and guards
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.9 | Desde el resumen hay una acción "editar datos" que lleva al paso 1 del mismo país con todos los datos precargados. | PDF regla 3 | Código (navegación); Strapi (texto) | E2E |
-| REQ-03.10 | Desde el resumen hay una acción "cambiar plan" que lleva al paso 2 con el plan actual marcado como elegido. | PDF regla 3; AC del PDF de US-02 "Plan selection" | Código (navegación); Strapi (texto) | E2E |
-| REQ-03.11 | Al volver al resumen tras editar datos o cambiar de plan, el resumen muestra los valores nuevos y el precio final recalculado. Editar datos conserva el plan elegido si sigue disponible. Desde el paso 1 editado se continúa por el paso 2 (con el plan preseleccionado) antes de volver al resumen. | PDF reglas 1 y 3; Q-03.9 → G2-13 | Código | Unit · E2E |
-| REQ-03.12 | La aceptación de términos **no se persiste**: la casilla empieza desmarcada cada vez que se entra al resumen (incluidas la recarga y la vuelta desde el paso 1 o 2). Se conserva marcada tras un pago rechazado mientras se permanece en el resumen. | Q-03.9 → G2-13; Q-03.21 → G2-13 | Código | Unit · E2E |
-| REQ-03.13 | Guardas de acceso al resumen (al entrar por navegación, por URL directa o al recargar): si el `isComplete` del paso 1 que expone US-01 (REQ-01.27), **calculado con la configuración vigente**, es falso, la app redirige al paso 1 del mismo país con los datos conservados; si es verdadero pero no hay plan guardado, redirige al paso 2. No se persiste ninguna señal de "paso completado". | Q-03.8 → G2-10; Q-03.7 → G2-10; F-00.5 | Código | Unit · E2E |
-| REQ-03.14 | Al cargar el resumen se comprueba el plan guardado contra la lista vigente de Strapi: si ya no está publicado y activo, o su moneda no es la del país, la app redirige al paso 2, donde la selección se descarta y se muestra el aviso anunciado de US-02 (REQ-02.17); no es posible pagar ese plan. Los valores persistidos de campos que ya no existen en la configuración no se muestran (US-01 los descarta). No se vuelve a comprobar justo antes de pagar. | analysis.md §1 (datos persistidos vs. plan inactivo); Skill §3; Q-03.7 → G2-11 y G2-13 | Código (comprobación); Strapi (estado de planes y campos) | Unit · E2E |
+| REQ-03.9 | From the summary there is an "edit data" action that leads to step 1 of the same country with all the data preloaded. | PDF rule 3 | Code (navigation); Strapi (text) | E2E |
+| REQ-03.10 | From the summary there is a "change plan" action that leads to step 2 with the current plan marked as chosen. | PDF rule 3; US-02 PDF AC "Plan selection" | Code (navigation); Strapi (text) | E2E |
+| REQ-03.11 | On returning to the summary after editing data or changing the plan, the summary shows the new values and the recalculated final price. Editing data keeps the chosen plan if it is still available. From the edited step 1, the flow continues through step 2 (with the plan preselected) before returning to the summary. | PDF rules 1 and 3; Q-03.9 → G2-13 | Code | Unit · E2E |
+| REQ-03.12 | The acceptance of the terms **is not persisted**: the checkbox starts unchecked every time the summary is entered (including the reload and the return from step 1 or 2). It stays checked after a rejected payment while the person remains on the summary. | Q-03.9 → G2-13; Q-03.21 → G2-13 | Code | Unit · E2E |
+| REQ-03.13 | Access guards for the summary (on entering by navigation, by direct URL or on reload): if the step 1 `isComplete` exposed by US-01 (REQ-01.27), **computed with the current configuration**, is false, the app redirects to step 1 of the same country with the data kept; if it is true but there is no stored plan, it redirects to step 2. No "step completed" flag is persisted. | Q-03.8 → G2-10; Q-03.7 → G2-10; F-00.5 | Code | Unit · E2E |
+| REQ-03.14 | When the summary loads, the stored plan is checked against the current list in Strapi: if it is no longer published and active, or its currency is not the country's, the app redirects to step 2, where the selection is discarded and the announced warning of US-02 is shown (REQ-02.17); it is not possible to pay for that plan. The persisted values of fields that no longer exist in the configuration are not shown (US-01 discards them). It is not checked again right before paying. | analysis.md §1 (persisted data vs. inactive plan); Skill §3; Q-03.7 → G2-11 and G2-13 | Code (check); Strapi (status of plans and fields) | Unit · E2E |
 
-### 3.4 Términos y condiciones
+### 3.4 Terms and conditions
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.15 | El resumen muestra los términos y condiciones del país de la URL, obtenidos de Strapi. El texto no está en el código: si el negocio lo edita y publica, el cambio se ve al recargar. | PDF contexto; AC del PDF "Terms by country"; D3 | Strapi | Unit · E2E |
-| REQ-03.16 | El texto de los términos se presenta sin ejecutar ni insertar HTML o scripts arbitrarios que vengan en el contenido, inline en el resumen, dentro de una región de altura máxima, legible, enfocable y desplazable con teclado. No se obliga a desplazarse hasta el final para aceptar. El formato del texto (plano, Markdown o rich text) lo decide el Software Architect en G3 y debe admitir párrafos y listas. | CLAUDE.md §6 (seguridad); Q-03.11 → G2-13; Q-03.13 → G2-13 | Código (render); Strapi (texto) | Unit · Manual |
-| REQ-03.17 | Hay una casilla de aceptación con `<label>` asociado (texto desde Strapi), desmarcada por defecto. Marcarla es condición para habilitar el pago; desmarcarla vuelve a deshabilitarlo. | PDF regla 4; AC del PDF "Terms by country"; PDF Accessibility | Strapi (texto) + Código | Unit · E2E |
-| REQ-03.18 | Si para el país no hay términos publicados, el texto está vacío o llega más de un registro, se muestra un estado "términos no disponibles"; la casilla y el pago quedan deshabilitados; los datos y el plan siguen visibles. | Skill §3 (vacíos/nulos, varios elementos); Q-03.12 → G2-13 | Código (comportamiento); Strapi (texto del aviso) | Unit |
-| REQ-03.19 | El botón de pago está habilitado **si y solo si**: los datos y el plan están cargados y son válidos, los términos están cargados y aceptados, y no hay un pago en curso. | PDF reglas 4 y 5; Q-03.7 → G2-10 y G2-11; Q-03.12 → G2-13 | Código | Unit · E2E |
+| REQ-03.15 | The summary shows the terms and conditions of the URL's country, obtained from Strapi. The text is not in the code: if the business edits and publishes it, the change is visible on reload. | PDF context; PDF AC "Terms by country"; D3 | Strapi | Unit · E2E |
+| REQ-03.16 | The terms text is presented without executing or inserting arbitrary HTML or scripts that come in the content, inline in the summary, inside a region with a maximum height, readable, focusable and scrollable with the keyboard. Scrolling to the end is not required in order to accept. The text format (plain, Markdown or rich text) is decided by the Software Architect in G3 and must support paragraphs and lists. | CLAUDE.md §6 (security); Q-03.11 → G2-13; Q-03.13 → G2-13 | Code (render); Strapi (text) | Unit · Manual |
+| REQ-03.17 | There is an acceptance checkbox with an associated `<label>` (text from Strapi), unchecked by default. Checking it is a condition for enabling the payment; unchecking it disables it again. | PDF rule 4; PDF AC "Terms by country"; PDF Accessibility | Strapi (text) + Code | Unit · E2E |
+| REQ-03.18 | If there are no published terms for the country, the text is empty or more than one record arrives, a "terms unavailable" state is shown; the checkbox and the payment are disabled; the data and the plan remain visible. | Skill §3 (empty/null, several items); Q-03.12 → G2-13 | Code (behavior); Strapi (notice text) | Unit |
+| REQ-03.19 | The pay button is enabled **if and only if**: the data and the plan are loaded and valid, the terms are loaded and accepted, and there is no payment in progress. | PDF rules 4 and 5; Q-03.7 → G2-10 and G2-11; Q-03.12 → G2-13 | Code | Unit · E2E |
 
-### 3.5 Pago simulado
+### 3.5 Simulated payment
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.20 | El pago se simula en el navegador: no hay campos de tarjeta ni bancarios y no se hace ninguna petición distinta de `GET` (ni a Strapi ni a terceros). | PDF reglas de alcance; D4; D9 | Código | Unit · E2E |
-| REQ-03.21 | El resultado del pago simulado lo elige el usuario en un bloque "pasarela simulada" **dentro del paso 3** (sin pantalla aparte, D7), con dos opciones visibles: aprobado (seleccionada por defecto) y rechazado. No hay parámetros de URL, flags ocultos ni aleatoriedad: el e2e elige la opción como un usuario. | D9; analysis.md §1 (rechazo determinista); Q-03.15 → G2-12 | Código (mecanismo); Strapi (textos, G2-2) | Unit · E2E |
-| REQ-03.22 | Al pulsar pagar, el botón queda bloqueado e indica que el pago se procesa durante toda la operación; la casilla de términos, el selector de resultado y las acciones "editar datos" y "cambiar plan" quedan inhabilitados hasta que termina. Si la persona abandona la pantalla durante el proceso, el resultado pendiente se descarta y no se muestra confirmación. | PDF regla 5; AC del PDF "Successful payment"; Q-03.16 → G2-13 | Código | Unit · E2E |
-| REQ-03.23 | Cada activación válida produce **un único** intento de pago aunque haya doble clic, Enter mantenido o combinación de Enter y clic. La protección está en el estado de la aplicación, no solo en el atributo `disabled`. Limitación aceptada y documentada en el README: sin backend (D4) no se impide pagar en una pestaña duplicada. | PDF regla 5; Q-03.17 → G2-13 | Código | Unit · E2E |
-| REQ-03.24 | La duración simulada del procesamiento es fija (1500 ms), está definida en código y es inyectable en los tests. | Q-03.16 → G2-13 | Código | Unit |
-| REQ-03.25 | Con resultado aprobado, la app navega a la pantalla de confirmación (D7) que muestra el número de cotización simulado. | PDF regla 6; AC del PDF "Successful payment"; D7 | Código; Strapi (textos) | E2E |
-| REQ-03.26 | El número de cotización tiene el formato `<CC>-<YYYYMMDD>-<XXXXXX>`: código de país en mayúsculas, fecha UTC del pago y 6 caracteres del alfabeto `A-H J-N P-Z 2-9` (sin `0`, `O`, `1`, `I`), generados con una fuente aleatoria criptográfica del navegador. Unicidad solo probabilística (no hay registro central, D4). El reloj y la fuente aleatoria son inyectables en los tests. | Q-03.18 → G2-13 | Código | Unit |
-| REQ-03.27 | La confirmación muestra el número de cotización, el nombre del plan y el precio final pagado (copiados en el momento del pago), sin datos personales ni documento, y ofrece una acción "nueva cotización" que lleva al paso 1 vacío del mismo país. | Q-03.20 → G2-13 | Strapi (textos) + Código | E2E |
-| REQ-03.28 | Tras un pago exitoso se borra el estado del wizard del país en `sessionStorage` y solo se guarda una confirmación mínima (número, nombre del plan, precio final, moneda, fecha; **sin documento ni datos personales**). Recargar la confirmación la vuelve a mostrar. Volver atrás con el navegador no permite pagar de nuevo esa cotización: el resumen redirige al paso 1 vacío. "Nueva cotización" borra también la confirmación guardada. | PDF regla 5; D6; Q-03.19 → G2-13 | Código | Unit · E2E |
-| REQ-03.29 | Si se accede a la confirmación sin un pago exitoso en la sesión de ese país, la app redirige al paso 1. | Q-03.19 → G2-13 | Código | Unit |
-| REQ-03.30 | Con resultado rechazado, se muestra un mensaje de error claro (texto de Strapi, sin detalles técnicos) junto al botón de pago; el usuario permanece en el resumen con sus datos, el plan, el precio y la aceptación de términos intactos; el botón se rehabilita para reintentar; el mensaje se retira al iniciar un nuevo intento; no hay límite de reintentos. | AC del PDF "Rejected payment"; Q-03.21 → G2-13 | Strapi (mensaje) + Código | Unit · E2E |
+| REQ-03.20 | The payment is simulated in the browser: there are no card or bank fields and no request other than `GET` is made (neither to Strapi nor to third parties). | PDF scope rules; D4; D9 | Code | Unit · E2E |
+| REQ-03.21 | The result of the simulated payment is chosen by the user in a "simulated gateway" block **inside step 3** (no separate screen, D7), with two visible options: approved (selected by default) and rejected. There are no URL parameters, hidden flags or randomness: the e2e chooses the option like a user. | D9; analysis.md §1 (deterministic rejection); Q-03.15 → G2-12 | Code (mechanism); Strapi (texts, G2-2) | Unit · E2E |
+| REQ-03.22 | On pressing pay, the button is locked and indicates that the payment is being processed during the whole operation; the terms checkbox, the result selector and the "edit data" and "change plan" actions are disabled until it finishes. If the person leaves the screen during the process, the pending result is discarded and no confirmation is shown. | PDF rule 5; PDF AC "Successful payment"; Q-03.16 → G2-13 | Code | Unit · E2E |
+| REQ-03.23 | Each valid activation produces **a single** payment attempt even with a double click, a held Enter or a combination of Enter and click. The protection is in the application state, not only in the `disabled` attribute. Accepted limitation, documented in the README: without a backend (D4), paying in a duplicated tab is not prevented. | PDF rule 5; Q-03.17 → G2-13 | Code | Unit · E2E |
+| REQ-03.24 | The simulated processing duration is fixed (1500 ms), is defined in code and is injectable in the tests. | Q-03.16 → G2-13 | Code | Unit |
+| REQ-03.25 | With an approved result, the app navigates to the confirmation screen (D7), which shows the simulated quote number. | PDF rule 6; PDF AC "Successful payment"; D7 | Code; Strapi (texts) | E2E |
+| REQ-03.26 | The quote number has the format `<CC>-<YYYYMMDD>-<XXXXXX>`: country code in uppercase, UTC date of the payment and 6 characters from the alphabet `A-H J-N P-Z 2-9` (without `0`, `O`, `1`, `I`), generated with a cryptographic random source of the browser. Uniqueness is only probabilistic (there is no central registry, D4). The clock and the random source are injectable in the tests. | Q-03.18 → G2-13 | Code | Unit |
+| REQ-03.27 | The confirmation shows the quote number, the plan name and the final price paid (copied at the moment of payment), without personal data or document, and offers a "new quote" action that leads to the empty step 1 of the same country. | Q-03.20 → G2-13 | Strapi (texts) + Code | E2E |
+| REQ-03.28 | After a successful payment, the country's wizard state in `sessionStorage` is cleared and only a minimal confirmation is stored (number, plan name, final price, currency, date; **no document or personal data**). Reloading the confirmation shows it again. Going back with the browser does not allow paying for that quote again: the summary redirects to the empty step 1. "New quote" also clears the stored confirmation. | PDF rule 5; D6; Q-03.19 → G2-13 | Code | Unit · E2E |
+| REQ-03.29 | If the confirmation is accessed without a successful payment in that country's session, the app redirects to step 1. | Q-03.19 → G2-13 | Code | Unit |
+| REQ-03.30 | With a rejected result, a clear error message is shown (text from Strapi, without technical details) next to the pay button; the user stays on the summary with their data, the plan, the price and the terms acceptance intact; the button is re-enabled to retry; the message is removed when a new attempt starts; there is no retry limit. | PDF AC "Rejected payment"; Q-03.21 → G2-13 | Strapi (message) + Code | Unit · E2E |
 
-### 3.6 Carga, error, país, textos, accesibilidad y responsive
+### 3.6 Loading, error, country, texts, accessibility and responsive
 
-| ID | Requisito verificable | Origen | Config | Verificación |
+| ID | Verifiable requirement | Origin | Config | Verification |
 |---|---|---|---|---|
-| REQ-03.31 | Mientras se cargan los datos que necesita el resumen (configuración del formulario, planes y factores de precio, términos, textos de UI), se muestra el indicador "cargando" en la sección afectada y el pago está deshabilitado. | CLAUDE.md §8 (estados explícitos); PDF criterio "loading and error state handling"; G2-2 | Código (texto fijo "cargando", G2-2) | Unit |
-| REQ-03.32 | Si una de esas llamadas falla, se muestra el mensaje "error de carga" en la sección afectada con la acción "reintentar"; el pago queda deshabilitado y los datos persistidos no se pierden. | CLAUDE.md §8; PDF criterio "loading and error state handling"; Q-03.14 → G2-2 | Código (textos fijos "error de carga" y "reintentar", G2-2) | Unit · Manual |
-| REQ-03.33 | Al entrar al resumen y a la confirmación, el foco se mueve al encabezado principal de la pantalla. | CLAUDE.md §8 (foco al cambiar de paso) | Código | Unit · E2E |
-| REQ-03.34 | El paso 3 y la confirmación se completan solo con teclado, con un orden de foco lógico: Tab/Shift+Tab entre controles, Espacio en la casilla, flechas en el selector de resultado, Enter o Espacio en los botones; la región de términos es enfocable y desplazable con teclado. | PDF Accessibility | Código | E2E · Manual (G5) |
-| REQ-03.35 | Anuncios y foco del pago: el estado "procesando" se anuncia en una región `aria-live="polite"`; el rechazo se anuncia como alerta (`role="alert"`); el foco no se pierde (no pasa a `body`) al bloquear el botón (la técnica la decide el Angular Developer); el botón deshabilitado está asociado por `aria-describedby` al texto que explica que hay que aceptar los términos. El documento enmascarado se lee tal cual, sin texto accesible alternativo. | PDF Accessibility; CLAUDE.md §8; Q-03.22 → G2-13 | Código; Strapi (textos) | Unit · Manual (G5) |
-| REQ-03.36 | Resumen, pago y confirmación funcionan de 320 px a escritorio sin desplazamiento horizontal de la página; en móvil el resumen va en una columna; los controles interactivos tienen un área de al menos 24×24 px CSS. | PDF Responsive; Q-03.24 → G2-13 | Código | E2E (viewport) · Manual (G5) |
-| REQ-03.37 | El resumen y la confirmación solo leen y escriben el estado del país de la URL: los datos, el plan y la confirmación de un país no aparecen en el otro. | D3; D6 | Código | Unit · E2E |
-| REQ-03.38 | Los textos visibles del paso 3 y de la confirmación (acciones, label de la casilla, sí/no, leyendas de sección, avisos, opciones y título de la pasarela simulada, mensaje de rechazo, títulos y el **mensaje de error genérico del país**) proceden de Strapi por país. Los únicos textos fijos en código, en español, son "cargando", "error de carga", "reintentar" y "país no disponible". Si falta en Strapi un texto obligatorio de una sección, se trata como error de configuración: esa sección muestra el mensaje de error genérico del país (configurado en Strapi, como en US-01 REQ-01.13) y el pago queda deshabilitado. Si falta también ese mensaje genérico, la sección muestra los textos fijos "error de carga" y "reintentar". No hay otros textos por defecto en código. Un fallo de red o de contrato sigue el REQ-03.32. | CLAUDE.md §11 (excepción G2-2); Q-03.14 → G2-2; F-00.3; F-00.4; F-00.7; US-01 REQ-01.13 | Strapi (textos, incluido el mensaje genérico); Código (solo los 4 textos fijos) | Unit |
+| REQ-03.31 | While the data the summary needs is loading (form configuration, plans and price factors, terms, UI texts), the "cargando" ("loading") indicator is shown in the affected section and the payment is disabled. | CLAUDE.md §8 (explicit states); PDF criterion "loading and error state handling"; G2-2 | Code (fixed text "cargando", G2-2) | Unit |
+| REQ-03.32 | If one of those calls fails, the "error de carga" ("load error") message is shown in the affected section with the "reintentar" ("retry") action; the payment is disabled and the persisted data is not lost. | CLAUDE.md §8; PDF criterion "loading and error state handling"; Q-03.14 → G2-2 | Code (fixed texts "error de carga" and "reintentar", G2-2) | Unit · Manual |
+| REQ-03.33 | On entering the summary and the confirmation, the focus moves to the main heading of the screen. | CLAUDE.md §8 (focus on step change) | Code | Unit · E2E |
+| REQ-03.34 | Step 3 and the confirmation can be completed with the keyboard only, with a logical focus order: Tab/Shift+Tab between controls, Space on the checkbox, arrow keys on the result selector, Enter or Space on the buttons; the terms region is focusable and scrollable with the keyboard. | PDF Accessibility | Code | E2E · Manual (G5) |
+| REQ-03.35 | Payment announcements and focus: the "processing" state is announced in an `aria-live="polite"` region; the rejection is announced as an alert (`role="alert"`); the focus is not lost (it does not go to `body`) when the button is locked (the technique is decided by the Angular Developer); the disabled button is associated via `aria-describedby` with the text explaining that the terms must be accepted. The masked document is read as is, without an alternative accessible text. | PDF Accessibility; CLAUDE.md §8; Q-03.22 → G2-13 | Code; Strapi (texts) | Unit · Manual (G5) |
+| REQ-03.36 | Summary, payment and confirmation work from 320 px to desktop without horizontal page scrolling; on mobile the summary is in one column; the interactive controls have an area of at least 24×24 CSS px. | PDF Responsive; Q-03.24 → G2-13 | Code | E2E (viewport) · Manual (G5) |
+| REQ-03.37 | The summary and the confirmation only read and write the state of the URL's country: the data, the plan and the confirmation of one country do not appear in the other. | D3; D6 | Code | Unit · E2E |
+| REQ-03.38 | The visible texts of step 3 and of the confirmation (actions, checkbox label, yes/no, section legends, notices, options and title of the simulated gateway, rejection message, titles and the **country's generic error message**) come from Strapi per country. The only fixed texts in code, in Spanish, are "cargando", "error de carga", "reintentar" and "país no disponible" ("country not available"). If a required text of a section is missing in Strapi, it is treated as a configuration error: that section shows the country's generic error message (configured in Strapi, as in US-01 REQ-01.13) and the payment is disabled. If that generic message is missing too, the section shows the fixed texts "error de carga" and "reintentar". There are no other default texts in code. A network or contract failure follows REQ-03.32. | CLAUDE.md §11 (exception G2-2); Q-03.14 → G2-2; F-00.3; F-00.4; F-00.7; US-01 REQ-01.13 | Strapi (texts, including the generic message); Code (only the 4 fixed texts) | Unit |
 
-### 3.7 Cobertura del PDF
+### 3.7 PDF coverage
 
-| Elemento del PDF | REQ | AC |
+| PDF element | REQ | AC |
 |---|---|---|
-| Regla 1 (datos, vehículo, plan, precio final) | REQ-03.1 a REQ-03.5 | AC-03.1, AC-03.8, AC-03.9 |
-| Regla 2 (documento enmascarado) | REQ-03.6, REQ-03.7, REQ-03.8 | AC-03.5, AC-03.6, AC-03.7 |
-| Regla 3 (editar datos, cambiar plan) | REQ-03.9, REQ-03.10, REQ-03.11 | AC-03.10, AC-03.11 |
-| Regla 4 (pagar solo tras aceptar términos) | REQ-03.17, REQ-03.19 | AC-03.2, AC-03.12 |
-| Regla 5 (sin doble envío) | REQ-03.22, REQ-03.23, REQ-03.28 | AC-03.3, AC-03.22, AC-03.29 |
-| Regla 6 (confirmación con número simulado) | REQ-03.25, REQ-03.26 | AC-03.3, AC-03.27 |
-| Contexto: confirmar datos | Q-03.10 → G2-13 (revisar el resumen y pagar es la confirmación) | AC-03.1 |
-| Contexto: términos por país desde Strapi | REQ-03.15 | AC-03.2, AC-03.15 |
-| Contexto y alcance: pago simulado, sin tarjetas | REQ-03.20, REQ-03.21 | AC-03.24, AC-03.25 |
-| Escenario "Complete summary" | REQ-03.1, REQ-03.4 | AC-03.1 |
-| Escenario "Terms by country" | REQ-03.15, REQ-03.17 | AC-03.2 |
-| Escenario "Successful payment" | REQ-03.22, REQ-03.25 | AC-03.3 |
-| Escenario "Rejected payment" | REQ-03.30 | AC-03.4 |
-| Accessibility / Responsive | REQ-03.33 a REQ-03.36 | AC-03.33, AC-03.34, AC-03.35 |
+| Rule 1 (data, vehicle, plan, final price) | REQ-03.1 to REQ-03.5 | AC-03.1, AC-03.8, AC-03.9 |
+| Rule 2 (masked document) | REQ-03.6, REQ-03.7, REQ-03.8 | AC-03.5, AC-03.6, AC-03.7 |
+| Rule 3 (edit data, change plan) | REQ-03.9, REQ-03.10, REQ-03.11 | AC-03.10, AC-03.11 |
+| Rule 4 (pay only after accepting the terms) | REQ-03.17, REQ-03.19 | AC-03.2, AC-03.12 |
+| Rule 5 (no double submission) | REQ-03.22, REQ-03.23, REQ-03.28 | AC-03.3, AC-03.22, AC-03.29 |
+| Rule 6 (confirmation with simulated number) | REQ-03.25, REQ-03.26 | AC-03.3, AC-03.27 |
+| Context: confirm the data | Q-03.10 → G2-13 (reviewing the summary and paying is the confirmation) | AC-03.1 |
+| Context: terms per country from Strapi | REQ-03.15 | AC-03.2, AC-03.15 |
+| Context and scope: simulated payment, no cards | REQ-03.20, REQ-03.21 | AC-03.24, AC-03.25 |
+| Scenario "Complete summary" | REQ-03.1, REQ-03.4 | AC-03.1 |
+| Scenario "Terms by country" | REQ-03.15, REQ-03.17 | AC-03.2 |
+| Scenario "Successful payment" | REQ-03.22, REQ-03.25 | AC-03.3 |
+| Scenario "Rejected payment" | REQ-03.30 | AC-03.4 |
+| Accessibility / Responsive | REQ-03.33 to REQ-03.36 | AC-03.33, AC-03.34, AC-03.35 |
 
-## 4. Criterios de aceptación
+## 4. Acceptance criteria
 
-### Escenarios del PDF (literales)
+### PDF scenarios (literal)
 
 ```gherkin
-# AC-03.1 — origen: PDF
+# AC-03.1 — origin: PDF
 Scenario: Complete summary
   Given I chose a plan
   When I reach the summary
   Then I see my data, my vehicle's data and the chosen plan with its final price
 
-# AC-03.2 — origen: PDF
+# AC-03.2 — origin: PDF
 Scenario: Terms by country
   Given I am on the summary
   When I view the terms and conditions
   Then the text matches the one configured in Strapi for my country
   And the pay button is disabled until I accept them
 
-# AC-03.3 — origen: PDF
+# AC-03.3 — origin: PDF
 Scenario: Successful payment
   Given I accepted the terms
   When I click pay
   Then the button is locked while the payment is processed
   And I see the confirmation with the quote number
 
-# AC-03.4 — origen: PDF
+# AC-03.4 — origin: PDF
 Scenario: Rejected payment
   Given the simulated payment fails
   When I click pay
@@ -178,34 +178,34 @@ Scenario: Rejected payment
   And I can try again without losing my information
 ```
 
-### Escenarios añadidos por la spec
+### Scenarios added by the spec
 
-Los nombres de campos y rutas son descriptivos; los reales los fija G3.
+The field and route names are descriptive; the real ones are set by G3.
 
 ```gherkin
-# AC-03.5 — origen: PDF regla 2, Q-03.1 → G2-1, Q-03.2 → G2-13
-Scenario: Documento colombiano parcialmente enmascarado
-  Given estoy en /co y el campo con rol "documentNumber" vale "1234567890"
-  When llego al resumen
-  Then veo el documento como "******7890"
-  And el tipo de documento elegido se muestra en claro
-  And el texto "1234567890" no aparece en el DOM del resumen
+# AC-03.5 — origin: PDF rule 2, Q-03.1 → G2-1, Q-03.2 → G2-13
+Scenario: Colombian document partially masked
+  Given I am on /co and the field with role "documentNumber" has the value "1234567890"
+  When I reach the summary
+  Then I see the document as "******7890"
+  And the chosen document type is shown in clear
+  And the text "1234567890" does not appear in the summary DOM
 
-# AC-03.6 — origen: PDF regla 2, Q-03.1 → G2-1, Q-03.2 → G2-13
-Scenario: RUT chileno enmascarado conservando separadores
-  Given estoy en /cl y el campo con rol "documentNumber" vale "12.345.678-5"
-  When llego al resumen
-  Then veo el documento como "**.***.678-5"
-  And el texto "12.345.678-5" no aparece en el DOM del resumen
+# AC-03.6 — origin: PDF rule 2, Q-03.1 → G2-1, Q-03.2 → G2-13
+Scenario: Chilean RUT masked keeping the separators
+  Given I am on /cl and the field with role "documentNumber" has the value "12.345.678-5"
+  When I reach the summary
+  Then I see the document as "**.***.678-5"
+  And the text "12.345.678-5" does not appear in the summary DOM
 
-# AC-03.7 — origen: Q-03.2 → G2-13 (test unitario de la función pura)
-Scenario Outline: Regla de enmascarado
-  Given el valor del documento es "<valor>"
-  When se aplica la función de enmascarado
-  Then el resultado es "<resultado>"
+# AC-03.7 — origin: Q-03.2 → G2-13 (unit test of the pure function)
+Scenario Outline: Masking rule
+  Given the document value is "<value>"
+  When the masking function is applied
+  Then the result is "<result>"
 
   Examples:
-    | valor        | resultado    |
+    | value        | result       |
     | 1234567890   | ******7890   |
     | 12.345.678-5 | **.***.678-5 |
     | E-123456     | *-***456     |
@@ -213,436 +213,437 @@ Scenario Outline: Regla de enmascarado
     | 1234         | **34         |
     | 7            | *            |
 
-# AC-03.8 — origen: PDF regla 1, Q-03.3 → G2-6, Q-03.4 → G2-13
-Scenario: Datos legibles con labels de Strapi
-  Given en Strapi hay un campo select con una opción de valor "mazda" y label "Mazda" que elegí en el paso 1
-  And marqué un campo checkbox
-  And un campo de fecha vale "1990-05-07"
-  And un campo opcional quedó vacío
-  When llego al resumen
-  Then veo primero la sección "policyholder" y después la sección "vehicle", cada una con su leyenda configurada en Strapi
-  And cada dato aparece con el label configurado en Strapi, en su sección y en el orden configurado
-  And el select muestra "Mazda" y no "mazda"
-  And el checkbox muestra el texto de "sí" configurado en Strapi para mi país
-  And la fecha muestra el día 7 de mayo de 1990 con el formato del locale de mi país
-  And el campo opcional vacío muestra "—"
+# AC-03.8 — origin: PDF rule 1, Q-03.3 → G2-6, Q-03.4 → G2-13
+Scenario: Readable data with Strapi labels
+  Given in Strapi there is a select field with an option with value "mazda" and label "Mazda" that I chose in step 1
+  And I checked a checkbox field
+  And a date field has the value "1990-05-07"
+  And an optional field was left empty
+  When I reach the summary
+  Then I see first the "policyholder" section and then the "vehicle" section, each with its legend configured in Strapi
+  And each data item appears with the label configured in Strapi, in its section and in the configured order
+  And the select shows "Mazda" and not "mazda"
+  And the checkbox shows the "yes" text configured in Strapi for my country
+  And the date shows 7 May 1990 in the format of my country's locale
+  And the empty optional field shows "—"
 
-# AC-03.9 — origen: D8, Q-03.6 → G2-9, G2-8
-Scenario: Precio final recalculado desde el id del plan guardado
-  Given en el paso 2 elegí un plan cuyo precio final mostrado fue P
-  And en sessionStorage solo está guardado el id de ese plan, sin precio
-  When llego al resumen sin que cambien mis datos ni la configuración
-  Then el resumen muestra el precio final P en la moneda y el formato de mi país
-  When vuelvo al paso 1, cambio un dato que usa la regla de precio y regreso al resumen
-  Then el precio final del resumen es el que calcula la función de precio con el dato nuevo
-  And coincide con el que muestra el paso 2 para ese plan
+# AC-03.9 — origin: D8, Q-03.6 → G2-9, G2-8
+Scenario: Final price recalculated from the stored plan id
+  Given in step 2 I chose a plan whose displayed final price was P
+  And only the id of that plan is stored in sessionStorage, without a price
+  When I reach the summary without my data or the configuration changing
+  Then the summary shows the final price P in the currency and format of my country
+  When I go back to step 1, change a data item used by the price rule and return to the summary
+  Then the final price of the summary is the one computed by the price function with the new data item
+  And it matches the one shown by step 2 for that plan
 
-# AC-03.10 — origen: PDF regla 3, Q-03.9 → G2-13
-Scenario: Editar datos desde el resumen
-  Given estoy en el resumen con los términos aceptados
-  When elijo "editar datos"
-  Then veo el paso 1 con todos mis datos, incluido el documento completo sin enmascarar
-  When cambio un dato y continúo
-  Then paso por el paso 2 con mi plan preseleccionado
-  When continúo al resumen
-  Then el resumen muestra el dato nuevo y el mismo plan
-  And la casilla de términos está desmarcada y el botón de pago deshabilitado
+# AC-03.10 — origin: PDF rule 3, Q-03.9 → G2-13
+Scenario: Edit data from the summary
+  Given I am on the summary with the terms accepted
+  When I choose "edit data"
+  Then I see step 1 with all my data, including the full unmasked document
+  When I change a data item and continue
+  Then I go through step 2 with my plan preselected
+  When I continue to the summary
+  Then the summary shows the new data item and the same plan
+  And the terms checkbox is unchecked and the pay button is disabled
 
-# AC-03.11 — origen: PDF regla 3, Q-03.9 → G2-13
-Scenario: Cambiar de plan desde el resumen
-  Given estoy en el resumen con el plan A elegido
-  When elijo "cambiar plan"
-  Then veo el paso 2 con el plan A marcado como elegido
-  When elijo el plan B y continúo
-  Then el resumen muestra el plan B con su precio final
-  And mis datos del paso 1 no han cambiado
+# AC-03.11 — origin: PDF rule 3, Q-03.9 → G2-13
+Scenario: Change plan from the summary
+  Given I am on the summary with plan A chosen
+  When I choose "change plan"
+  Then I see step 2 with plan A marked as chosen
+  When I choose plan B and continue
+  Then the summary shows plan B with its final price
+  And my step 1 data has not changed
 
-# AC-03.12 — origen: PDF regla 4
-Scenario: Retirar la aceptación de términos
-  Given acepté los términos y el botón de pago está habilitado
-  When desmarco la casilla
-  Then el botón de pago vuelve a estar deshabilitado
+# AC-03.12 — origin: PDF rule 4
+Scenario: Withdraw the acceptance of the terms
+  Given I accepted the terms and the pay button is enabled
+  When I uncheck the checkbox
+  Then the pay button is disabled again
 
-# AC-03.13 — origen: Q-03.12 → G2-13 (estado vacío)
-Scenario Outline: Términos no disponibles para el país
-  Given para mi país <situación>
-  When llego al resumen
-  Then veo un aviso de que los términos no están disponibles
-  And la casilla de aceptación y el botón de pago están deshabilitados
-  And mis datos y el plan siguen visibles
-
-  Examples:
-    | situación                                  |
-    | no hay términos publicados                 |
-    | los términos publicados tienen texto vacío |
-    | llega más de un registro de términos       |
-
-# AC-03.14 — origen: CLAUDE.md §6, Q-03.11 → G2-13
-Scenario: Términos con marcado no seguro
-  Given el texto de términos de mi país contiene "<img src=x onerror=alert(1)>"
-  When se muestran los términos
-  Then no se ejecuta ningún script
-  And no se inserta en el DOM ningún elemento que venga del contenido sin sanear
-
-# AC-03.15 — origen: PDF contexto
-Scenario: Cambio de términos sin despliegue
-  Given el negocio edita y publica en Strapi los términos de Chile
-  When recargo el resumen en /cl
-  Then veo el texto nuevo sin cambios de código
-
-# AC-03.16 — origen: CLAUDE.md §8 (estado de carga), G2-2
-Scenario: Resumen mientras se carga el contenido
-  Given las respuestas de Strapi que necesita el resumen todavía no han llegado
-  When llego al resumen
-  Then veo el indicador "cargando" en cada sección pendiente
-  And el botón de pago está deshabilitado
-
-# AC-03.17 — origen: CLAUDE.md §8 (estado de error), Q-03.14 → G2-2
-Scenario: Error al cargar los términos y reintento
-  Given la petición de términos falla
-  When llego al resumen
-  Then veo el mensaje "error de carga" en la sección de términos con la acción "reintentar"
-  And el botón de pago está deshabilitado
-  And mis datos persistidos no se pierden
-  When reintento y la petición responde correctamente
-  Then veo los términos y puedo aceptarlos
-
-# AC-03.18 — origen: Q-03.8 → G2-10
-Scenario Outline: Acceso directo al resumen con el wizard incompleto
-  Given en la sesión de /co <estado>
-  When abro directamente la URL del resumen de /co
-  Then se me lleva a <destino>
+# AC-03.13 — origin: Q-03.12 → G2-13 (empty state)
+Scenario Outline: Terms unavailable for the country
+  Given for my country <situation>
+  When I reach the summary
+  Then I see a notice that the terms are not available
+  And the acceptance checkbox and the pay button are disabled
+  And my data and the plan are still visible
 
   Examples:
-    | estado                                                          | destino   |
-    | no hay datos del paso 1 (isComplete es falso)                   | el paso 1 |
-    | el paso 1 es completo (isComplete verdadero) pero no hay plan guardado | el paso 2 |
+    | situation                                  |
+    | there are no published terms               |
+    | the published terms have an empty text     |
+    | more than one terms record arrives         |
 
-# AC-03.19 — origen: analysis.md §1, Q-03.7 → G2-11
-Scenario Outline: El plan elegido dejó de estar disponible
-  Given elegí un plan y después el negocio <cambio> en Strapi
-  When llego al resumen o lo recargo
-  Then se me lleva al paso 2 de mi país
-  And veo el aviso anunciado de que el plan elegido ya no está disponible
-  And ningún plan aparece como elegido
+# AC-03.14 — origin: CLAUDE.md §6, Q-03.11 → G2-13
+Scenario: Terms with unsafe markup
+  Given the terms text of my country contains "<img src=x onerror=alert(1)>"
+  When the terms are shown
+  Then no script is executed
+  And no element coming from the unsanitized content is inserted into the DOM
 
-  Examples:
-    | cambio                                           |
-    | lo desactivó                                     |
-    | lo despublicó                                    |
-    | le puso una moneda distinta a la de mi país      |
+# AC-03.15 — origin: PDF context
+Scenario: Terms change without deployment
+  Given the business edits and publishes the Chile terms in Strapi
+  When I reload the summary on /cl
+  Then I see the new text without code changes
 
-# AC-03.20 — origen: analysis.md §1, Q-03.7 → G2-10, F-00.5
-Scenario Outline: Datos persistidos que ya no cumplen la configuración actual
-  Given completé el paso 1 y después el negocio <cambio> en Strapi
-  When llego al resumen o lo recargo
-  Then isComplete, calculado con la configuración vigente, es falso
-  And se me lleva al paso 1 con mis datos conservados
-  When intento avanzar
-  Then el campo afectado muestra su mensaje de error configurado
+# AC-03.16 — origin: CLAUDE.md §8 (loading state), G2-2
+Scenario: Summary while the content is loading
+  Given the Strapi responses that the summary needs have not arrived yet
+  When I reach the summary
+  Then I see the "cargando" indicator in each pending section
+  And the pay button is disabled
 
-  Examples:
-    | cambio                                                                 |
-    | añadió un campo obligatorio nuevo                                      |
-    | retiró la opción de un select obligatorio que yo había elegido         |
+# AC-03.17 — origin: CLAUDE.md §8 (error state), Q-03.14 → G2-2
+Scenario: Error loading the terms and retry
+  Given the terms request fails
+  When I reach the summary
+  Then I see the "error de carga" message in the terms section with the "reintentar" action
+  And the pay button is disabled
+  And my persisted data is not lost
+  When I retry and the request responds correctly
+  Then I see the terms and I can accept them
 
-# AC-03.21 — origen: Q-03.7 → G2-13
-Scenario: Campo eliminado de la configuración
-  Given completé el paso 1 y después el negocio eliminó o despublicó un campo opcional en Strapi
-  When llego al resumen
-  Then ese campo no aparece en el resumen
-  And el resto de mis datos se muestra normalmente
-
-# AC-03.22 — origen: PDF regla 5, Q-03.17 → G2-13
-Scenario Outline: Un único intento de pago ante entradas repetidas
-  Given acepté los términos
-  When <acción>
-  Then la pasarela simulada recibe exactamente un intento de pago
+# AC-03.18 — origin: Q-03.8 → G2-10
+Scenario Outline: Direct access to the summary with the wizard incomplete
+  Given in the /co session <state>
+  When I directly open the /co summary URL
+  Then I am taken to <destination>
 
   Examples:
-    | acción                                                                      |
-    | hago doble clic en el botón de pago                                         |
-    | mantengo pulsado Enter con el foco en el botón de pago                      |
-    | pulso Enter y hago clic en el botón de pago antes de que termine el proceso |
+    | state                                                              | destination |
+    | there is no step 1 data (isComplete is false)                      | step 1      |
+    | step 1 is complete (isComplete true) but there is no stored plan   | step 2      |
 
-# AC-03.23 — origen: PDF regla 5, Q-03.16 → G2-13
-Scenario: Controles bloqueados durante el procesamiento
-  Given pulsé pagar y el pago está en proceso
-  Then el botón de pago indica que el pago se está procesando y no acepta nuevas activaciones
-  And la casilla de términos, el selector de resultado y las acciones "editar datos" y "cambiar plan" están inhabilitados
-  When termina la duración simulada
-  Then los controles salen del estado de procesamiento
-
-# AC-03.24 — origen: PDF alcance, D4, D9
-Scenario: Pago simulado sin datos de tarjeta ni escrituras
-  Given estoy en el resumen
-  Then no hay campos de tarjeta ni de datos bancarios
-  When completo un pago con resultado aprobado o rechazado
-  Then el navegador no ha realizado ninguna petición distinta de GET
-
-# AC-03.25 — origen: D9, Q-03.15 → G2-12
-Scenario Outline: Resultado del pago elegido de forma determinista
-  Given acepté los términos
-  And en el bloque "pasarela simulada" del paso 3 la opción "aprobado" está seleccionada por defecto
-  When elijo la opción "<resultado>" y pulso pagar
-  Then <efecto>
+# AC-03.19 — origin: analysis.md §1, Q-03.7 → G2-11
+Scenario Outline: The chosen plan is no longer available
+  Given I chose a plan and then the business <change> in Strapi
+  When I reach the summary or reload it
+  Then I am taken to step 2 of my country
+  And I see the announced notice that the chosen plan is no longer available
+  And no plan appears as chosen
 
   Examples:
-    | resultado | efecto                                          |
-    | aprobado  | veo la confirmación con el número de cotización |
-    | rechazado | veo el mensaje de rechazo y sigo en el resumen  |
+    | change                                           |
+    | deactivated it                                   |
+    | unpublished it                                   |
+    | gave it a currency different from my country's   |
 
-# AC-03.26 — origen: AC del PDF "Rejected payment", Q-03.21 → G2-13
-Scenario: Rechazo y reintento sin perder información
-  Given acepté los términos y elegí el resultado "rechazado"
-  When pulso pagar
-  Then veo junto al botón de pago el mensaje de rechazo configurado en Strapi para mi país
-  And el mensaje se anuncia como alerta
-  And sigo en el resumen con mis datos, el plan, el precio final y la aceptación de términos intactos
-  And el botón de pago vuelve a estar habilitado
-  When elijo el resultado "aprobado" y pulso pagar de nuevo
-  Then el mensaje de rechazo desaparece al iniciar el intento
-  And veo la confirmación con el número de cotización
-
-# AC-03.27 — origen: PDF regla 6, Q-03.18 → G2-13 (test unitario)
-Scenario: Formato del número de cotización
-  Given el reloj inyectado marca 2026-11-22T10:00:00Z y la fuente aleatoria es fija
-  When se genera el número de cotización para Colombia
-  Then el número cumple el patrón "^CO-20261122-[A-HJ-NP-Z2-9]{6}$"
-  And con la misma fuente aleatoria el resultado es siempre el mismo
-
-# AC-03.28 — origen: Q-03.19 → G2-13
-Scenario: Recargar la confirmación
-  Given pagué con éxito y veo la confirmación con el número N
-  When recargo la página
-  Then veo la misma confirmación con el número N
-  And el documento no está guardado en sessionStorage
-
-# AC-03.29 — origen: PDF regla 5, Q-03.19 → G2-13
-Scenario: Volver atrás tras un pago exitoso no permite pagar de nuevo
-  Given pagué con éxito y veo la confirmación
-  When uso la acción "atrás" del navegador
-  Then no veo un resumen con el botón de pago para esa cotización
-  And se me lleva al paso 1 vacío de mi país
-
-# AC-03.30 — origen: Q-03.19 → G2-13
-Scenario: Acceso directo a la confirmación sin pago
-  Given no he pagado con éxito en la sesión de /cl
-  When abro directamente la URL de confirmación de /cl
-  Then se me lleva al paso 1 de /cl
-
-# AC-03.31 — origen: Q-03.20 → G2-13
-Scenario: Contenido de la confirmación y nueva cotización
-  Given pagué con éxito
-  Then la confirmación muestra el número de cotización, el nombre del plan y el precio final pagado
-  And no muestra datos personales ni el documento
-  When elijo "nueva cotización"
-  Then veo el paso 1 de mi país vacío
-
-# AC-03.32 — origen: D3, D6
-Scenario: Datos y términos separados por país
-  Given en /co completé el paso 1 y elegí un plan
-  When abro en la misma pestaña la URL del resumen de /cl sin haber completado Chile
-  Then se me lleva al paso 1 de /cl sin datos de Colombia
-  And cuando llego al resumen de /cl veo los términos de Chile y no los de Colombia
-
-# AC-03.33 — origen: PDF Accessibility
-Scenario: Resumen y pago solo con teclado
-  Given llegué al resumen usando solo el teclado
-  When recorro la pantalla con Tab y Shift+Tab
-  Then el foco recorre en orden lógico las acciones de edición, la región de términos, la casilla de aceptación, el selector de resultado y el botón de pago
-  And puedo desplazar los términos con el teclado, marcar la casilla con Espacio, elegir el resultado con las flechas y pagar con Enter
-  And llego a la confirmación sin usar el ratón
-
-# AC-03.34 — origen: CLAUDE.md §8, Q-03.22 → G2-13
-Scenario: Foco y anuncios en el paso 3
-  When llego al resumen
-  Then el foco está en el encabezado principal del resumen
-  And la casilla de términos tiene un nombre accesible igual a su label
-  And el botón de pago deshabilitado está asociado por aria-describedby al texto que pide aceptar los términos
-  When pulso pagar
-  Then el estado "procesando" se anuncia en una región aria-live
-  And el foco no pasa a body mientras el pago se procesa
-  When el pago se rechaza
-  Then el mensaje se anuncia como alerta
-  When reintento y el pago se aprueba
-  Then el foco está en el encabezado de la confirmación y el número de cotización es legible por lector de pantalla
-
-# AC-03.35 — origen: PDF Responsive, Q-03.24 → G2-13
-Scenario Outline: Resumen y pago en móvil y escritorio
-  Given un viewport de <ancho> px de ancho
-  When completo el resumen y el pago
-  Then la página no tiene desplazamiento horizontal
-  And los términos se pueden leer y desplazar
-  And la casilla y los botones tienen un área de al menos 24×24 px CSS
+# AC-03.20 — origin: analysis.md §1, Q-03.7 → G2-10, F-00.5
+Scenario Outline: Persisted data that no longer meets the current configuration
+  Given I completed step 1 and then the business <change> in Strapi
+  When I reach the summary or reload it
+  Then isComplete, computed with the current configuration, is false
+  And I am taken to step 1 with my data kept
+  When I try to proceed
+  Then the affected field shows its configured error message
 
   Examples:
-    | ancho |
+    | change                                                                 |
+    | added a new required field                                             |
+    | removed the option of a required select that I had chosen             |
+
+# AC-03.21 — origin: Q-03.7 → G2-13
+Scenario: Field removed from the configuration
+  Given I completed step 1 and then the business removed or unpublished an optional field in Strapi
+  When I reach the summary
+  Then that field does not appear in the summary
+  And the rest of my data is shown normally
+
+# AC-03.22 — origin: PDF rule 5, Q-03.17 → G2-13
+Scenario Outline: A single payment attempt on repeated inputs
+  Given I accepted the terms
+  When <action>
+  Then the simulated gateway receives exactly one payment attempt
+
+  Examples:
+    | action                                                                      |
+    | I double-click the pay button                                               |
+    | I hold Enter down with the focus on the pay button                          |
+    | I press Enter and click the pay button before the process finishes          |
+
+# AC-03.23 — origin: PDF rule 5, Q-03.16 → G2-13
+Scenario: Controls locked during processing
+  Given I pressed pay and the payment is in progress
+  Then the pay button indicates that the payment is being processed and does not accept new activations
+  And the terms checkbox, the result selector and the "edit data" and "change plan" actions are disabled
+  When the simulated duration ends
+  Then the controls leave the processing state
+
+# AC-03.24 — origin: PDF scope, D4, D9
+Scenario: Simulated payment without card data or writes
+  Given I am on the summary
+  Then there are no card or bank data fields
+  When I complete a payment with an approved or rejected result
+  Then the browser has not made any request other than GET
+
+# AC-03.25 — origin: D9, Q-03.15 → G2-12
+Scenario Outline: Payment result chosen deterministically
+  Given I accepted the terms
+  And in the "simulated gateway" block of step 3 the "approved" option is selected by default
+  When I choose the "<result>" option and press pay
+  Then <effect>
+
+  Examples:
+    | result   | effect                                              |
+    | approved | I see the confirmation with the quote number        |
+    | rejected | I see the rejection message and stay on the summary |
+
+# AC-03.26 — origin: PDF AC "Rejected payment", Q-03.21 → G2-13
+Scenario: Rejection and retry without losing information
+  Given I accepted the terms and chose the "rejected" result
+  When I press pay
+  Then I see next to the pay button the rejection message configured in Strapi for my country
+  And the message is announced as an alert
+  And I stay on the summary with my data, the plan, the final price and the terms acceptance intact
+  And the pay button is enabled again
+  When I choose the "approved" result and press pay again
+  Then the rejection message disappears when the attempt starts
+  And I see the confirmation with the quote number
+
+# AC-03.27 — origin: PDF rule 6, Q-03.18 → G2-13 (unit test)
+Scenario: Quote number format
+  Given the injected clock reads 2026-11-22T10:00:00Z and the random source is fixed
+  When the quote number is generated for Colombia
+  Then the number matches the pattern "^CO-20261122-[A-HJ-NP-Z2-9]{6}$"
+  And with the same random source the result is always the same
+
+# AC-03.28 — origin: Q-03.19 → G2-13
+Scenario: Reload the confirmation
+  Given I paid successfully and I see the confirmation with number N
+  When I reload the page
+  Then I see the same confirmation with number N
+  And the document is not stored in sessionStorage
+
+# AC-03.29 — origin: PDF rule 5, Q-03.19 → G2-13
+Scenario: Going back after a successful payment does not allow paying again
+  Given I paid successfully and I see the confirmation
+  When I use the browser's "back" action
+  Then I do not see a summary with the pay button for that quote
+  And I am taken to the empty step 1 of my country
+
+# AC-03.30 — origin: Q-03.19 → G2-13
+Scenario: Direct access to the confirmation without payment
+  Given I have not paid successfully in the /cl session
+  When I directly open the /cl confirmation URL
+  Then I am taken to step 1 of /cl
+
+# AC-03.31 — origin: Q-03.20 → G2-13
+Scenario: Confirmation content and new quote
+  Given I paid successfully
+  Then the confirmation shows the quote number, the plan name and the final price paid
+  And it does not show personal data or the document
+  When I choose "new quote"
+  Then I see the empty step 1 of my country
+
+# AC-03.32 — origin: D3, D6
+Scenario: Data and terms separated by country
+  Given on /co I completed step 1 and chose a plan
+  When I open in the same tab the /cl summary URL without having completed Chile
+  Then I am taken to step 1 of /cl without Colombia data
+  And when I reach the /cl summary I see the Chile terms and not the Colombia ones
+
+# AC-03.33 — origin: PDF Accessibility
+Scenario: Summary and payment with the keyboard only
+  Given I reached the summary using only the keyboard
+  When I go through the screen with Tab and Shift+Tab
+  Then the focus goes in logical order through the edit actions, the terms region, the acceptance checkbox, the result selector and the pay button
+  And I can scroll the terms with the keyboard, check the checkbox with Space, choose the result with the arrow keys and pay with Enter
+  And I reach the confirmation without using the mouse
+
+# AC-03.34 — origin: CLAUDE.md §8, Q-03.22 → G2-13
+Scenario: Focus and announcements in step 3
+  When I reach the summary
+  Then the focus is on the main heading of the summary
+  And the terms checkbox has an accessible name equal to its label
+  And the disabled pay button is associated via aria-describedby with the text asking to accept the terms
+  When I press pay
+  Then the "processing" state is announced in an aria-live region
+  And the focus does not go to body while the payment is processed
+  When the payment is rejected
+  Then the message is announced as an alert
+  When I retry and the payment is approved
+  Then the focus is on the confirmation heading and the quote number is readable by a screen reader
+
+# AC-03.35 — origin: PDF Responsive, Q-03.24 → G2-13
+Scenario Outline: Summary and payment on mobile and desktop
+  Given a viewport <width> px wide
+  When I complete the summary and the payment
+  Then the page has no horizontal scrolling
+  And the terms can be read and scrolled
+  And the checkbox and the buttons have an area of at least 24×24 CSS px
+
+  Examples:
+    | width |
     | 320   |
     | 375   |
     | 1280  |
 
-# AC-03.36 — origen: Q-03.14 → G2-2, F-00.4, F-00.7
-Scenario Outline: Texto de interfaz ausente en Strapi
-  Given en Strapi falta para mi país <texto ausente>
-  When llego al resumen
-  Then la sección afectada muestra <lo que veo>
-  And no aparece ningún otro texto por defecto escrito en el código
-  And el botón de pago está deshabilitado
+# AC-03.36 — origin: Q-03.14 → G2-2, F-00.4, F-00.7
+Scenario Outline: UI text missing in Strapi
+  Given in Strapi my country is missing <missing text>
+  When I reach the summary
+  Then the affected section shows <what I see>
+  And no other default text written in the code appears
+  And the pay button is disabled
 
   Examples:
-    | texto ausente                                                            | lo que veo                                                   |
-    | el label de la casilla de términos                                       | el mensaje de error genérico configurado en Strapi para mi país |
-    | el mensaje de rechazo                                                    | el mensaje de error genérico configurado en Strapi para mi país |
-    | el label de la casilla de términos y también el mensaje de error genérico | los textos fijos "error de carga" y "reintentar"             |
+    | missing text                                                 | what I see                                                    |
+    | the terms checkbox label                                     | the generic error message configured in Strapi for my country |
+    | the rejection message                                        | the generic error message configured in Strapi for my country |
+    | the terms checkbox label and also the generic error message  | the fixed texts "error de carga" and "reintentar"             |
 ```
 
-| AC | Escenario | REQ cubiertos |
+| AC | Scenario | REQs covered |
 |---|---|---|
 | AC-03.1 | Complete summary (PDF) | REQ-03.1, REQ-03.4 |
 | AC-03.2 | Terms by country (PDF) | REQ-03.15, REQ-03.17, REQ-03.19 |
 | AC-03.3 | Successful payment (PDF) | REQ-03.22, REQ-03.25 |
 | AC-03.4 | Rejected payment (PDF) | REQ-03.30 |
-| AC-03.5 | Documento colombiano enmascarado | REQ-03.6, REQ-03.7 |
-| AC-03.6 | RUT enmascarado con separadores | REQ-03.6, REQ-03.7 |
-| AC-03.7 | Regla de enmascarado (unit) | REQ-03.7 |
-| AC-03.8 | Datos legibles con labels y secciones de Strapi | REQ-03.1, REQ-03.2, REQ-03.3, REQ-03.38 |
-| AC-03.9 | Precio recalculado desde el id del plan | REQ-03.4, REQ-03.5, REQ-03.11 |
-| AC-03.10 | Editar datos desde el resumen | REQ-03.8, REQ-03.9, REQ-03.11, REQ-03.12 |
-| AC-03.11 | Cambiar de plan desde el resumen | REQ-03.10, REQ-03.11 |
-| AC-03.12 | Retirar la aceptación de términos | REQ-03.17, REQ-03.19 |
-| AC-03.13 | Términos no disponibles | REQ-03.18, REQ-03.19 |
-| AC-03.14 | Términos con marcado no seguro | REQ-03.16 |
-| AC-03.15 | Cambio de términos sin despliegue | REQ-03.15 |
-| AC-03.16 | Estado de carga | REQ-03.19, REQ-03.31 |
-| AC-03.17 | Error al cargar términos y reintento | REQ-03.19, REQ-03.32 |
-| AC-03.18 | Acceso directo al resumen incompleto | REQ-03.13 |
-| AC-03.19 | Plan ya no disponible | REQ-03.14 |
-| AC-03.20 | Datos persistidos inválidos | REQ-03.13 |
-| AC-03.21 | Campo eliminado de la configuración | REQ-03.14 |
-| AC-03.22 | Un único intento de pago | REQ-03.23 |
-| AC-03.23 | Controles bloqueados durante el proceso | REQ-03.22, REQ-03.24 |
-| AC-03.24 | Sin tarjeta ni escrituras | REQ-03.20 |
-| AC-03.25 | Resultado determinista | REQ-03.21 |
-| AC-03.26 | Rechazo y reintento | REQ-03.12, REQ-03.30, REQ-03.38 |
-| AC-03.27 | Formato del número de cotización | REQ-03.26 |
-| AC-03.28 | Recargar la confirmación | REQ-03.28 |
-| AC-03.29 | Atrás tras el pago | REQ-03.28 |
-| AC-03.30 | Confirmación sin pago | REQ-03.29 |
-| AC-03.31 | Contenido de la confirmación | REQ-03.27 |
-| AC-03.32 | Separación por país | REQ-03.15, REQ-03.37 |
-| AC-03.33 | Teclado | REQ-03.16, REQ-03.34 |
-| AC-03.34 | Foco y anuncios | REQ-03.17, REQ-03.33, REQ-03.35 |
+| AC-03.5 | Colombian document masked | REQ-03.6, REQ-03.7 |
+| AC-03.6 | RUT masked with separators | REQ-03.6, REQ-03.7 |
+| AC-03.7 | Masking rule (unit) | REQ-03.7 |
+| AC-03.8 | Readable data with Strapi labels and sections | REQ-03.1, REQ-03.2, REQ-03.3, REQ-03.38 |
+| AC-03.9 | Price recalculated from the plan id | REQ-03.4, REQ-03.5, REQ-03.11 |
+| AC-03.10 | Edit data from the summary | REQ-03.8, REQ-03.9, REQ-03.11, REQ-03.12 |
+| AC-03.11 | Change plan from the summary | REQ-03.10, REQ-03.11 |
+| AC-03.12 | Withdraw the acceptance of the terms | REQ-03.17, REQ-03.19 |
+| AC-03.13 | Terms unavailable | REQ-03.18, REQ-03.19 |
+| AC-03.14 | Terms with unsafe markup | REQ-03.16 |
+| AC-03.15 | Terms change without deployment | REQ-03.15 |
+| AC-03.16 | Loading state | REQ-03.19, REQ-03.31 |
+| AC-03.17 | Error loading terms and retry | REQ-03.19, REQ-03.32 |
+| AC-03.18 | Direct access to the incomplete summary | REQ-03.13 |
+| AC-03.19 | Plan no longer available | REQ-03.14 |
+| AC-03.20 | Invalid persisted data | REQ-03.13 |
+| AC-03.21 | Field removed from the configuration | REQ-03.14 |
+| AC-03.22 | A single payment attempt | REQ-03.23 |
+| AC-03.23 | Controls locked during processing | REQ-03.22, REQ-03.24 |
+| AC-03.24 | No card and no writes | REQ-03.20 |
+| AC-03.25 | Deterministic result | REQ-03.21 |
+| AC-03.26 | Rejection and retry | REQ-03.12, REQ-03.30, REQ-03.38 |
+| AC-03.27 | Quote number format | REQ-03.26 |
+| AC-03.28 | Reload the confirmation | REQ-03.28 |
+| AC-03.29 | Back after the payment | REQ-03.28 |
+| AC-03.30 | Confirmation without payment | REQ-03.29 |
+| AC-03.31 | Confirmation content | REQ-03.27 |
+| AC-03.32 | Separation by country | REQ-03.15, REQ-03.37 |
+| AC-03.33 | Keyboard | REQ-03.16, REQ-03.34 |
+| AC-03.34 | Focus and announcements | REQ-03.17, REQ-03.33, REQ-03.35 |
 | AC-03.35 | Responsive | REQ-03.36 |
-| AC-03.36 | Texto de interfaz ausente en Strapi | REQ-03.19, REQ-03.38 |
+| AC-03.36 | UI text missing in Strapi | REQ-03.19, REQ-03.38 |
 
-## 5. Preguntas abiertas y huecos
+## 5. Open questions and gaps
 
-Todas resueltas en G2 (2026-11-22, `docs/decision-log.md`, motivo literal del humano: "Apruebo todo"). La columna "Respuesta aprobada" es la propuesta original de la spec salvo donde una decisión G2 la sustituye o la precisa (se indica).
+All resolved in G2 (2026-11-22, `docs/decision-log.md`, human's literal reason: "Apruebo todo" ("I approve everything")). The "Approved answer" column is the spec's original proposal, except where a G2 decision replaces or refines it (indicated).
 
-| ID | Pregunta | Respuesta aprobada | Estado | Resuelto por |
+| ID | Question | Approved answer | Status | Resolved by |
 |---|---|---|---|---|
-| Q-03.1 | ¿Qué campo es "el documento" y cómo lo identifica la app? En CO hay tipo de documento (CC o CE) y número; en CL, RUT. El negocio puede renombrar o reordenar campos (US-01), así que no se puede depender de la clave técnica. (analysis.md §1) | **Sustituida por G2-1 (F-00.1):** el documento se identifica por el **rol** de campo `documentNumber` del catálogo de US-01 (REQ-01.28), asignado en Strapi; no hay booleano `masked`. Solo se enmascara el número; el tipo de documento se muestra en claro. Varios campos con ese rol → se enmascaran todos. Ninguno → el formulario de US-01 está "no disponible" (G2-5) y no se llega al resumen. | Resuelta | G2-1 (y G2-5) |
-| Q-03.2 | ¿Cuántos caracteres se muestran, con qué carácter se enmascara y es igual en CO y CL? ¿Qué pasa con valores cortos y con separadores del RUT? (analysis.md §1) | Misma regla en CO y CL, fija en código (no configurable en Strapi): se cuentan solo alfanuméricos; visibles los últimos `min(4, floor(n/2))` (nunca se muestra más de la mitad); carácter `*`; se conservan `.`, `-` y espacios. Ejemplos en AC-03.7. La regla se aplica sobre el valor tal como lo guarda US-01. | Resuelta | G2-13 |
-| Q-03.3 | ¿Cómo se agrupan y ordenan los datos en el resumen? El PDF distingue "policyholder's data" y "vehicle's data", pero la agrupación depende de la configuración de US-01. | **Precisada por G2-6:** se usa el atributo de sección de cada campo de US-01, con catálogo cerrado `policyholder` · `vehicle`, en ese orden fijo; la leyenda de cada sección viene de Strapi; dentro de cada sección, el orden configurado. El resumen no define un tratamiento propio para secciones no válidas: muestra lo que expone US-01 (REQ-01.27). | Resuelta | G2-6 |
-| Q-03.4 | ¿Cómo se muestran los valores de cada tipo (select, checkbox, date, number) y los opcionales vacíos? | `select`: label de la opción vigente (valor visible de REQ-01.27); `checkbox`: textos de sí/no desde Strapi por país; `date`: `Intl.DateTimeFormat` con el locale del país, tratando la fecha como solo-fecha (sin desplazamiento por zona horaria); `number`: `Intl.NumberFormat` con el locale del país; opcional vacío: "—". | Resuelta | G2-13 |
-| Q-03.5 | ¿Qué datos del plan se muestran en el resumen? El PDF solo exige "the chosen plan with its final price". | Nombre y precio final (obligatorios por el PDF) más descripción corta, coberturas y beneficios, para que la persona confirme qué compra. Sin desglose base/ajuste (la regla está documentada en D8 / US-02). | Resuelta | G2-13 |
-| Q-03.6 | ¿El precio final del resumen se recalcula o se usa el que se guardó en el paso 2? | **Confirmada por G2-9:** solo se persiste el id del plan; el resumen recalcula al cargar con la misma función pura que el paso 2 (G2-8), los datos del paso 1 y el plan y los factores vigentes en Strapi. Si el negocio cambió precios, se muestra el nuevo sin aviso adicional. | Resuelta | G2-9 |
-| Q-03.7 | ¿Qué pasa si los datos persistidos ya no coinciden con la configuración actual (plan desactivado o despublicado, campo nuevo obligatorio, opción retirada, campo eliminado)? (analysis.md §1; Skill §3) | **Sustituida en parte por G2-10 y G2-11:** plan no disponible (inactivo, despublicado o con moneda distinta a la del país) → redirección al paso 2, donde se descarta la selección y se muestra el aviso de US-02 (REQ-02.17), en lugar de quedarse en el resumen con el pago bloqueado; datos del paso 1 que ya no cumplen → `isComplete` falso (calculado con la configuración vigente) → paso 1 con datos conservados. Se mantiene de la propuesta (G2-13): campo eliminado → no se muestra; no se revalida otra vez justo antes de pagar (riesgo aceptado). | Resuelta | G2-10, G2-11, G2-13 |
-| Q-03.8 | ¿Qué ocurre si se abre la URL del resumen directamente o se recarga? | **Precisada por G2-10 (F-00.5):** con `isComplete` verdadero y plan guardado se reconstruye el resumen desde `sessionStorage` (D6), con la casilla de términos desmarcada. `isComplete` falso → paso 1; `isComplete` verdadero sin plan → paso 2. `isComplete` se calcula siempre con la configuración vigente; no se persiste ninguna señal de "paso completado". | Resuelta | G2-10 |
-| Q-03.9 | Al volver a editar datos o cambiar de plan, ¿qué se conserva? ¿Se conserva la aceptación de términos? Tras editar el paso 1, ¿se vuelve directo al resumen o se pasa por el paso 2? | Se conservan los datos del paso 1 y el plan (D6). Editar datos conserva el plan si sigue disponible y se recalcula el precio. Tras editar el paso 1 se pasa por el paso 2 con el plan preseleccionado. La aceptación de términos no se persiste y se reinicia al salir del resumen o recargar. | Resuelta | G2-13 |
-| Q-03.10 | El contexto dice "the person must confirm their data". ¿Hace falta una confirmación explícita (otra casilla o botón) además de aceptar los términos? | No: revisar el resumen y pulsar pagar constituye la confirmación. Las reglas de negocio solo condicionan el pago a aceptar los términos. | Resuelta | G2-13 |
-| Q-03.11 | ¿En qué formato llega el texto de términos (texto plano, Markdown, rich text "blocks" de Strapi 5) y cómo se pinta de forma segura? | Decisión técnica del Software Architect (G3). Requisito funcional: que permita párrafos y listas, y que el render no inserte HTML crudo del contenido (REQ-03.16, AC-03.14). | Resuelta (formato concreto: G3) | G2-13 |
-| Q-03.12 | ¿Qué pasa si no hay términos para el país, el texto está vacío o hay más de un registro? | Estado "términos no disponibles" con aviso (texto desde Strapi) y pago bloqueado en los tres casos (REQ-03.18). Con varios registros no se elige uno. El modelo de contenido (G3) debería impedir más de un registro por país. | Resuelta | G2-13 |
-| Q-03.13 | ¿Hay que obligar a leer o desplazarse hasta el final de los términos antes de aceptarlos? ¿Se muestran inline o en un modal? | No se obliga a desplazarse. Se muestran inline en el resumen, en una región con altura máxima, desplazable y enfocable con teclado. | Resuelta | G2-13 |
-| Q-03.14 | ¿De dónde salen los textos de UI del paso 3 y de la confirmación? CLAUDE.md §11 dice que los textos visibles vienen de Strapi, pero si Strapi no responde, el mensaje de error no puede venir de Strapi. | **Precisada por G2-2 (F-00.3, F-00.4; excepción en `CLAUDE.md` §11):** todos los textos vienen de Strapi por país, incluido el mensaje de error genérico del país, salvo cuatro textos fijos en código, en español: "cargando", "error de carga", "reintentar" y "país no disponible". **Alineado con US-01 REQ-01.13 (F-00.7):** si falta en Strapi un texto obligatorio de una sección, es un error de configuración y esa sección muestra el mensaje de error genérico del país; si falta también ese mensaje, se usan los textos fijos "error de carga" y "reintentar". Un fallo de red o de contrato muestra siempre los textos fijos (REQ-03.32). No hay otros textos por defecto en código. | Resuelta | G2-2 |
-| Q-03.15 | ¿Cómo se elige el resultado del pago simulado (D9) y cómo se fuerza un rechazo determinista en el e2e? (analysis.md §1) | **Confirmada por G2-12:** opciones visibles aprobado (por defecto) / rechazado dentro del paso 3, en un bloque "pasarela simulada". Sin parámetros de URL, flags ocultos ni aleatoriedad; respeta D7 (sin pantalla aparte). Sus textos siguen G2-2. | Resuelta | G2-12 |
-| Q-03.16 | ¿Cuánto dura el procesamiento simulado y qué se puede hacer mientras tanto? | Duración fija de 1500 ms definida en código e inyectable en tests. Durante el proceso se bloquean la casilla, el selector de resultado y las acciones de edición. Si la persona abandona la pantalla durante el proceso, el resultado pendiente se descarta y no se muestra confirmación. | Resuelta | G2-13 |
-| Q-03.17 | ¿Qué cubre "cannot be submitted twice"? | (a) Doble clic, Enter mantenido y Enter+clic → un único intento, con guardia en el estado además del bloqueo visual. (b) Tras un éxito, volver atrás o recargar no permite pagar otra vez (Q-03.19). (c) Limitación aceptada: sin backend (D4), no se impide pagar en una pestaña duplicada; se documenta en el README. | Resuelta | G2-13 |
-| Q-03.18 | ¿Qué formato y qué unicidad tiene el número de cotización simulado? | `<CC>-<YYYYMMDD>-<XXXXXX>` (p. ej. `CO-20261122-7K3F9Q`): país, fecha UTC del pago y 6 caracteres de un alfabeto de 32 sin ambiguos, con `crypto.getRandomValues`. Unicidad solo probabilística; no hay registro central (D4). Reloj y aleatoriedad inyectables para tests. | Resuelta | G2-13 |
-| Q-03.19 | ¿Qué pasa con los datos tras un pago exitoso? ¿Qué ocurre al recargar la confirmación o al volver atrás? | Se borra el estado del wizard del país y se guarda solo una confirmación mínima sin documento (número, plan, precio, moneda, fecha). Recargar la confirmación la muestra de nuevo. Atrás o URL del resumen → paso 1 vacío. Abrir la confirmación sin pago → paso 1. "Nueva cotización" borra también la confirmación guardada. | Resuelta | G2-13 |
-| Q-03.20 | ¿Qué muestra la confirmación además del número? | Número de cotización, nombre del plan y precio final pagado (copiados en el momento del pago) y la acción "nueva cotización". Sin datos personales ni documento. | Resuelta | G2-13 |
-| Q-03.21 | ¿Qué es un mensaje de rechazo "claro" y qué conserva el reintento? | Texto por país desde Strapi, sin códigos técnicos, junto al botón de pago y anunciado como alerta. Se conservan datos, plan, precio y la aceptación de términos. El mensaje se retira al iniciar un nuevo intento. Sin límite de reintentos. | Resuelta | G2-13 |
-| Q-03.22 | ¿Cómo se gestionan el foco y los anuncios del resultado del pago? | Foco al encabezado al entrar al resumen y a la confirmación; "procesando" en `aria-live="polite"`; rechazo con `role="alert"`; el bloqueo del botón no debe perder el foco (técnica del Angular Developer); motivo del botón deshabilitado con `aria-describedby`; el documento enmascarado se lee tal cual. | Resuelta | G2-13 |
-| Q-03.23 | El documento completo queda en claro en `sessionStorage` (D6) mientras dura la cotización. ¿Es aceptable? | Sí: D6 aprobada, datos ficticios, `sessionStorage` se borra al cerrar la pestaña y se limpia tras el pago. Se documenta en el README como limitación conocida. | Resuelta | G2-13 |
-| Q-03.24 | ¿Qué significa "works on mobile and desktop" para el paso 3? | Anchos de prueba 320, 375 y 1280 px; sin desplazamiento horizontal; una columna en móvil; áreas táctiles de al menos 24×24 px CSS (WCAG 2.2 AA, 2.5.8). | Resuelta | G2-13 |
+| Q-03.1 | Which field is "the document" and how does the app identify it? In CO there is a document type (CC or CE) and a number; in CL, the RUT. The business can rename or reorder fields (US-01), so the app cannot depend on the technical key. (analysis.md §1) | **Replaced by G2-1 (F-00.1):** the document is identified by the field **role** `documentNumber` from the US-01 catalog (REQ-01.28), assigned in Strapi; there is no `masked` boolean. Only the number is masked; the document type is shown in clear. Several fields with that role → all of them are masked. None → the US-01 form is "unavailable" (G2-5) and the summary is not reached. | Resolved | G2-1 (and G2-5) |
+| Q-03.2 | How many characters are shown, with which character is the value masked, and is it the same in CO and CL? What happens with short values and with the RUT separators? (analysis.md §1) | Same rule in CO and CL, fixed in code (not configurable in Strapi): only alphanumerics are counted; the last `min(4, floor(n/2))` are visible (never more than half is shown); character `*`; `.`, `-` and spaces are kept. Examples in AC-03.7. The rule is applied on the value as US-01 stores it. | Resolved | G2-13 |
+| Q-03.3 | How are the data grouped and ordered in the summary? The PDF distinguishes "policyholder's data" and "vehicle's data", but the grouping depends on the US-01 configuration. | **Refined by G2-6:** the section attribute of each US-01 field is used, with the closed catalog `policyholder` · `vehicle`, in that fixed order; each section's legend comes from Strapi; within each section, the configured order. The summary does not define its own handling for invalid sections: it shows what US-01 exposes (REQ-01.27). | Resolved | G2-6 |
+| Q-03.4 | How are the values of each type (select, checkbox, date, number) and the empty optional ones shown? | `select`: label of the current option (display value of REQ-01.27); `checkbox`: yes/no texts from Strapi per country; `date`: `Intl.DateTimeFormat` with the country's locale, treating the date as date-only (no time zone shift); `number`: `Intl.NumberFormat` with the country's locale; empty optional: "—". | Resolved | G2-13 |
+| Q-03.5 | Which plan data is shown in the summary? The PDF only requires "the chosen plan with its final price". | Name and final price (required by the PDF) plus short description, coverages and benefits, so that the person confirms what they are buying. No base/adjustment breakdown (the rule is documented in D8 / US-02). | Resolved | G2-13 |
+| Q-03.6 | Is the final price of the summary recalculated, or is the one stored in step 2 used? | **Confirmed by G2-9:** only the plan id is persisted; the summary recalculates on load with the same pure function as step 2 (G2-8), the step 1 data and the current plan and factors in Strapi. If the business changed prices, the new one is shown without an additional notice. | Resolved | G2-9 |
+| Q-03.7 | What happens if the persisted data no longer matches the current configuration (plan deactivated or unpublished, new required field, removed option, removed field)? (analysis.md §1; Skill §3) | **Partly replaced by G2-10 and G2-11:** plan unavailable (inactive, unpublished or with a currency different from the country's) → redirect to step 2, where the selection is discarded and the US-02 warning is shown (REQ-02.17), instead of staying on the summary with the payment blocked; step 1 data that no longer complies → `isComplete` false (computed with the current configuration) → step 1 with the data kept. Kept from the proposal (G2-13): removed field → not shown; it is not revalidated again right before paying (accepted risk). | Resolved | G2-10, G2-11, G2-13 |
+| Q-03.8 | What happens if the summary URL is opened directly or reloaded? | **Refined by G2-10 (F-00.5):** with `isComplete` true and a stored plan, the summary is rebuilt from `sessionStorage` (D6), with the terms checkbox unchecked. `isComplete` false → step 1; `isComplete` true without a plan → step 2. `isComplete` is always computed with the current configuration; no "step completed" flag is persisted. | Resolved | G2-10 |
+| Q-03.9 | When going back to edit data or to change the plan, what is kept? Is the terms acceptance kept? After editing step 1, does the flow go straight back to the summary or through step 2? | The step 1 data and the plan are kept (D6). Editing data keeps the plan if it is still available, and the price is recalculated. After editing step 1, the flow goes through step 2 with the plan preselected. The terms acceptance is not persisted and is reset on leaving the summary or reloading. | Resolved | G2-13 |
+| Q-03.10 | The context says "the person must confirm their data". Is an explicit confirmation (another checkbox or button) needed in addition to accepting the terms? | No: reviewing the summary and pressing pay constitutes the confirmation. The business rules only make the payment conditional on accepting the terms. | Resolved | G2-13 |
+| Q-03.11 | In which format does the terms text arrive (plain text, Markdown, Strapi 5 rich text "blocks") and how is it rendered safely? | Technical decision of the Software Architect (G3). Functional requirement: it must support paragraphs and lists, and the render must not insert raw HTML from the content (REQ-03.16, AC-03.14). | Resolved (specific format: G3) | G2-13 |
+| Q-03.12 | What happens if there are no terms for the country, the text is empty or there is more than one record? | "Terms unavailable" state with a notice (text from Strapi) and payment blocked in the three cases (REQ-03.18). With several records, none is chosen. The content model (G3) should prevent more than one record per country. | Resolved | G2-13 |
+| Q-03.13 | Must the person be forced to read or scroll to the end of the terms before accepting them? Are they shown inline or in a modal? | Scrolling is not forced. They are shown inline in the summary, in a region with a maximum height, scrollable and focusable with the keyboard. | Resolved | G2-13 |
+| Q-03.14 | Where do the UI texts of step 3 and of the confirmation come from? CLAUDE.md §11 says the visible texts come from Strapi, but if Strapi does not respond, the error message cannot come from Strapi. | **Refined by G2-2 (F-00.3, F-00.4; exception in `CLAUDE.md` §11):** all texts come from Strapi per country, including the country's generic error message, except four fixed texts in code, in Spanish: "cargando", "error de carga", "reintentar" and "país no disponible". **Aligned with US-01 REQ-01.13 (F-00.7):** if a required text of a section is missing in Strapi, it is a configuration error and that section shows the country's generic error message; if that message is missing too, the fixed texts "error de carga" and "reintentar" are used. A network or contract failure always shows the fixed texts (REQ-03.32). There are no other default texts in code. | Resolved | G2-2 |
+| Q-03.15 | How is the result of the simulated payment chosen (D9) and how is a deterministic rejection forced in the e2e? (analysis.md §1) | **Confirmed by G2-12:** visible options approved (default) / rejected inside step 3, in a "simulated gateway" block. No URL parameters, hidden flags or randomness; it respects D7 (no separate screen). Its texts follow G2-2. | Resolved | G2-12 |
+| Q-03.16 | How long does the simulated processing last and what can be done meanwhile? | Fixed duration of 1500 ms defined in code and injectable in tests. During the process the checkbox, the result selector and the edit actions are blocked. If the person leaves the screen during the process, the pending result is discarded and no confirmation is shown. | Resolved | G2-13 |
+| Q-03.17 | What does "cannot be submitted twice" cover? | (a) Double click, held Enter and Enter+click → a single attempt, with a guard in the state in addition to the visual lock. (b) After a success, going back or reloading does not allow paying again (Q-03.19). (c) Accepted limitation: without a backend (D4), paying in a duplicated tab is not prevented; it is documented in the README. | Resolved | G2-13 |
+| Q-03.18 | What format and what uniqueness does the simulated quote number have? | `<CC>-<YYYYMMDD>-<XXXXXX>` (e.g. `CO-20261122-7K3F9Q`): country, UTC date of the payment and 6 characters from a 32-character alphabet without ambiguous characters, with `crypto.getRandomValues`. Uniqueness only probabilistic; there is no central registry (D4). Clock and randomness injectable for tests. | Resolved | G2-13 |
+| Q-03.19 | What happens to the data after a successful payment? What happens when reloading the confirmation or going back? | The country's wizard state is cleared and only a minimal confirmation without the document is stored (number, plan, price, currency, date). Reloading the confirmation shows it again. Back or summary URL → empty step 1. Opening the confirmation without payment → step 1. "New quote" also clears the stored confirmation. | Resolved | G2-13 |
+| Q-03.20 | What does the confirmation show besides the number? | Quote number, plan name and final price paid (copied at the moment of payment) and the "new quote" action. No personal data or document. | Resolved | G2-13 |
+| Q-03.21 | What is a "clear" rejection message and what does the retry keep? | Text per country from Strapi, without technical codes, next to the pay button and announced as an alert. The data, plan, price and terms acceptance are kept. The message is removed when a new attempt starts. No retry limit. | Resolved | G2-13 |
+| Q-03.22 | How are the focus and the announcements of the payment result managed? | Focus to the heading on entering the summary and the confirmation; "processing" in `aria-live="polite"`; rejection with `role="alert"`; locking the button must not lose the focus (technique of the Angular Developer); reason for the disabled button with `aria-describedby`; the masked document is read as is. | Resolved | G2-13 |
+| Q-03.23 | The full document remains in clear text in `sessionStorage` (D6) while the quote lasts. Is that acceptable? | Yes: D6 approved, fictitious data, `sessionStorage` is cleared when the tab is closed and cleaned after the payment. It is documented in the README as a known limitation. | Resolved | G2-13 |
+| Q-03.24 | What does "works on mobile and desktop" mean for step 3? | Test widths 320, 375 and 1280 px; no horizontal scrolling; one column on mobile; touch targets of at least 24×24 CSS px (WCAG 2.2 AA, 2.5.8). | Resolved | G2-13 |
 
-No quedan preguntas abiertas ni bloqueantes. Pendiente de G3 (no de G2): formato concreto del texto de términos (Q-03.11) y nombres reales de content types, campos, rutas y claves.
+No open or blocking questions remain. Pending for G3 (not G2): the specific format of the terms text (Q-03.11) and the real names of content types, fields, routes and keys.
 
-## 6. Datos y contratos
+## 6. Data and contracts
 
-Referencia pendiente: `docs/architecture/content-model.md` y contratos de API (G3). Nombres descriptivos.
+Pending reference: `docs/architecture/content-model.md` and API contracts (G3). Descriptive names.
 
-### 6.1 Lo que el resumen consume de Strapi (solo `GET`, a través del proxy de nginx, D4)
+### 6.1 What the summary consumes from Strapi (only `GET`, through the nginx proxy, D4)
 
-| Contenido | Para qué | REQ |
+| Content | What for | REQ |
 |---|---|---|
-| País (código, moneda, locale) | Formato de precio, fechas y números; prefijo del número de cotización; comprobación de moneda del plan | REQ-03.3, REQ-03.4, REQ-03.14, REQ-03.26 |
-| Configuración del formulario del país (label, tipo, sección, rol, orden, opciones, validaciones), a través del resultado del paso 1 de US-01 | Labels y valores legibles, secciones, enmascarado por rol `documentNumber`, `isComplete` | REQ-03.2, REQ-03.3, REQ-03.6, REQ-03.13 |
-| Planes publicados y activos del país + factores de precio (D8, G2-8) | Plan elegido, precio final, comprobación de que sigue disponible | REQ-03.4, REQ-03.5, REQ-03.14 |
-| Términos y condiciones del país | Texto a aceptar | REQ-03.15, REQ-03.18 |
-| Textos de UI del país (G2-2) | Acciones, label de la casilla, sí/no, leyendas, avisos, pasarela simulada, mensaje de rechazo, confirmación, mensaje de error genérico del país | REQ-03.38 |
+| Country (code, currency, locale) | Price, date and number format; quote number prefix; check of the plan currency | REQ-03.3, REQ-03.4, REQ-03.14, REQ-03.26 |
+| Form configuration of the country (label, type, section, role, order, options, validations), through the US-01 step 1 result | Readable labels and values, sections, masking by role `documentNumber`, `isComplete` | REQ-03.2, REQ-03.3, REQ-03.6, REQ-03.13 |
+| Published and active plans of the country + price factors (D8, G2-8) | Chosen plan, final price, check that it is still available | REQ-03.4, REQ-03.5, REQ-03.14 |
+| Terms and conditions of the country | Text to accept | REQ-03.15, REQ-03.18 |
+| UI texts of the country (G2-2) | Actions, checkbox label, yes/no, legends, notices, simulated gateway, rejection message, confirmation, country's generic error message | REQ-03.38 |
 
-### 6.2 Lo que se guarda en el navegador (`sessionStorage`, separado por país, D6)
+### 6.2 What is stored in the browser (`sessionStorage`, separated by country, D6)
 
-| Dato | Dueño | Uso en US-03 |
+| Data | Owner | Use in US-03 |
 |---|---|---|
-| Valores del paso 1 | US-01 | Lectura (resumen); se borra tras pago exitoso |
-| Id del plan elegido (`documentId`; único dato del plan que se persiste, G2-9) | US-02 | Lectura (resumen); se borra tras pago exitoso |
-| Confirmación mínima: número, nombre del plan, precio final, moneda, fecha | **US-03** | Escritura tras éxito; lectura en la confirmación; se borra con "nueva cotización" |
+| Step 1 values | US-01 | Read (summary); cleared after a successful payment |
+| Id of the chosen plan (`documentId`; the only plan data that is persisted, G2-9) | US-02 | Read (summary); cleared after a successful payment |
+| Minimal confirmation: number, plan name, final price, currency, date | **US-03** | Written after success; read in the confirmation; cleared with "new quote" |
 
-No se persisten: la aceptación de términos, el resultado elegido en la pasarela simulada, el estado de procesamiento, el precio ni ninguna señal de "paso completado" (G2-10).
+Not persisted: the terms acceptance, the result chosen in the simulated gateway, the processing state, the price or any "step completed" flag (G2-10).
 
-### 6.3 Dependencias con otras historias
+### 6.3 Dependencies on other stories
 
-| Dependencia | Historia | Qué necesita US-03 | Decisión |
+| Dependency | Story | What US-03 needs | Decision |
 |---|---|---|---|
-| Rol de campo `documentNumber` en el catálogo de roles (REQ-01.28) | US-01 | Saber qué campos enmascarar sin depender de la clave | G2-1 |
-| Formulario "no disponible" si falta un campo de rol obligatorio | US-01 | Garantía de que al resumen no se llega sin documento | G2-5 |
-| Forma en que se guarda el documento (con o sin separadores) | US-01 | Aplicar la regla de enmascarado sobre el valor guardado | G2-13 |
-| Atributo de sección `policyholder` · `vehicle`, orden fijo, leyenda en Strapi (REQ-01.12) | US-01 | Agrupación del resumen | G2-6 |
-| Resultado del paso 1 con valor visible e indicador `isComplete` calculado con la configuración vigente (REQ-01.27) | US-01 | Valores legibles y guardas del resumen | G2-10 |
-| Forma del estado persistido del paso 1 y clave por país | US-01 / ADR de persistencia (G3) | Lectura y borrado tras el pago | D6 |
-| `documentId` del plan elegido y preselección al volver al paso 2 (REQ-02.16, REQ-02.18) | US-02 | "Cambiar plan" y recálculo del precio | G2-9 |
-| Descarte de la selección y aviso cuando el plan ya no está disponible o tiene otra moneda (REQ-02.7, REQ-02.17) | US-02 | Redirección desde el resumen al paso 2 | G2-11 |
-| Función pura de precio final (REQ-02.8, REQ-02.11) | US-02 | Recalcular el precio en el resumen | G2-8, G2-9 |
-| Formato de moneda COP/CLP | US-02 | Mismo formato en resumen y confirmación | — |
-| Textos de UI por país y los cuatro textos fijos | US-01, US-02, US-03 / G3 | Todos los textos visibles | G2-2 |
+| Field role `documentNumber` in the role catalog (REQ-01.28) | US-01 | Knowing which fields to mask without depending on the key | G2-1 |
+| Form "unavailable" if a field with a required role is missing | US-01 | Guarantee that the summary is not reached without a document | G2-5 |
+| How the document is stored (with or without separators) | US-01 | Applying the masking rule on the stored value | G2-13 |
+| Section attribute `policyholder` · `vehicle`, fixed order, legend in Strapi (REQ-01.12) | US-01 | Grouping of the summary | G2-6 |
+| Step 1 result with display value and `isComplete` flag computed with the current configuration (REQ-01.27) | US-01 | Readable values and summary guards | G2-10 |
+| Shape of the persisted step 1 state and key per country | US-01 / persistence ADR (G3) | Reading and clearing after the payment | D6 |
+| `documentId` of the chosen plan and preselection on returning to step 2 (REQ-02.16, REQ-02.18) | US-02 | "Change plan" and recalculation of the price | G2-9 |
+| Discarding the selection and warning when the plan is no longer available or has another currency (REQ-02.7, REQ-02.17) | US-02 | Redirect from the summary to step 2 | G2-11 |
+| Pure final price function (REQ-02.8, REQ-02.11) | US-02 | Recalculating the price in the summary | G2-8, G2-9 |
+| COP/CLP currency format | US-02 | Same format in the summary and the confirmation | — |
+| UI texts per country and the four fixed texts | US-01, US-02, US-03 / G3 | All visible texts | G2-2 |
 
-## 7. Requisitos no funcionales aplicables
+## 7. Applicable non-functional requirements
 
-- **Accesibilidad:** casilla de términos con `<label>` asociado; región de términos enfocable y desplazable; todo operable con teclado; foco al encabezado al entrar en el resumen y en la confirmación; "procesando" en región `aria-live`; rechazo con `role="alert"`; motivo del botón deshabilitado con `aria-describedby`; el foco no se pierde al bloquear el botón (REQ-03.33 a REQ-03.35).
-- **Responsive:** 320 px a escritorio, sin desplazamiento horizontal, una columna en móvil, áreas táctiles de 24×24 px o más (REQ-03.36).
-- **Estados:** "cargando" y "error de carga" con "reintentar" por sección (textos fijos, G2-2); vacío para términos no disponibles; redirección con aviso para plan no disponible; error de configuración si falta un texto en Strapi (REQ-03.14, REQ-03.18, REQ-03.31, REQ-03.32, REQ-03.38).
-- **Seguridad:** solo `GET` hacia Strapi (D4); ningún dato de tarjeta (D9); contenido de términos pintado sin HTML crudo (REQ-03.16); documento enmascarado fuera del DOM en claro (REQ-03.6); confirmación persistida sin datos personales (REQ-03.28).
-- **Determinismo de pruebas:** resultado del pago elegido por el usuario (G2-12); duración, reloj y aleatoriedad inyectables (REQ-03.21, REQ-03.24, REQ-03.26).
+- **Accessibility:** terms checkbox with an associated `<label>`; focusable and scrollable terms region; everything operable with the keyboard; focus to the heading on entering the summary and the confirmation; "processing" in an `aria-live` region; rejection with `role="alert"`; reason for the disabled button with `aria-describedby`; the focus is not lost when the button is locked (REQ-03.33 to REQ-03.35).
+- **Responsive:** 320 px to desktop, no horizontal scrolling, one column on mobile, touch targets of 24×24 px or more (REQ-03.36).
+- **States:** "cargando" and "error de carga" with "reintentar" per section (fixed texts, G2-2); empty state for unavailable terms; redirect with a notice for an unavailable plan; configuration error if a text is missing in Strapi (REQ-03.14, REQ-03.18, REQ-03.31, REQ-03.32, REQ-03.38).
+- **Security:** only `GET` to Strapi (D4); no card data (D9); terms content rendered without raw HTML (REQ-03.16); masked document, with the clear value kept out of the DOM (REQ-03.6); persisted confirmation without personal data (REQ-03.28).
+- **Test determinism:** payment result chosen by the user (G2-12); injectable duration, clock and randomness (REQ-03.21, REQ-03.24, REQ-03.26).
 
-## 8. Plan de verificación
+## 8. Verification plan
 
-Las rutas exactas dependen de la estructura que fije G3; los nombres de los tests empiezan por el ID del AC (`it('AC-03.7 masks document keeping last visible chars', ...)`).
+The exact paths depend on the structure set by G3; the test names start with the AC ID (`it('AC-03.7 masks document keeping last visible chars', ...)`).
 
-| AC / REQ | Tipo de test | Ubicación prevista |
+| AC / REQ | Test type | Planned location |
 |---|---|---|
-| AC-03.5, AC-03.6, AC-03.7 (REQ-03.6, REQ-03.7) | Unit (función de enmascarado y selección por rol `documentNumber`) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.8 (REQ-03.2, REQ-03.3) | Unit (secciones y presentación de valores por tipo) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.9 (REQ-03.5) | Unit (misma función de precio que US-02, a partir del id del plan) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.12, AC-03.13, AC-03.16, AC-03.17, AC-03.36 (REQ-03.17 a REQ-03.19, REQ-03.31, REQ-03.32, REQ-03.38) | Unit (componente del resumen con Strapi simulado) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.14 (REQ-03.16) | Unit (render de términos) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.18 a AC-03.21, AC-03.30 (REQ-03.13, REQ-03.14, REQ-03.29) | Unit (guardas con `isComplete` y comprobación del plan) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.22, AC-03.23 (REQ-03.22 a REQ-03.24) | Unit (servicio de pago con duración inyectada; contador de intentos) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.27 (REQ-03.26) | Unit (generador con reloj y aleatoriedad inyectados) | `frontend/src/app/**` `*.spec.ts` |
-| AC-03.28 (REQ-03.28) | Unit (store tras éxito) + E2E (recarga) | `frontend/src/app/**`, `e2e/` |
-| AC-03.1 a AC-03.4, AC-03.5, AC-03.10, AC-03.11, AC-03.25, AC-03.26, AC-03.29, AC-03.31 | E2E flujo completo de CO (aprobado y rechazado + reintento) | `e2e/` |
-| AC-03.2, AC-03.6, AC-03.32 | E2E de CL (términos y RUT) y separación por país | `e2e/` |
-| AC-03.15, AC-03.19, AC-03.20, AC-03.21 | E2E si el entorno permite cambiar contenido de Strapi en el test; si no, Manual con evidencia | `e2e/` o `docs/qa/` |
-| AC-03.24 (REQ-03.20) | E2E (registro de peticiones de red: ninguna distinta de `GET`) | `e2e/` |
-| AC-03.33, AC-03.34 (REQ-03.33 a REQ-03.35) | E2E con teclado + Manual (G5, lector de pantalla) | `e2e/`, `docs/qa/` |
-| AC-03.35 (REQ-03.36) | E2E con viewports + Manual (G5, móvil real) | `e2e/`, `docs/qa/` |
+| AC-03.5, AC-03.6, AC-03.7 (REQ-03.6, REQ-03.7) | Unit (masking function and selection by role `documentNumber`) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.8 (REQ-03.2, REQ-03.3) | Unit (sections and presentation of values by type) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.9 (REQ-03.5) | Unit (same price function as US-02, from the plan id) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.12, AC-03.13, AC-03.16, AC-03.17, AC-03.36 (REQ-03.17 to REQ-03.19, REQ-03.31, REQ-03.32, REQ-03.38) | Unit (summary component with simulated Strapi) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.14 (REQ-03.16) | Unit (terms render) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.18 to AC-03.21, AC-03.30 (REQ-03.13, REQ-03.14, REQ-03.29) | Unit (guards with `isComplete` and plan check) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.22, AC-03.23 (REQ-03.22 to REQ-03.24) | Unit (payment service with injected duration; attempt counter) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.27 (REQ-03.26) | Unit (generator with injected clock and randomness) | `frontend/src/app/**` `*.spec.ts` |
+| AC-03.28 (REQ-03.28) | Unit (store after success) + E2E (reload) | `frontend/src/app/**`, `e2e/` |
+| AC-03.1 to AC-03.4, AC-03.5, AC-03.10, AC-03.11, AC-03.25, AC-03.26, AC-03.29, AC-03.31 | E2E full CO flow (approved and rejected + retry) | `e2e/` |
+| AC-03.2, AC-03.6, AC-03.32 | E2E of CL (terms and RUT) and separation by country | `e2e/` |
+| AC-03.15, AC-03.19, AC-03.20, AC-03.21 | E2E if the environment allows changing Strapi content in the test; otherwise, Manual with evidence | `e2e/` or `docs/qa/` |
+| AC-03.24 (REQ-03.20) | E2E (log of network requests: none other than `GET`) | `e2e/` |
+| AC-03.33, AC-03.34 (REQ-03.33 to REQ-03.35) | E2E with keyboard + Manual (G5, screen reader) | `e2e/`, `docs/qa/` |
+| AC-03.35 (REQ-03.36) | E2E with viewports + Manual (G5, real mobile device) | `e2e/`, `docs/qa/` |
 
-## 9. Historial
+## 9. History
 
-| Versión | Fecha | Cambio | Motivo |
+| Version | Date | Change | Reason |
 |---|---|---|---|
-| 0.1 | 2026-11-22 | Borrador inicial | — |
-| 0.2 | 2026-11-22 | Aplicadas decisiones G2 | G2 aprobado por el humano |
-| 0.2 | 2026-11-22 | Alineado mensaje genérico con US-01 | F-00.7 |
+| 0.1 | 2026-11-22 | Initial draft | — |
+| 0.2 | 2026-11-22 | G2 decisions applied | G2 approved by the human |
+| 0.2 | 2026-11-22 | Generic message aligned with US-01 | F-00.7 |
+| 0.5 | 2026-11-23 | Translated into English, no content change | D16 |

@@ -1,18 +1,18 @@
-# Informe de pruebas E2E — Fase 5
+# E2E test report — Phase 5
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Fecha | 2026-11-23 |
-| Autor | QA Engineer (subagente) |
-| Rama | `phase-5/validation` (HEAD `8f763cb` en el momento de la ejecución; tests de `e2e/` sin commit) |
-| Pila probada | `docker compose` ya levantada: imagen `web` creada 2026-11-23 01:15 −05 e imagen `cms` 01:11 −05. **Anteriores a `40dfcae` (02:01) y `8f763cb` (02:13)**: ver "Vigencia de esta evidencia" |
-| Entorno | Windows 11 · 8 CPU lógicas · 8 GB RAM · Node 24.22.3 · `@playwright/test` 1.65.1 · Google Chrome 159.0.8154.13 del sistema (`channel: 'chrome'`, sin navegadores descargados) · Docker Compose v5.5.0 |
-| Configuración | `e2e/playwright.config.ts`: `baseURL` `http://localhost:8080` (nginx), `timezoneId` `America/Bogota`, `locale` `es-CO`, reloj `page.clock.setFixedTime(2026-11-22T17:00:00Z)` (12:00 en Bogotá) en cada test, 2 workers, sin reintentos |
-| Plan | [`test-plan.md`](test-plan.md) · Plantilla G5: [`manual-check.md`](manual-check.md) |
+| Date | 2026-11-23 |
+| Author | QA Engineer (subagent) |
+| Branch | `phase-5/validation` (HEAD `8f763cb` at the time of the run; `e2e/` tests uncommitted) |
+| Tested stack | `docker compose` already running: `web` image created 2026-11-23 01:15 −05 and `cms` image 01:11 −05. **Older than `40dfcae` (02:01) and `8f763cb` (02:13)**: see "Validity of this evidence" |
+| Environment | Windows 11 · 8 logical CPUs · 8 GB RAM · Node 24.22.3 · `@playwright/test` 1.65.1 · system Google Chrome 159.0.8154.13 (`channel: 'chrome'`, no downloaded browsers) · Docker Compose v5.5.0 |
+| Configuration | `e2e/playwright.config.ts`: `baseURL` `http://localhost:8080` (nginx), `timezoneId` `America/Bogota`, `locale` `es-CO`, clock `page.clock.setFixedTime(2026-11-22T17:00:00Z)` (12:00 in Bogotá) in every test, 2 workers, no retries |
+| Plan | [`test-plan.md`](test-plan.md) · G5 template: [`manual-check.md`](manual-check.md) |
 
-## Comando
+## Command
 
-Con la pila levantada (`docker compose up -d`; `globalSetup` espera a que `/api/countries` responda 200):
+With the stack running (`docker compose up -d`; `globalSetup` waits until `/api/countries` answers 200):
 
 ```bash
 cd e2e
@@ -20,24 +20,24 @@ npm ci                      # @playwright/test 1.65.1; no descarga navegadores
 npx playwright test
 ```
 
-Proyectos (ADR-0007): `flow`, `states`, `content-changes`, `a11y-responsive`. `E2E_WORKERS` y `E2E_BASE_URL` permiten cambiar workers y URL sin tocar el código.
+Projects (ADR-0007): `flow`, `states`, `content-changes`, `a11y-responsive`. `E2E_WORKERS` and `E2E_BASE_URL` change the workers and the URL without touching the code.
 
-## Resultado
+## Result
 
-**77 tests: 76 pasan, 1 falla.** El fallo es un defecto de la aplicación (D-E2E-1), no del test. Exit code 1.
+**77 tests: 76 pass, 1 fails.** The failure is an application defect (D-E2E-1), not a test defect. Exit code 1.
 
-| Proyecto | Tests | Pasan | Fallan |
+| Project | Tests | Pass | Fail |
 |---|---|---|---|
 | `flow` | 25 | 25 | 0 |
 | `states` | 17 | 17 | 0 |
 | `content-changes` | 21 | 21 | 0 |
 | `a11y-responsive` | 14 | 13 | 1 |
 
-El flujo completo de Colombia exigido por el PDF (`flow/co-full-flow.spec.ts`), hecho **solo con teclado** (Tab, flechas, Espacio y Enter; ningún `click`, `fill` ni `selectOption`), **pasa**: formulario → planes → resumen → aceptar términos → pago aprobado → confirmación con número `^CO-20261122-[A-HJ-NP-Z2-9]{6}$`. Comprueba además el documento enmascarado `******7890` (el valor completo no está ni en el DOM ni en el árbol accesible) y el precio `"$ 1.320.000"` comparado como cadena exacta, con U+00A0 y sin normalizar espacios.
+The full Colombia flow required by the PDF (`flow/co-full-flow.spec.ts`), done **with the keyboard only** (Tab, arrows, Space and Enter; no `click`, `fill` or `selectOption`), **passes**: form → plans → summary → accept terms → approved payment → confirmation with number `^CO-20261122-[A-HJ-NP-Z2-9]{6}$`. It also checks the masked document `******7890` (the full value is neither in the DOM nor in the accessibility tree) and the price `"$ 1.320.000"` compared as an exact string, with U+00A0 and without normalizing spaces.
 
-## Salida real (ejecución final)
+## Real output (final run)
 
-`npx playwright test` en `e2e/` (salida del reporter `list`, sin editar):
+`npx playwright test` in `e2e/` (output of the `list` reporter, unedited):
 
 ```text
 
@@ -162,63 +162,63 @@ Running 77 tests using 2 workers
   76 passed (3.5m)
 ```
 
-## Análisis de fallos
+## Failure analysis
 
-### Fallo de la ejecución final: defecto de la app (D-E2E-1)
+### Failure in the final run: application defect (D-E2E-1)
 
 - **Test:** `a11y-responsive › Viewport 320 px › AC-03.35 summary, payment and confirmation … at 320 px`.
-- **Qué falla:** la casilla "Acepto los términos y condiciones" (`#accept-terms`) mide **22,2 × 24 px** a 320 px de ancho; AC-03.35 y REQ-03.36 exigen al menos 24 × 24 px CSS. A 375 y 1280 px pasa. El resto del escenario a 320 px (sin desplazamiento horizontal, términos desplazables, pago y confirmación) también se cumple: la comprobación de tamaño es `expect.soft` para no ocultarlo.
-- **Causa (leída, no corregida):** `frontend/src/app/features/summary-step/summary-step-page.css:68-81`. `.accept` es `display: flex` y la casilla tiene `width: 24px; height: 24px` pero no `flex-shrink: 0`. Cuando el texto de la etiqueta se parte en dos líneas a 320 px, el elemento flex se encoge.
-- **Propuesta para el Angular Developer:** `flex: none` (o `flex-shrink: 0`) en `input[type='checkbox'], input[type='radio']` de ese archivo. Conviene revisar la misma regla en `dynamic-form.css` (paso 1), aunque AC-01.28 no exige tamaño mínimo.
+- **What fails:** the "Acepto los términos y condiciones" checkbox (`#accept-terms`) measures **22.2 × 24 px** at a width of 320 px; AC-03.35 and REQ-03.36 require at least 24 × 24 CSS px. At 375 and 1280 px it passes. The rest of the scenario at 320 px (no horizontal scroll, scrollable terms, payment and confirmation) is also met: the size check is `expect.soft` so that it does not hide it.
+- **Cause (read, not fixed):** `frontend/src/app/features/summary-step/summary-step-page.css:68-81`. `.accept` is `display: flex` and the checkbox has `width: 24px; height: 24px` but no `flex-shrink: 0`. When the label text wraps onto two lines at 320 px, the flex item shrinks.
+- **Proposal for the Angular Developer:** `flex: none` (or `flex-shrink: 0`) on `input[type='checkbox'], input[type='radio']` in that file. The same rule in `dynamic-form.css` (step 1) is worth reviewing, although AC-01.28 does not require a minimum size.
 
-### Fallos de ejecuciones anteriores: del test o del entorno (corregidos en los tests, no en la app)
+### Failures in earlier runs: test or environment (fixed in the tests, not in the app)
 
-| Ejecución | Fallo | Causa | Tipo | Corrección |
+| Run | Failure | Cause | Type | Fix |
 |---|---|---|---|---|
-| Iterativa | `toBeFocused` tras la fecha | Chrome da al `<input type="date">` paradas de tabulación internas (día, mes, año) | Test | `tabOutOfDate`: sigue pulsando Tab solo mientras el foco sigue en el mismo input y luego exige el control siguiente |
-| Iterativa | Región de términos ambigua | La `<section>` y la región desplazable tienen el mismo nombre accesible ("Términos y condiciones") | Test | Selector por rol **y** `tabindex="0"`. Observación menor para G5: dos regiones anidadas con el mismo nombre |
-| Iterativa | Casilla de términos sin marcar tras Espacio | El test pulsaba Espacio antes de que llegaran los términos (la casilla está deshabilitada mientras cargan) | Test | `goToCoSummary` espera a que la casilla esté habilitada |
-| Iterativa | Listas de planes vacías | `allTextContents()` no espera; se leía antes de que respondiera C5 | Test | `toHaveText([...])`, que reintenta |
-| Iterativa | `getByLabel(…, { exact: true })` sin resultados | El texto de la `<label>` incluye el `*` visible (`aria-hidden`) | Test | `getByLabel` sin `exact` + `toHaveAccessibleName(label)` exacto, que sí excluye el `*` |
-| Iterativa | AC-03.21 mostraba el campo retirado | `page.unroute` con un predicado nuevo no coincide con el registrado | Test | Bandera `published` dentro del mismo manejador |
-| Iterativa | AC-01.19: forma del almacenamiento | `ciq.v1.co.step1` es `{ values: {…} }` | Test | Expectativa corregida |
-| 4 workers (76 tests: 73 pasan, 3 fallan) | AC-02.4 mostró "error de carga" | En la traza, C5 vía `route.fetch()` tardó 10 394 ms y C6 sin interceptar 9 105 ms. La app aplicó **correctamente** su timeout de 10 000 ms (api-contracts §1) | Entorno | 2 workers y `expect.timeout` 15 s. Sin cambiar ninguna aserción ni añadir reintentos |
-| 4 workers | AC-03.21 seguía en "cargando" | En la traza, tras `reload()` las peticiones a `/api` empezaron 12 s después de cargar el HTML: CPU del host saturada (8 GB, 2 GB libres, 4 Chrome + Strapi + Docker) | Entorno | Ídem |
-| 4 workers | AC-03.35 a 320 px | D-E2E-1 | App | — |
+| Iterative | `toBeFocused` after the date | Chrome gives `<input type="date">` internal tab stops (day, month, year) | Test | `tabOutOfDate`: keeps pressing Tab only while focus stays on the same input and then requires the next control |
+| Iterative | Ambiguous terms region | The `<section>` and the scrollable region have the same accessible name ("Términos y condiciones") | Test | Selector by role **and** `tabindex="0"`. Minor observation for G5: two nested regions with the same name |
+| Iterative | Terms checkbox unchecked after Space | The test pressed Space before the terms arrived (the checkbox is disabled while they load) | Test | `goToCoSummary` waits until the checkbox is enabled |
+| Iterative | Empty plan lists | `allTextContents()` does not wait; it was read before C5 answered | Test | `toHaveText([...])`, which retries |
+| Iterative | `getByLabel(…, { exact: true })` with no results | The `<label>` text includes the visible `*` (`aria-hidden`) | Test | `getByLabel` without `exact` + exact `toHaveAccessibleName(label)`, which does exclude the `*` |
+| Iterative | AC-03.21 showed the withdrawn field | `page.unroute` with a new predicate does not match the registered one | Test | `published` flag inside the same handler |
+| Iterative | AC-01.19: storage shape | `ciq.v1.co.step1` is `{ values: {…} }` | Test | Expectation corrected |
+| 4 workers (76 tests: 73 pass, 3 fail) | AC-02.4 showed "error de carga" | In the trace, C5 via `route.fetch()` took 10 394 ms and the non-intercepted C6 9 105 ms. The app **correctly** applied its 10 000 ms timeout (api-contracts §1) | Environment | 2 workers and `expect.timeout` 15 s. Without changing any assertion or adding retries |
+| 4 workers | AC-03.21 stayed on "cargando" | In the trace, after `reload()` the `/api` requests started 12 s after the HTML loaded: host CPU saturated (8 GB, 2 GB free, 4 Chrome + Strapi + Docker) | Environment | Same |
+| 4 workers | AC-03.35 at 320 px | D-E2E-1 | App | — |
 
-Con 2 workers, dos ejecuciones completas consecutivas dieron el mismo resultado (76 pasan, 1 falla: D-E2E-1).
+With 2 workers, two consecutive full runs gave the same result (76 pass, 1 fails: D-E2E-1).
 
-## Técnicas usadas (ADR-0007)
+## Techniques used (ADR-0007)
 
-- **Reloj:** `page.clock.setFixedTime` antes de `goto` (fixture automático). AC-01.19 usa `2026-11-23T01:00:00Z` con `timezoneId: 'America/Bogota'` (20:00 del 22 en Bogotá). Los 1500 ms del pago corren con temporizadores reales.
-- **Red:** `page.route` con predicado sobre `URL.pathname` y los parámetros que distinguen C3, C6 y C7 (las tres usan `/api/countries`). Los cambios de contenido parten siempre de la respuesta real (`route.fetch()` + `route.fulfill({ response, json })`). Los retrasos se hacen con una promesa que el test libera y los fallos con `route.fulfill({ status: 500/503 })`. Nada escribe en Strapi ni usa credenciales (G3-3).
-- **Guarda de red (`networkGuard`, automático en los 77 tests):** registra `page.on('request')` y al final exige que toda petición sea `GET`, sin `Authorization` y sin parámetros `status` ni `publicationFilter`. Respalda AC-01.30, AC-02.31 y AC-03.24 en todo el recorrido, no solo en su test dedicado.
-- **Doble envío (AC-03.22):** un `addInitScript` solo observa: cuenta los `setTimeout(…, 1500)`, que es la única traza de un intento en `MockPaymentGateway`, y los eventos `click` que llegan al botón. Para cada variante (doble clic, Enter mantenido con `keydown` repetidos, Enter + clic real con `page.mouse`) se exige **≥ 2 clics recibidos y exactamente 1 intento**, así el test no puede pasar sin que la entrada repetida se haya producido.
-- **Responsive:** `scrollWidth ≤ clientWidth` de `documentElement`, `toBeInViewport` tras `scrollIntoViewIfNeeded` y medida de `getBoundingClientRect` de botones, casillas y radios a 320, 375 y 1280 px.
+- **Clock:** `page.clock.setFixedTime` before `goto` (automatic fixture). AC-01.19 uses `2026-11-23T01:00:00Z` with `timezoneId: 'America/Bogota'` (20:00 on the 22nd in Bogotá). The 1500 ms of the payment run with real timers.
+- **Network:** `page.route` with a predicate on `URL.pathname` and on the parameters that distinguish C3, C6 and C7 (all three use `/api/countries`). Content changes always start from the real response (`route.fetch()` + `route.fulfill({ response, json })`). Delays are made with a promise that the test releases, and failures with `route.fulfill({ status: 500/503 })`. Nothing writes to Strapi or uses credentials (G3-3).
+- **Network guard (`networkGuard`, automatic in the 77 tests):** records `page.on('request')` and at the end requires every request to be `GET`, without `Authorization` and without `status` or `publicationFilter` parameters. It backs AC-01.30, AC-02.31 and AC-03.24 across the whole journey, not only in their dedicated test.
+- **Double submission (AC-03.22):** an `addInitScript` only observes: it counts the `setTimeout(…, 1500)` calls, which are the only trace of an attempt in `MockPaymentGateway`, and the `click` events that reach the button. For each variant (double click, Enter held with repeated `keydown`, Enter + real click with `page.mouse`) it requires **≥ 2 clicks received and exactly 1 attempt**, so the test cannot pass unless the repeated input actually happened.
+- **Responsive:** `scrollWidth ≤ clientWidth` of `documentElement`, `toBeInViewport` after `scrollIntoViewIfNeeded` and `getBoundingClientRect` measurement of buttons, checkboxes and radios at 320, 375 and 1280 px.
 
-## AC de cambio de contenido (G3-3)
+## Content-change AC (G3-3)
 
-Automatizados por intercepción y pendientes de comprobación manual del cambio real en Strapi en G5 ([`manual-check.md`](manual-check.md) §4):
+Automated by interception and pending the manual check of the real change in Strapi in G5 ([`manual-check.md`](manual-check.md) §4):
 
-| AC | Test (verde) | G5 |
+| AC | Test (green) | G5 |
 |---|---|---|
-| AC-01.3 | `content-changes › AC-01.3 a new published field appears after reload without code changes` | §4.2–4.3 (campo nuevo publicado) |
-| AC-01.10 | `content-changes › AC-01.10 …` | indirecto (§4.2) |
-| AC-01.11 | `content-changes › AC-01.11 …`: contra el seed real, sin intercepción | No hace falta |
-| AC-01.31 | `content-changes › AC-01.31 …` | indirecto |
-| AC-02.4 | `states › AC-02.4 …` (dos variantes) | §4.4–4.5 |
-| AC-02.21 | `content-changes › AC-02.21 …` | §4.4–4.5 (plan desactivado) |
-| AC-02.25 | `content-changes › AC-02.25 deactivation, order, recommended flag, base price and a price factor …` | §4.4–4.6 (plan desactivado, factor) |
-| AC-03.15 | `content-changes › AC-03.15 …` | opcional |
+| AC-01.3 | `content-changes › AC-01.3 a new published field appears after reload without code changes` | §4.2–4.3 (new published field) |
+| AC-01.10 | `content-changes › AC-01.10 …` | indirect (§4.2) |
+| AC-01.11 | `content-changes › AC-01.11 …`: against the real seed, no interception | Not needed |
+| AC-01.31 | `content-changes › AC-01.31 …` | indirect |
+| AC-02.4 | `states › AC-02.4 …` (two variants) | §4.4–4.5 |
+| AC-02.21 | `content-changes › AC-02.21 …` | §4.4–4.5 (deactivated plan) |
+| AC-02.25 | `content-changes › AC-02.25 deactivation, order, recommended flag, base price and a price factor …` | §4.4–4.6 (deactivated plan, factor) |
+| AC-03.15 | `content-changes › AC-03.15 …` | optional |
 
-## Vigencia de esta evidencia
+## Validity of this evidence
 
-1. **La pila probada no incluye `40dfcae` ni `8f763cb`.** Los contenedores se crearon a las 01:11 y 01:15 (−05) y esos commits son de las 02:01 y 02:13. La API en ejecución todavía devuelve para `cl_rut` el patrón `[0-9]{7,8}-[0-9Kk]`, mientras que `cms/src/seed/data/cl.ts:120` ya acepta `12.345.678-5`. El mensaje de `40dfcae` indica que la verificación de la pila necesita un volumen limpio después del e2e. **Hay que reconstruir (`docker compose up -d --build`, con volumen limpio para el seed) y repetir `npx playwright test`** para que la evidencia cubra `8f763cb`. No reconstruí la pila: no lo pide mi rol y borra el volumen de la demo.
-2. **AC-03.6 con puntos (`12.345.678-5`):** según el aviso del orquestador, el test de CL usa `12345678-5`, que acepta el patrón antiguo y el nuevo, y comprueba `*****678-5`. El formato con puntos queda **Pendiente de G4 (F-03.2)** en el plan. Tras reconstruir, se puede añadir un test con `12.345.678-5` → `**.***.678-5`. No lo añadí ahora porque fallaría por la pila desactualizada, no por la app.
+1. **The tested stack does not include `40dfcae` or `8f763cb`.** The containers were created at 01:11 and 01:15 (−05) and those commits are from 02:01 and 02:13. The running API still returns the pattern `[0-9]{7,8}-[0-9Kk]` for `cl_rut`, while `cms/src/seed/data/cl.ts:120` already accepts `12.345.678-5`. The message of `40dfcae` says that verifying the stack needs a clean volume after the e2e. **The stack must be rebuilt (`docker compose up -d --build`, with a clean volume for the seed) and `npx playwright test` repeated** for the evidence to cover `8f763cb`. I did not rebuild the stack: my role does not ask for it and it deletes the demo volume.
+2. **AC-03.6 with dots (`12.345.678-5`):** following the orchestrator's notice, the CL test uses `12345678-5`, which both the old and the new pattern accept, and checks `*****678-5`. The format with dots stays **Pending G4 (F-03.2)** in the plan. After rebuilding, a test with `12.345.678-5` → `**.***.678-5` can be added. I did not add it now because it would fail due to the outdated stack, not due to the app.
 
-## Re-ejecución tras G4 (2026-11-23 02:27, orquestador)
+## Re-run after G4 (2026-11-23 02:27, orchestrator)
 
-Pila reconstruida con volumen limpio (`docker compose down -v && docker compose up -d --build`) con las correcciones `40dfcae` (F-00.12, F-03.2, F-00.13), `8f763cb` (F-03.1, F-02.1) y `0086e5a` (F-03.3 / D-E2E-1).
+Stack rebuilt with a clean volume (`docker compose down -v && docker compose up -d --build`) with the fixes `40dfcae` (F-00.12, F-03.2, F-00.13), `8f763cb` (F-03.1, F-02.1) and `0086e5a` (F-03.3 / D-E2E-1).
 
 ```text
 $ cd e2e && npx playwright test --reporter=line
@@ -229,4 +229,47 @@ $ cd e2e && npx playwright test --reporter=line
   77 passed (3.7m)
 ```
 
-D-E2E-1 queda corregido (AC-03.35 a 320 px en verde). AC-03.6 con RUT con puntos sigue cubierto solo por unit tests de `maskDocument`; el seed ya admite ese formato (F-03.2).
+D-E2E-1 is fixed (AC-03.35 at 320 px green). AC-03.6 with a RUT with dots is still covered only by the `maskDocument` unit tests; the seed already accepts that format (F-03.2).
+
+## Re-run after D12 (visual style inspired by SURA, 2026-11-23)
+
+- **Change:** presentation only in `frontend/` (D12 in `docs/decision-log.md`), implemented by `angular-developer` on the `style/sura-visual-refresh` branch.
+- **Stack:** `docker compose up -d --build web` with the new frontend; `curl http://localhost:8080/` → 200.
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 463 passed (463)`.
+- **E2E:** `npx playwright test --reporter=line` → `77 passed (4.0m)`. It includes the checks for no horizontal scroll and 24×24 targets at 320, 375 and 1280 px (AC-01.28, AC-02.29, AC-03.35).
+- **Screenshots** (Chrome, CO flow): `docs/assets/screenshots/`.
+
+## Re-run after D13 (logo, Figtree, illustration and animations, 2026-11-23)
+
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 465 passed (465)` (2 new tests: decorative band and loading skeleton).
+- **Stack:** `docker compose up -d --build web`; logo (`/brand/sura-logo-white.png`) and illustration (`/illustrations/car-protection.svg`) → 200.
+- **E2E, first run:** `75 passed`, `2 failed` (7.6m): AC-01.19 (`date-rules`) and AC-01.8 (`config-states`). With `--last-failed` → `2 passed`; with `--repeat-each=4` of those two files → `60 passed (6.2m)`.
+- **E2E, second run:** `76 passed`, `1 failed` (7.6m): AC-03.20 (`plans-changes`). The failure screenshot shows "error de carga".
+- **Observed facts:** after D13 the suite went from 4.0 to 7.6 min, on the same 8 GB machine where it had already been documented that, under load, Strapi exceeds the app's 10 s timeout. The failures moved to a different test on each run, and all of them were "error de carga" or exhausted waits, not presentation assertions.
+- **Hypothesis, not isolated:** the earlier version of this report attributed these failures to the D13 animations (view entrance and looping skeleton), on the assumption that they slowed the suite down and pushed Strapi's responses beyond 10 s. That cause was **not isolated**: no comparable run with and without animations was measured, and the same "error de carga" symptom had already been documented on this host before D13. Review 003 ([`reviews/003-visual-refresh-and-d14.md`](../../reviews/003-visual-refresh-and-d14.md), F-00.15) ran the suite with animations (`reducedMotion: 'no-preference'`) and got 80/80.
+- **Change applied:** `reducedMotion: 'reduce'` in `e2e/playwright.config.ts`, on the grounds that the app already disables its animations with `prefers-reduced-motion` and that the suite verifies behavior, not motion.
+- **E2E after the change:** `npx playwright test --reporter=line` → `77 passed (4.4m)`. This green run is an observed result; on its own it does not show that the animations were the cause.
+
+## Re-run after D14 ("cambiar de país" link and clickable plan card, 2026-11-23)
+
+- **Changes:**
+  - `cms`: `wizardTexts.changeCountryLabel`, with an idempotent backfill of the existing volume; done by the `strapi-developer`.
+  - `frontend`: the link and the clickable card; done by the `angular-developer`.
+  - `e2e`: `flow/change-country-and-plan-card.spec.ts`, with 3 tests of AC-01.36 and AC-02.34; done by the `qa-engineer`.
+- **Unit:** `npx ng test --watch=false` → `Test Files 46 passed (46)` · `Tests 469 passed (469)`.
+- **Stack:** `docker compose up -d --build cms` (the Strapi agent) and `docker compose up -d --build web` (the orchestrator). C3 returns `"changeCountryLabel":"Cambiar de país"` for CO and CL.
+- **E2E:** `npx playwright test --reporter=line` → `80 passed (4.4m)`.
+
+## Re-run without `reducedMotion` (F-00.15, review 003, 2026-11-23)
+
+- **Change:** `reducedMotion: 'reduce'` removed from `e2e/playwright.config.ts`, so the suite runs with the animations that most users see.
+- **Full run:** `npx playwright test --reporter=line` → `78 passed`, `2 failed` (10.3m). Both failures were in `flow/change-country-and-plan-card.spec.ts` (AC-01.36), and both page snapshots show "error de carga".
+- **Cause, with evidence:** during the run the machine was loaded by 5 translation agents (D16). The Strapi log of the same window shows a request that took `10525 ms`, above the app's 10 s timeout, so the app correctly showed "error de carga". This is the load symptom already documented for this host, not an app defect.
+- **Re-run of the failed tests:** `npx playwright test --last-failed --reporter=line` → `2 passed (44.7s)`.
+- **Conclusion:** the suite stays without `reducedMotion`. Review 003 also got 80/80 with animations. The final full run on an idle machine is recorded in the next section.
+
+## Final run before delivery (2026-11-23)
+
+- **Stack:** `docker compose` built from `c4f5095` (frontend) with the D14 CMS. The later commits only change docs and the e2e config.
+- **Command:** `npx playwright test --reporter=line`, without `reducedMotion`, with no other agents running.
+- **Result:** `80 passed (8.3m)`.

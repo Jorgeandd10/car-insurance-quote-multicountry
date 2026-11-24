@@ -1,57 +1,57 @@
-# Fase 4 — Notas de implementación para la demo y G4
+# Phase 4 — Implementation notes for the demo and G4
 
-Decisiones que los subagentes tomaron al implementar y que ninguna spec, ADR o decisión fija. Se presentan al humano para validarlas; las que rechace pasan a la review 002 como hallazgos.
+Decisions that the subagents made while implementing and that no spec, ADR or decision fixes. They are presented to the human for validation; those the human rejects go to review 002 as findings.
 
-## Verificación del orquestador (2026-11-23)
+## Orchestrator's verification (2026-11-23)
 
-| Parte | Commit | Comprobado |
+| Part | Commit | Checked |
 |---|---|---|
-| Base de Angular (4a) | `40840ed` | `ng build` OK · `ng test` 229/229 |
-| US-01 (4b) | `f5e47f1` | `ng build` OK · `ng test` 336/336 (33 archivos) |
-| US-02 (4c) | `f411a8b` | `ng build` OK · `ng test` 388/388 (39 archivos) |
-| US-03 (4d) | `0cb032c` | `ng build` OK · `ng test` 457/457 (45 archivos) |
-| Strapi, nginx, compose (4a) | `078d59a` | `curl` vía nginx: lecturas 200, `status=draft` 400, `%73tatus=draft` solo devuelve publicados, `POST` 403, `/api/users` 404, `no-store` y CSP presentes; sin `.env` en el repo |
-| Corrección CSP | `b22d2ad` | El `<script>` en línea del CSS crítico quedaba bloqueado por `script-src 'self'`; ahora hay un `<link>` normal (estilos 200) |
-| Integración | — | En Chrome: `/` lista Chile y Colombia desde Strapi; `/co/form` muestra el formulario con estilos; `/co/summary` sin datos redirige a `/co/form` |
+| Angular base (4a) | `40840ed` | `ng build` OK · `ng test` 229/229 |
+| US-01 (4b) | `f5e47f1` | `ng build` OK · `ng test` 336/336 (33 files) |
+| US-02 (4c) | `f411a8b` | `ng build` OK · `ng test` 388/388 (39 files) |
+| US-03 (4d) | `0cb032c` | `ng build` OK · `ng test` 457/457 (45 files) |
+| Strapi, nginx, compose (4a) | `078d59a` | `curl` through nginx: reads 200, `status=draft` 400, `%73tatus=draft` only returns published entries, `POST` 403, `/api/users` 404, `no-store` and CSP present; no `.env` in the repo |
+| CSP fix | `b22d2ad` | The inline `<script>` of the critical CSS was blocked by `script-src 'self'`; now there is a normal `<link>` (styles 200) |
+| Integration | — | In Chrome: `/` lists Chile and Colombia from Strapi; `/co/form` shows the form with styles; `/co/summary` without data redirects to `/co/form` |
 
-`grep` de reglas sin coincidencias en todas las partes (sin `any`, `*ngIf`, `*ngFor`, NgModules ni `bypassSecurityTrust`; la única aparición es un comentario que explica que no se usa).
+`grep` of the rules with no matches in every part (no `any`, `*ngIf`, `*ngFor`, NgModules or `bypassSecurityTrust`; the only occurrence is a comment explaining that it is not used).
 
-## Fallos reales encontrados durante la implementación
+## Real failures found during implementation
 
-| Dónde | Fallo | Corrección |
+| Where | Failure | Fix |
 |---|---|---|
-| US-01 | Al cambiar de país dentro de la SPA se veía el formulario del país anterior (reutilización de ruta) | `CountryRouteReuseStrategy` |
-| US-02 | El nombre accesible de cada plan concatenaba nombre, etiqueta y precio sin separador | `&ngsp;` entre los nodos; AC-02.27 compara el nombre exacto |
-| US-02 | Un helper de test normalizaba U+00A0 con `\s` y ocultaba regresiones de AC-02.8 | Solo colapsa espacios ASCII |
-| Integración | La CSP bloqueaba los estilos globales | `inlineCritical: false` (`b22d2ad`) |
-| Strapi | Build del admin en bucle de GC con 2 GB de heap | `--max-old-space-size=3072` |
+| US-01 | When changing country inside the SPA, the previous country's form was shown (route reuse) | `CountryRouteReuseStrategy` |
+| US-02 | The accessible name of each plan concatenated name, label and price without a separator | `&ngsp;` between the nodes; AC-02.27 compares the exact name |
+| US-02 | A test helper normalized U+00A0 with `\s` and hid AC-02.8 regressions | It only collapses ASCII spaces |
+| Integration | The CSP blocked the global styles | `inlineCritical: false` (`b22d2ad`) |
+| Strapi | Admin build in a GC loop with a 2 GB heap | `--max-old-space-size=3072` |
 
-## Decisiones para validar
+## Decisions to validate
 
-### Backend e infraestructura
+### Backend and infrastructure
 
-1. `POST` a una ruta de la allowlist responde **403** (lo que fija ADR-0003 con `limit_except GET { deny all; }`), no 405.
-2. El puerto 8080 se publica en todas las interfaces para poder probar con un móvil real en G5 (ADR-0003 solo limita 1337 a `127.0.0.1`).
-3. `published-only` también elimina `hasPublishedVersion`, un alias heredado que Strapi 5.63 sigue convirtiendo en filtro de publicación.
-4. Se quitó del template de Strapi el plugin de Strapi Cloud y la telemetría (`uuid`/`installId`).
-5. No se crea administrador: el primer acceso a `http://127.0.0.1:1337/admin` registra al superadmin (necesario para G5).
+1. `POST` to an allowlisted route answers **403** (what ADR-0003 sets with `limit_except GET { deny all; }`), not 405.
+2. Port 8080 is published on all interfaces so that a real mobile device can be used in G5 (ADR-0003 only restricts 1337 to `127.0.0.1`).
+3. `published-only` also removes `hasPublishedVersion`, a legacy alias that Strapi 5.63 still turns into a publication filter.
+4. The Strapi Cloud plugin and telemetry (`uuid`/`installId`) were removed from the Strapi template.
+5. No administrator is created: the first access to `http://127.0.0.1:1337/admin` registers the super admin (needed for G5).
 
 ### Frontend
 
-6. `birthDate` y `vehicleYear` son obligatorios aunque Strapi diga `required: false`, para que la regla de edad o de año no se pueda desactivar desde Strapi.
-7. El cambio de tipo de un campo solo se detecta si el valor guardado no encaja en el tipo nuevo (ADR-0004 guarda solo valores).
-8. La marca visual de obligatorio es un `*` fijo con `aria-hidden` (lo programático es el `required` nativo).
-9. Con un texto ausente en Strapi se muestra solo el mensaje genérico, sin `h1`.
-10. Los estados vacíos se anuncian con `role="alert"`; quizá encaje mejor `role="status"`.
-11. Entrada no interpretable en `number`/`date` (p. ej. "e"): el formulario bloquea el avance, pero `sessionStorage` conserva el último valor válido.
-12. Sin plan elegido, el foco va al primer radio del grupo.
-13. "Coberturas" y "Beneficios" son `<p>` con `aria-labelledby`, no encabezados.
-14. La selección del plan se guarda al elegir, no al continuar.
-15. El botón de pagar usa `disabled` nativo mientras faltan los términos, y `aria-disabled` + `aria-busy` durante el proceso, para no perder el foco.
-16. El año del vehículo se muestra sin separador de miles ("2018") y las fechas en formato largo ("10 de mayo de 2000").
-17. C6 con más de un país, o C3 sin `name`, se tratan como error de contenido.
-18. El indicador de pasos no se muestra en la confirmación.
+6. `birthDate` and `vehicleYear` are required even if Strapi says `required: false`, so that the age or year rule cannot be disabled from Strapi.
+7. A change in a field's type is only detected if the saved value does not fit the new type (ADR-0004 saves values only).
+8. The visual required marker is a fixed `*` with `aria-hidden` (the programmatic part is the native `required`).
+9. With a text missing in Strapi, only the generic message is shown, without an `h1`.
+10. Empty states are announced with `role="alert"`; `role="status"` might fit better.
+11. Unparseable input in `number`/`date` (e.g. "e"): the form blocks moving forward, but `sessionStorage` keeps the last valid value.
+12. With no plan selected, the focus goes to the first radio of the group.
+13. "Coberturas" and "Beneficios" are `<p>` with `aria-labelledby`, not headings.
+14. The plan selection is saved when choosing, not when continuing.
+15. The pay button uses native `disabled` while the terms are missing, and `aria-disabled` + `aria-busy` during processing, so as not to lose focus.
+16. The vehicle year is shown without a thousands separator ("2018") and the dates in long format ("10 de mayo de 2000").
+17. C6 with more than one country, or C3 without `name`, are treated as a content error.
+18. The step indicator is not shown on the confirmation.
 
-## Pendiente para la Fase 5 (e2e y G5)
+## Pending for Phase 5 (e2e and G5)
 
-AC que jsdom no puede cubrir: envío con Enter (AC-01.27), responsive (AC-01.28, AC-03.35), pestaña nueva (AC-01.21), atrás del navegador tras pagar (AC-03.29), Enter mantenido (AC-03.22), teclado completo (AC-03.33), inspección de red real (AC-03.24) y el cambio real en Strapi (G3-3).
+AC that jsdom cannot cover: submission with Enter (AC-01.27), responsive (AC-01.28, AC-03.35), new tab (AC-01.21), browser back after paying (AC-03.29), held Enter (AC-03.22), full keyboard (AC-03.33), real network inspection (AC-03.24) and the real change in Strapi (G3-3).

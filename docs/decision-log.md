@@ -1,172 +1,277 @@
 # Decision log
 
-Registro de las decisiones humanas tomadas en cada gate. Cada entrada guarda la propuesta, el veredicto y el motivo **literal** del humano.
+Record of the human decisions taken at each gate. Each entry keeps the proposal, the verdict and the human's **literal** reason.
 
-- Estados: `Aprobada` · `Rechazada` · `Modificada` · `Reemplazada`.
-- Una decisión aprobada no se cambia sin una nueva entrada que la referencie y explique el cambio.
-- Los rechazos en cualquier gate se registran aquí con el feedback para el agente productor.
+- Statuses: `Approved` · `Rejected` · `Modified` · `Superseded`.
+- An approved decision is not changed without a new entry that references it and explains the change.
+- Rejections at any gate are recorded here with the feedback for the producing agent.
 
-## G0 — Estrategia (Fase 1)
+## G0 — Strategy (Phase 1)
 
-- Fecha: 2026-11-22
-- Aprobador: Jorge (humano)
-- Fuente de las propuestas: [`docs/phase-1/analysis.md`](phase-1/analysis.md), sección 7, y la revisión hecha en la sesión local de Claude Code (verificación del entorno y de fuentes oficiales).
+- Date: 2026-11-22
+- Approver: Jorge (human)
+- Source of the proposals: [`docs/phase-1/analysis.md`](phase-1/analysis.md), section 7, and the review done in the local Claude Code session (verification of the environment and of official sources).
 
-| # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
+| # | Decision | Approved resolution | Status | Human's literal reason |
 |---|---|---|---|---|
-| D1 | Entorno de trabajo y repo | Claude Code local sobre el repositorio GitHub privado propio | Modificada (visibilidad: ver "Cambio de D1") | "D1 ya está decidida por mí: trabajamos en Claude Code local sobre este repositorio GitHub privado." |
-| D2 | Versión de Angular | Angular 22 (22.3.0 al 2026-11-22) | Aprobada | "Apruebo todas" |
-| D3 | Estrategia multipaís | Colección `Country` + relaciones (sin i18n de Strapi); país en la URL (`/co`, `/cl`) | Aprobada | "Apruebo todas" |
-| D4 | Acceso a Strapi | Rol público solo `find`/`findOne` + proxy nginx GET-only con allowlist; sin tokens en el navegador ni BFF | Aprobada | "Apruebo todas" |
-| D5 | Formularios | **Signal Forms** (estable en v22). Se documenta en un ADR | Aprobada (recomendación modificada antes del gate, ver nota) | "Apruebo todas" |
-| D6 | Persistencia | `sessionStorage` por país | Aprobada | "Apruebo todas" |
-| D7 | Pasos del wizard | 3 pasos + pantalla de confirmación | Aprobada | "Apruebo todas" |
-| D8 | Regla de precio | Factores por país configurables en Strapi + función pura documentada | Aprobada | "Apruebo todas" |
-| D9 | Pago simulado | Pasarela mock con resultado elegido (éxito/rechazo), sin campos de tarjeta | Aprobada | "Apruebo todas" |
-| D10 | SDD | Variante propia y ligera mediante una Skill (no Spec Kit) | Aprobada | "Apruebo todas" |
-| D11 | Agentes y Skills | 6 agentes (Requirements Analyst, Software Architect, Strapi Developer, Angular Developer, QA Engineer, Code Reviewer con checklist de seguridad) + Skills `sdd-traceability` y `country-content` | Aprobada | "Apruebo todas" |
+| D1 | Work environment and repo | Local Claude Code on the human's own private GitHub repository | Modified (visibility: see "D1 change") | "D1 ya está decidida por mí: trabajamos en Claude Code local sobre este repositorio GitHub privado." (*D1 is already decided by me: we work in local Claude Code on this private GitHub repository.*) |
+| D2 | Angular version | Angular 22 (22.3.0 as of 2026-11-22) | Approved | "Apruebo todas" (*I approve all*) |
+| D3 | Multi-country strategy | `Country` collection + relations (no Strapi i18n); country in the URL (`/co`, `/cl`) | Approved | "Apruebo todas" (*I approve all*) |
+| D4 | Access to Strapi | Public role only `find`/`findOne` + GET-only nginx proxy with allowlist; no tokens in the browser and no BFF | Approved | "Apruebo todas" (*I approve all*) |
+| D5 | Forms | **Signal Forms** (stable in v22). Documented in an ADR | Approved (recommendation modified before the gate, see note) | "Apruebo todas" (*I approve all*) |
+| D6 | Persistence | `sessionStorage` per country | Approved | "Apruebo todas" (*I approve all*) |
+| D7 | Wizard steps | 3 steps + confirmation screen | Approved | "Apruebo todas" (*I approve all*) |
+| D8 | Price rule | Per-country factors configurable in Strapi + documented pure function | Approved | "Apruebo todas" (*I approve all*) |
+| D9 | Simulated payment | Mock gateway with a chosen result (success/rejection), no card fields | Approved | "Apruebo todas" (*I approve all*) |
+| D10 | SDD | Own lightweight variant through a Skill (not Spec Kit) | Approved | "Apruebo todas" (*I approve all*) |
+| D11 | Agents and Skills | 6 agents (Requirements Analyst, Software Architect, Strapi Developer, Angular Developer, QA Engineer, Code Reviewer with a security checklist) + Skills `sdd-traceability` and `country-content` | Approved | "Apruebo todas" (*I approve all*) |
 
-El humano aprobó D2–D11 en bloque, sin motivo específico por decisión.
+The human approved D2–D11 as a block, with no specific reason per decision.
 
-### Nota sobre D5 (cambio de recomendación antes del gate)
+### Note on D5 (recommendation changed before the gate)
 
-- Recomendación original (Fase 1, claude.ai): Reactive Forms tipados, salvo que Signal Forms fuera estable en v22.
-- Verificación (sesión local, 2026-11-22): la tabla comparativa oficial de angular.dev marca Signal Forms como "Stable (v22+)" (https://angular.dev/guide/forms/signals/comparison).
-- Cambio: el orquestador recomendó Signal Forms, señalando el cambio de forma explícita. El humano lo aprobó.
-- Pendiente: el ADR de formularios (Fase 3) debe recoger alternativas y consecuencias.
+- Original recommendation (Phase 1, claude.ai): typed Reactive Forms, unless Signal Forms were stable in v22.
+- Verification (local session, 2026-11-22): the official angular.dev comparison table marks Signal Forms as "Stable (v22+)" (https://angular.dev/guide/forms/signals/comparison).
+- Change: the orchestrator recommended Signal Forms, flagging the change explicitly. The human approved it.
+- Pending: the forms ADR (Phase 3) must cover alternatives and consequences.
 
-## G1 — Flujo agéntico (Fase 2)
+## G1 — Agentic flow (Phase 2)
 
-- Fecha: 2026-11-22
-- Aprobador: Jorge (humano)
-- Presentado: `CLAUDE.md`, `.claude/agents/` (6), `.claude/skills/` (`sdd-traceability`, `country-content` en esqueleto), `FLOW.md` (borrador), `docs/traceability.md`, `.gitattributes`.
+- Date: 2026-11-22
+- Approver: Jorge (human)
+- Presented: `CLAUDE.md`, `.claude/agents/` (6), `.claude/skills/` (`sdd-traceability`, `country-content` as a skeleton), `FLOW.md` (draft), `docs/traceability.md`, `.gitattributes`.
 
-| # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
+| # | Decision | Approved resolution | Status | Human's literal reason |
 |---|---|---|---|---|
-| G1-a | Proteger `logs/` | Hook `PreToolUse` (PowerShell) que bloquea `Write` y `Edit` dentro de `logs/` | Aprobada | "Apruebo G1" |
-| G1-b | Modelo de cada agente | `model: inherit` en los 6 subagentes (Opus 5.5) | Aprobada | "Apruebo G1" |
-| G1-c | Ramas | Una rama y un PR por fase hacia `main`; cada push se pide antes al humano | Aprobada | "Apruebo G1" |
-| G1-d | Alcance de `strapi-developer` (aclara D11) | Además de `cms/`, es dueño de `docker-compose.yml`, nginx y `.env.example` | Aprobada | "Apruebo G1" |
-| G1-e | Copia de logs | Al cerrar cada sesión, copiar el JSONL original tal cual a `logs/sessions/` (solo se añaden archivos) | Aprobada | "Apruebo G1" |
+| G1-a | Protect `logs/` | `PreToolUse` hook (PowerShell) that blocks `Write` and `Edit` inside `logs/` | Approved | "Apruebo G1" (*I approve G1*) |
+| G1-b | Model of each agent | `model: inherit` in the 6 subagents (Opus 5.5) | Approved | "Apruebo G1" (*I approve G1*) |
+| G1-c | Branches | One branch and one PR per phase into `main`; each push is asked of the human first | Approved | "Apruebo G1" (*I approve G1*) |
+| G1-d | Scope of `strapi-developer` (clarifies D11) | Besides `cms/`, it owns `docker-compose.yml`, nginx and `.env.example` | Approved | "Apruebo G1" (*I approve G1*) |
+| G1-e | Copy of logs | When each session closes, copy the original JSONL as is to `logs/sessions/` (files are only added) | Approved | "Apruebo G1" (*I approve G1*) |
 
-El humano aprobó G1 en bloque, sin motivo específico por decisión.
+The human approved G1 as a block, with no specific reason per decision.
 
-### G1-f — Datos personales en las transcripciones (2026-11-22)
+### G1-f — Personal data in the transcripts (2026-11-22)
 
-- **Contexto:** al preparar la copia de G1-e, la revisión de la transcripción encontró el email real del humano (lo añade Claude Code como contexto de la sesión). No hay tokens ni credenciales. El PDF exige a la vez "logs sin editar" y "sin datos personales reales en el repositorio".
-- **Opciones presentadas:** (1) redactar solo el email en una copia hecha fuera de `logs/` y documentar la sustitución con SHA-256 del original y de la copia; (2) copiar sin cambios.
-- **Resolución:** opción 1. Única transformación permitida: sustituir las cadenas listadas en un archivo de redacción que vive **fuera** del repositorio. Ningún archivo de `logs/` se modifica después de colocarlo. El manifiesto con hashes va en `docs/logs-manifest.md`.
-- **Estado:** Aprobada.
-- **Motivo literal del humano:** "Redactar solo email"
+- **Context:** while preparing the G1-e copy, the review of the transcript found the human's real email (Claude Code adds it as session context). There are no tokens or credentials. The PDF requires both "unedited logs" and "no real personal data in the repository".
+- **Options presented:** (1) redact only the email in a copy made outside `logs/` and document the substitution with the SHA-256 of the original and of the copy; (2) copy without changes.
+- **Resolution:** option 1. The only transformation allowed: replace the strings listed in a redaction file that lives **outside** the repository. No file in `logs/` is modified after it is placed. The manifest with hashes goes in `docs/logs-manifest.md`.
+- **Status:** Approved.
+- **Human's literal reason:** "Redactar solo email" (*Redact only the email*)
 
-### Cierre de G1 — revisión y merge del PR (2026-11-22)
+### G1 close — PR review and merge (2026-11-22)
 
-- **Evidencia:** [PR #1](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/1), 20 commits y 53 archivos de `phase-2/agentic-flow` hacia `main`.
-- **Revisión humana** (review de GitHub, estado `COMMENTED`; GitHub no permite aprobar un PR propio): "G0/G1 reviewed: decisions, CLAUDE.md, agents, skills, and FLOW.md. OK to merge."
-- **Merge:** hecho por el humano con merge commit `29eccf5` (conserva los commits y sus IDs).
-- **Estado:** G1 cerrado. Comienza la Fase 3 en `phase-3/specs-adrs`.
+- **Evidence:** [PR #1](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/1), 20 commits and 53 files from `phase-2/agentic-flow` into `main`.
+- **Human review** (GitHub review, state `COMMENTED`; GitHub does not allow approving one's own PR): "G0/G1 reviewed: decisions, CLAUDE.md, agents, skills, and FLOW.md. OK to merge."
+- **Merge:** done by the human with merge commit `29eccf5` (keeps the commits and their IDs).
+- **Status:** G1 closed. Phase 3 starts in `phase-3/specs-adrs`.
 
-## Cambio de D1 — Visibilidad del repositorio (2026-11-22)
+## D1 change — Repository visibility (2026-11-22)
 
-- **Contexto:** al abrir el PR de la Fase 2, el orquestador detectó que el repositorio es **público** (API de GitHub: `private=False visibility=public`), mientras D1 decía "privado", y lo señaló al humano tras el primer push de `phase-2/agentic-flow`.
-- **Resolución:** el repositorio es **público**. Se mantiene el resto de D1 (Claude Code local, repositorio GitHub propio).
-- **Motivo literal del humano:** "El tema de ponerlo publico no creoq  deba, pq cuando me pasaron la prueba, el reclutador decia lo sig: \"Para enviar, responde a este correo antes de la fecha límite con la URL de tu repositorio, que debe ser pública.\""
-- **Consecuencias:** todo lo que se suba es visible. Refuerza G1-f (redacción de datos personales en los logs), la regla de no versionar `.env` ni credenciales y el uso exclusivo de datos ficticios. Compatible con el PDF ("public or private and shared").
-- **Estado:** Aprobada.
+- **Context:** when opening the Phase 2 PR, the orchestrator detected that the repository is **public** (GitHub API: `private=False visibility=public`), while D1 said "private", and flagged it to the human after the first push of `phase-2/agentic-flow`.
+- **Resolution:** the repository is **public**. The rest of D1 stays (local Claude Code, the human's own GitHub repository).
+- **Human's literal reason:** "El tema de ponerlo publico no creoq  deba, pq cuando me pasaron la prueba, el reclutador decia lo sig: \"Para enviar, responde a este correo antes de la fecha límite con la URL de tu repositorio, que debe ser pública.\"" (*As for making it public, I don't think I should [keep it private], because when I was given the assessment, the recruiter said the following: "To submit, reply to this email before the deadline with the URL of your repository, which must be public."*)
+- **Consequences:** everything pushed is visible. It reinforces G1-f (redaction of personal data in the logs), the rule of not versioning `.env` or credentials, and the exclusive use of fictitious data. Compatible with the PDF ("public or private and shared").
+- **Status:** Approved.
 
-## G2 — Specs de US-01, US-02 y US-03 (Fase 3)
+## G2 — Specs of US-01, US-02 and US-03 (Phase 3)
 
-- Fecha: 2026-11-22
-- Aprobador: Jorge (humano)
-- Presentado: `specs/US-01/spec.md`, `specs/US-02/spec.md`, `specs/US-03/spec.md` (Draft, commits `c27274b`, `b5a3852`, `fa038a7`) y la revisión del orquestador [`reviews/000-G2-specs-cross-consistency.md`](../reviews/000-G2-specs-cross-consistency.md) (F-00.1–F-00.6). Las 60 preguntas abiertas se agruparon en 13 decisiones.
+- Date: 2026-11-22
+- Approver: Jorge (human)
+- Presented: `specs/US-01/spec.md`, `specs/US-02/spec.md`, `specs/US-03/spec.md` (Draft, commits `c27274b`, `b5a3852`, `fa038a7`) and the orchestrator's review [`reviews/000-G2-specs-cross-consistency.md`](../reviews/000-G2-specs-cross-consistency.md) (F-00.1–F-00.6). The 60 open questions were grouped into 13 decisions.
 
-| # | Decisión | Resolución aprobada | Preguntas / hallazgos | Estado | Motivo literal del humano |
+| # | Decision | Approved resolution | Questions / findings | Status | Human's literal reason |
 |---|---|---|---|---|---|
-| G2-1 | Identificar documento, fecha de nacimiento y año del vehículo | Roles de campo (`documentNumber`, `birthDate`, `vehicleYear`) asignados en Strapi; reglas, precio y enmascarado se enlazan al rol | Q-01.3, Q-03.1, Q-02.4; F-00.1, F-00.2 | Aprobada | "Apruebo todo" |
-| G2-2 | Textos fijos en código (excepción a `CLAUDE.md` §11) | Solo "cargando", "error de carga", "reintentar" y "país no disponible", en español. Todo lo demás desde Strapi. Texto ausente en Strapi = error de configuración con el mensaje genérico | Q-01.6, Q-02.13, Q-03.14; F-00.3, F-00.4 | Aprobada | "Apruebo todo" |
-| G2-3 | Entrada al país | `/` = selección entre países publicados; código desconocido o despublicado = "país no disponible"; `/CO` → `/co` | Q-01.1 | Aprobada | "Apruebo todo" |
-| G2-4 | Mayoría de edad y año del vehículo | Lógica en código, siempre aplicada; edad mínima por país en Strapi (18 CO y CL); año en `[añoActual − 20, añoActual + 1]` inclusivo, fijo en código | Q-01.2, Q-01.9 | Aprobada | "Apruebo todo" |
-| G2-5 | Falta el campo de un rol obligatorio | Formulario "no disponible"; nunca se salta una regla del PDF | Q-01.7 | Aprobada | "Apruebo todo" |
-| G2-6 | Secciones | Atributo de sección por campo (`policyholder` · `vehicle`), secciones en orden fijo | Q-01.4, Q-03.3 | Aprobada | "Apruebo todo" |
-| G2-7 | Validaciones configurables | `text`: `minLength`, `maxLength`, `pattern`; `number`: `min`, `max`, `integer`; `select`/`date`/`checkbox`: solo `required` + reglas por rol | Q-01.5 | Aprobada | "Apruebo todo" |
-| G2-8 | Regla de precio | `Math.round(basePrice × Π multiplicadores)`; operandos `vehicleAge` y `ageInYears` con tramos por país en Strapi (§6.3 de US-02) | Q-02.3, Q-02.6 | Aprobada | "Apruebo todo" |
-| G2-9 | Precio entre pasos 2 y 3 | Solo se persiste el id del plan; el resumen recalcula con la misma función | Q-02.12, Q-03.6 | Aprobada | "Apruebo todo" |
-| G2-10 | Acceso a un paso sin el anterior | Redirección al paso que falta; `isComplete` se calcula con la configuración vigente, no se persiste una señal | Q-01.18, Q-02.10, Q-03.8; F-00.5 | Aprobada | "Apruebo todo" |
-| G2-11 | Plan no disponible o en otra moneda | Plan desactivado: se deselecciona con aviso y se vuelve al paso 2; plan con moneda distinta a la del país: no se muestra | Q-02.11, Q-02.2 | Aprobada | "Apruebo todo" |
-| G2-12 | Resultado del pago simulado | Opciones visibles aprobado (por defecto) / rechazado dentro del paso 3, en un bloque "pasarela simulada" | Q-03.15 | Aprobada | "Apruebo todo" |
-| G2-13 | Resto de preguntas abiertas | Se aprueban tal cual las propuestas de cada spec | Resto de Q-01, Q-02, Q-03 | Aprobada | "Apruebo todo" |
+| G2-1 | Identify document, date of birth and vehicle year | Field roles (`documentNumber`, `birthDate`, `vehicleYear`) assigned in Strapi; rules, price and masking are bound to the role | Q-01.3, Q-03.1, Q-02.4; F-00.1, F-00.2 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-2 | Fixed texts in code (exception to `CLAUDE.md` §11) | Only "cargando", "error de carga", "reintentar" and "país no disponible" (*loading*, *load error*, *retry*, *country not available*), in Spanish. Everything else from Strapi. Text missing in Strapi = configuration error with the generic message | Q-01.6, Q-02.13, Q-03.14; F-00.3, F-00.4 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-3 | Entry to the country | `/` = selection among published countries; unknown or unpublished code = "país no disponible"; `/CO` → `/co` | Q-01.1 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-4 | Legal age and vehicle year | Logic in code, always applied; minimum age per country in Strapi (18 CO and CL); year in `[currentYear − 20, currentYear + 1]` inclusive, fixed in code | Q-01.2, Q-01.9 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-5 | The field of a mandatory role is missing | Form "not available"; a PDF rule is never skipped | Q-01.7 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-6 | Sections | Section attribute per field (`policyholder` · `vehicle`), sections in a fixed order | Q-01.4, Q-03.3 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-7 | Configurable validations | `text`: `minLength`, `maxLength`, `pattern`; `number`: `min`, `max`, `integer`; `select`/`date`/`checkbox`: only `required` + rules per role | Q-01.5 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-8 | Price rule | `Math.round(basePrice × Π multipliers)`; operands `vehicleAge` and `ageInYears` with bands per country in Strapi (§6.3 of US-02) | Q-02.3, Q-02.6 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-9 | Price between steps 2 and 3 | Only the plan id is persisted; the summary recomputes with the same function | Q-02.12, Q-03.6 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-10 | Access to a step without the previous one | Redirect to the missing step; `isComplete` is computed with the current configuration, no flag is persisted | Q-01.18, Q-02.10, Q-03.8; F-00.5 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-11 | Plan unavailable or in another currency | Deactivated plan: it is deselected with a notice and the user goes back to step 2; plan with a currency different from the country's: not shown | Q-02.11, Q-02.2 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-12 | Result of the simulated payment | Visible options approved (default) / rejected inside step 3, in a "simulated gateway" block | Q-03.15 | Approved | "Apruebo todo" (*I approve everything*) |
+| G2-13 | Remaining open questions | The proposals of each spec are approved as they are | Rest of Q-01, Q-02, Q-03 | Approved | "Apruebo todo" (*I approve everything*) |
 
-Además se corrige F-00.6 (AC-02.8 debe usar U+00A0 en el ejemplo de COP), que es un hecho verificado y no una decisión.
+In addition, F-00.6 is fixed (AC-02.8 must use U+00A0 in the COP example), which is a verified fact and not a decision.
 
-## G3 — ADRs y arquitectura (Fase 3)
+## G3 — ADRs and architecture (Phase 3)
 
-- Fecha: 2026-11-22
-- Aprobador: Jorge (humano)
-- Presentado: `docs/adr/0001`–`0007` (Proposed, commit `2b21fdc`), `docs/architecture/` y la revisión del orquestador [`reviews/001-G3-architecture-check.md`](../reviews/001-G3-architecture-check.md) (F-00.8–F-00.11).
-- Antes de decidir, el humano preguntó por el avance y el tiempo restante y pidió una recomendación sobre G3-3. El orquestador **cambió su recomendación** de 3a (token manual) a 3c (intercepción + comprobación manual en G5), porque el token manual dejaba 5 AC "No ejecutados" para quien clone el repositorio.
+- Date: 2026-11-22
+- Approver: Jorge (human)
+- Presented: `docs/adr/0001`–`0007` (Proposed, commit `2b21fdc`), `docs/architecture/` and the orchestrator's review [`reviews/001-G3-architecture-check.md`](../reviews/001-G3-architecture-check.md) (F-00.8–F-00.11).
+- Before deciding, the human asked about progress and remaining time and asked for a recommendation on G3-3. The orchestrator **changed its recommendation** from 3a (manual token) to 3c (interception + manual check in G5), because the manual token left 5 AC "Not executed" for whoever clones the repository.
 
-| # | Decisión | Resolución aprobada | Estado | Motivo literal del humano |
+| # | Decision | Approved resolution | Status | Human's literal reason |
 |---|---|---|---|---|
-| G3-1 | ADR-0001 a 0007 | Aceptados, con el ajuste de G3-3 en ADR-0003 y ADR-0007 | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-2 | Permisos del rol público (precisa D4, F-00.8) | Solo `find`, sin `findOne` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-3 | e2e con cambios de contenido (F-00.9) | **Opción 3c: solo intercepción (`page.route`)**. Sin token de escritura. El cambio real en Strapi (campo nuevo, plan desactivado) se comprueba a mano en G5 y se registra en `docs/qa/manual-check.md` | Modificada (recomendación inicial: 3a) | "Apruebo G3 con G3-3 en intercepción" |
-| G3-4 | Unicidad de `key` | `unique` de Strapi + prefijo de país | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-5 | Textos de interfaz obligatorios en Strapi | Sí; los AC de texto ausente se prueban por intercepción | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-6 | Términos | Atributo de `Country` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-7 | Factores de precio | Componente repetible de `Country` | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-8 | Formato de términos | Blocks de Strapi + render propio | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-9 | Guards | Funcionales + indicador global "cargando" | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
-| G3-10 | Huecos funcionales cubiertos por el arquitecto | Se acepta su lectura (contenido global ausente → "error de carga" + "reintentar"; banda con rol/operando incompatibles se descarta; error en vivo tras el primer blur; "—" desde Strapi; mismas leyendas de sección en paso 1 y resumen) | Aprobada | "Apruebo G3 con G3-3 en intercepción" |
+| G3-1 | ADR-0001 to 0007 | Accepted, with the G3-3 adjustment in ADR-0003 and ADR-0007 | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-2 | Public role permissions (refines D4, F-00.8) | Only `find`, no `findOne` | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-3 | e2e with content changes (F-00.9) | **Option 3c: interception only (`page.route`)**. No write token. The real change in Strapi (new field, deactivated plan) is checked by hand in G5 and recorded in `docs/qa/manual-check.md` | Modified (initial recommendation: 3a) | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-4 | Uniqueness of `key` | Strapi `unique` + country prefix | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-5 | Mandatory interface texts in Strapi | Yes; the missing-text AC are tested by interception | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-6 | Terms | Attribute of `Country` | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-7 | Price factors | Repeatable component of `Country` | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-8 | Terms format | Strapi Blocks + own renderer | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-9 | Guards | Functional + global "cargando" indicator | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
+| G3-10 | Functional gaps covered by the architect | Their reading is accepted (missing global content → "error de carga" + "reintentar"; band with incompatible role/operand is discarded; live error after the first blur; "—" from Strapi; same section legends in step 1 and summary) | Approved | "Apruebo G3 con G3-3 en intercepción" (*I approve G3 with G3-3 as interception*) |
 
-### Cierre de la Fase 3 — revisión y merge del PR #2 (2026-11-22)
+### Phase 3 close — review and merge of PR #2 (2026-11-22)
 
-- **Evidencia:** [PR #2](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/2), 21 commits y 21 archivos de `phase-3/specs-adrs` hacia `main`.
-- **Revisión humana** (review de GitHub, `COMMENTED`): "OK to merge."
-- **Merge:** hecho por el humano con merge commit `3708a48` (padres `29eccf5` y `1c2f366`).
-- **Plazo comunicado por el humano:** entrega hasta el 2026-11-23 a las 23:59 (UTC-5).
-- **Ajuste pedido por el humano para los próximos PR:** "para el proximo merge pasame tambien los comentarios para el review del merge". A partir de la Fase 4, cada PR irá acompañado del texto de review listo para pegar.
+- **Evidence:** [PR #2](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/2), 21 commits and 21 files from `phase-3/specs-adrs` into `main`.
+- **Human review** (GitHub review, `COMMENTED`): "OK to merge."
+- **Merge:** done by the human with merge commit `3708a48` (parents `29eccf5` and `1c2f366`).
+- **Deadline communicated by the human:** delivery by 2026-11-23 at 23:59 (UTC-5).
+- **Adjustment requested by the human for the next PRs:** "para el proximo merge pasame tambien los comentarios para el review del merge" (*for the next merge also give me the comments for the merge review*). From Phase 4 on, each PR comes with the review text ready to paste.
 
-## Plan de las Fases 4–6 (2026-11-22, 20:40 UTC-5)
+## Plan of Phases 4–6 (2026-11-22, 20:40 UTC-5)
 
-- **Presentado:** plan hasta el plazo del 2026-11-23 23:59.
-  - 4a en paralelo: `strapi-developer` (cms, seed, nginx, Docker) y `angular-developer` (base del frontend).
-  - 4b–4d: US-01, US-02 y US-03 en secuencia; integración; demo y PR de la Fase 4 la mañana del 23.
-  - Fase 5: e2e y review 002 en paralelo, G4 y G5.
-  - Fase 6: documentación final y G6, con objetivo antes de las 20:00 del 23.
-  - Commits solo en local durante la noche; push al abrir cada PR con permiso del humano (G1-c).
-- **Ajustes respecto al flujo de `FLOW.md`:** una sola demo al final de la Fase 4 en lugar de una por historia, y una sola review (002) para las tres historias.
-- **Estado:** Aprobado.
-- **Motivo literal del humano:** "Aprobado, arranca"
+- **Presented:** plan up to the deadline of 2026-11-23 23:59.
+  - 4a in parallel: `strapi-developer` (cms, seed, nginx, Docker) and `angular-developer` (frontend base).
+  - 4b–4d: US-01, US-02 and US-03 in sequence; integration; demo and Phase 4 PR on the morning of the 23rd.
+  - Phase 5: e2e and review 002 in parallel, G4 and G5.
+  - Phase 6: final documentation and G6, targeting before 20:00 on the 23rd.
+  - Local commits only during the night; push when opening each PR with the human's permission (G1-c).
+- **Adjustments to the `FLOW.md` flow:** a single demo at the end of Phase 4 instead of one per story, and a single review (002) for the three stories.
+- **Status:** Approved.
+- **Human's literal reason:** "Aprobado, arranca" (*Approved, go ahead*)
 
-## Cierre de la Fase 4 — demo, revisión y merge del PR #3 (2026-11-23)
+## Phase 4 close — demo, review and merge of PR #3 (2026-11-23)
 
-- **Evidencia:** [PR #3](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/3), 9 commits de `phase-4/implementation` hacia `main`. Merge commit `f69ae34` (padres `3708a48` y `b423202`), hecho por el humano.
-- **Revisión humana** (review de GitHub, `COMMENTED`), texto preparado por el orquestador y pegado por el humano: "Phase 4 reviewed (implementation): - Demo on http://localhost:8080 (docker compose up): country selection, CO form, plans, summary, approved and rejected payment, confirmation. - Verified orchestrator evidence: 457/457 unit tests, curl checks on nginx/Strapi (draft blocked, writes 403/405, no-store, CSP), no .env committed. - Reviewed docs/qa/phase-4-implementation-notes.md: implementer decisions 1–18 accepted [or: rejected n, m → findings for review 002]. …OK to merge."
-- **Interpretación del orquestador:** el texto conserva la alternativa de la plantilla. Se registran las 18 decisiones de `docs/qa/phase-4-implementation-notes.md` como **aceptadas**, y se le pide al humano que avise si alguna no lo está.
-- **Modelo de los subagentes de la Fase 5:** el humano no respondió a la propuesta de usar Sonnet; G1-b se mantiene (`model: inherit`).
+- **Evidence:** [PR #3](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/3), 9 commits from `phase-4/implementation` into `main`. Merge commit `f69ae34` (parents `3708a48` and `b423202`), done by the human.
+- **Human review** (GitHub review, `COMMENTED`), text prepared by the orchestrator and pasted by the human: "Phase 4 reviewed (implementation): - Demo on http://localhost:8080 (docker compose up): country selection, CO form, plans, summary, approved and rejected payment, confirmation. - Verified orchestrator evidence: 457/457 unit tests, curl checks on nginx/Strapi (draft blocked, writes 403/405, no-store, CSP), no .env committed. - Reviewed docs/qa/phase-4-implementation-notes.md: implementer decisions 1–18 accepted [or: rejected n, m → findings for review 002]. …OK to merge."
+- **Orchestrator's interpretation:** the text keeps the template's alternative. The 18 decisions of `docs/qa/phase-4-implementation-notes.md` are recorded as **accepted**, and the human is asked to say so if any is not.
+- **Model of the Phase 5 subagents:** the human did not answer the proposal to use Sonnet; G1-b stays (`model: inherit`).
 
-## G4 — Triage de la review 002 (2026-11-23)
+## G4 — Triage of review 002 (2026-11-23)
 
-- Presentado: [`reviews/002-phase-4-implementation.md`](../reviews/002-phase-4-implementation.md) (commit `2dac3aa`). El orquestador reprodujo F-00.12 antes del gate.
+- Presented: [`reviews/002-phase-4-implementation.md`](../reviews/002-phase-4-implementation.md) (commit `2dac3aa`). The orchestrator reproduced F-00.12 before the gate.
 
-| Hallazgo | Severidad | Decisión | Responsable | Motivo literal del humano |
+| Finding | Severity | Decision | Owner | Human's literal reason |
 |---|---|---|---|---|
-| F-00.12 | Major (seguridad) | Corregir: `proxy_pass` con la URI normalizada y verificación con `curl` | `strapi-developer` | "Apruebo el triage de G4" |
-| F-03.1 | Major | Corregir: reevaluar `isComplete` tras el reintento y `canPay` exige datos válidos | `angular-developer` | "Apruebo el triage de G4" |
-| F-02.1 | Minor | Corregir junto con F-03.1 | `angular-developer` | "Apruebo el triage de G4" |
-| F-03.2 | Minor | Corregir el seed: RUT con y sin puntos | `strapi-developer` | "Apruebo el triage de G4" |
-| F-00.13 | Nit | Corregir (regex de caché de nginx) | `strapi-developer` | "Apruebo el triage de G4" |
-| F-00.14 | Nit | Aceptar; comprobar en G5 | — | "Apruebo el triage de G4" |
+| F-00.12 | Major (security) | Fix: `proxy_pass` with the normalized URI and verification with `curl` | `strapi-developer` | "Apruebo el triage de G4" (*I approve the G4 triage*) |
+| F-03.1 | Major | Fix: re-evaluate `isComplete` after the retry and `canPay` requires valid data | `angular-developer` | "Apruebo el triage de G4" (*I approve the G4 triage*) |
+| F-02.1 | Minor | Fix together with F-03.1 | `angular-developer` | "Apruebo el triage de G4" (*I approve the G4 triage*) |
+| F-03.2 | Minor | Fix the seed: RUT with and without dots | `strapi-developer` | "Apruebo el triage de G4" (*I approve the G4 triage*) |
+| F-00.13 | Nit | Fix (nginx cache regex) | `strapi-developer` | "Apruebo el triage de G4" (*I approve the G4 triage*) |
+| F-00.14 | Nit | Accept; check in G5 | — | "Apruebo el triage de G4" (*I approve the G4 triage*) |
 
-## G5 — Prueba manual con teclado y móvil, sin IA (2026-11-23)
+## G5 — Manual test with keyboard and mobile, without AI (2026-11-23)
 
-- **Presentado:** guía paso a paso por chat derivada de [`docs/qa/manual-check.md`](qa/manual-check.md) (partes 0–4), sobre la pila levantada desde `e2713d2`.
-- **Primer mensaje del humano:** pegaba el texto de ejemplo del orquestador, con una falla ficticia en 1.13. El orquestador no lo registró y pidió los resultados reales.
-- **Estado:** Aprobado. Sin defectos.
-- **Motivo literal del humano:** "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara"
-- **Alcance no detallado por el humano:** dispositivo o viewport, versión del navegador y la parte 3 (lector de pantalla, opcional). F-00.14 sigue Accepted como limitación conocida; se documenta en el README.
+- **Presented:** step-by-step guide over chat derived from [`docs/qa/manual-check.md`](qa/manual-check.md) (parts 0–4), on the stack brought up from `e2713d2`.
+- **Human's first message:** it pasted the orchestrator's example text, with a fictitious failure in 1.13. The orchestrator did not record it and asked for the real results.
+- **Status:** Approved. No defects.
+- **Human's literal reason:** "NO pues los reusltados es que todo quedo ok, no salio ningun error de lo q me pediste q probara" (*Well, the results are that everything was OK; no error came up in anything you asked me to test*)
+- **Scope not detailed by the human:** device or viewport, browser version and part 3 (screen reader, optional). F-00.14 stays Accepted as a known limitation; it is documented in the README.
 
-### Verificaciones que respaldan las decisiones
+## Phase 5 close — merge of PR #4 (2026-11-23)
 
-- Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
-- Entorno local: ver [`docs/phase-1/analysis.md`](phase-1/analysis.md), sección "Entorno verificado (local)".
+- **Evidence:** [PR #4](https://github.com/Jorgeandd10/car-insurance-quote-multicountry/pull/4), 9 commits from `phase-5/validation` into `main`. Merge commit `95c2c0c` (parents `f69ae34` and `2daa00d`), done by the human. The `main` tree is identical to the branch's.
+- **Human review** (GitHub review, `COMMENTED`), text prepared by the orchestrator and pasted by the human: "Phase 5 reviewed (validation): … G5 manual check done by me without AI … approved, no defects … OK to merge."
+
+## D12 — Visual style inspired by SURA (2026-11-23)
+
+- **Human's proposal**, before Phase 6: redesign the app's styles with a look similar to the SURA site (https://www.sura.co/seguros/empresas-sura/tecnologia-y-transformacion-digital), because the assessment is for SURA.
+- **Status:** Approved (the human's own decision).
+- **Human's literal reason:** "la prueba tecnica es para sura tech, entonces si quisiera como que usaramos un estilo similar al q ellos tienen para venderles mi propuesta de prueba tecnica" (*the technical assessment is for SURA Tech, so I would like us to use a style similar to theirs to sell them my technical assessment proposal*)
+- **Reference measured by the orchestrator** (computed styles of the site with Claude in Chrome): primary blue `#2D6DF6`, dark blue `#0033A0`, button text `#26328C`, yellow accent `#E3E829`, surface `#DFEAFF`, text `#1C1C24` and `#3F3F41`, pill buttons (28 px radius), cards with 8 px radius and no shadow, proprietary font `SuraSans`.
+- **Limits set by the orchestrator** (they do not change any approved decision):
+  - Only CSS and presentational markup; no changes to behavior, specs or Strapi content.
+  - No SURA logos, images or `SuraSans` font: they are not ours. A system font stack is used; the CSP (`font-src` defaulting to `'self'`) does not change.
+  - No new text in code (G2-2) and no new dependency.
+  - The accessibility requirements of the specs are kept: AA contrast (normal text ≥ 4.5:1), visible focus, touch targets of 24 px or more, no horizontal scrolling from 320 px.
+- **Planned verification:** unit tests, build, full e2e against the rebuilt stack and screenshots at 375 px and desktop.
+
+## D13 — Extension of D12: logo, typography, illustration and user experience (2026-11-23)
+
+- **Context:** the human reviewed the result of D12 ("Me gusta" (*I like it*)) and asked to bring it closer to the SURA site.
+- **Human's literal reason:** "Me gusta pero podemos hacerlo mas amigable y similar, te adjunto una imagen q puedes agregar para hacerlo mas amigable, lo puedes poner con las letras blancas para q se vea por encima de l fondo azul q dejaste [...] quiero que uses el mismo eestilo de tipo de letra que usan en la url q te suministre [...] diseñes una imagen relavionada con lo q vamo s ahacer, puedes poner un automovil [...] piknsa en la edperienica de usuario, el paso de vistas q haya un lazy loadigna, etc pero que se vea el profesionalimos, los estilos de los inputs, de los dropdowns, hazlo bien" (*I like it but we can make it friendlier and more similar; I'm attaching an image you can add to make it friendlier, you can put it with white letters so it shows over the blue background you left [...] I want you to use the same font style they use on the URL I gave you [...] design an image related to what we are going to do, you can put a car [...] think about the user experience, the transition between views, that there is lazy loading, etc., but make it look professional, the styles of the inputs, of the dropdowns, do it well*)
+- **Status:** Approved (the human's own decision).
+- **Changes to the D12 limits, flagged explicitly:**
+  1. **Logo:** D12 excluded logos. Now the top band uses the "Seguros SURA" logo provided by the human, converted to white by the orchestrator. It is decorative (`alt=""`), because an alternative text would be text in code (G2-2). The logo is a SURA trademark and is used at the human's request, only as presentation of the technical assessment.
+  2. **Typography:** the `SuraSans` font is proprietary and is not copied from their site. **Figtree** is used, a geometric sans with an OFL license and a similar look, self-hosted with the npm package `@fontsource-variable/figtree`. It is a new dependency, justified here; the CSP does not change because the font is served from `'self'`.
+  3. **Illustration:** an original SVG illustration (car and protection) is created for the country selection screen. The image on the SURA site is only a reference and is not copied. It is decorative and has no text.
+- **User experience:**
+  - Smooth transition when entering each view, respecting `prefers-reduced-motion`.
+  - Loading skeletons that keep the "cargando" text of G2-2.
+  - Inputs and dropdowns with their own style and hover, focus, error and disabled states.
+  - The routes were already *lazy* (ADR-0001).
+- **What does not change:** behavior, specs, Strapi content, no new text in code, accessibility (AA, visible focus, targets of 24 px or more, no horizontal scroll from 320 px) and `infra/`.
+
+## D14 — Back to country selection and clickable plan card (2026-11-23)
+
+- **Context:** the human reviewed D13 in the app ("Esta quedando muy bien" (*It's turning out very well*)) and raised three points.
+- **Human's literal reason:**
+  - "Si acceso a Chile o Colombia, pero quiero devolverme no hay un bootn para regresar a la vista principal, no consideras que sea necesario un boton asi?" (*If I go into Chile or Colombia but want to go back, there is no button to return to the main view; don't you think a button like that is necessary?*)
+  - "la idea es q se le pueda dar click a cualquier parte de la \"card\" delm plan que vaya a escoger, y se seleccione [...] tiene q ser en cualquier parte de este" (*the idea is that you can click anywhere on the "card" of the plan you are going to choose, and it gets selected [...] it has to be anywhere on it*)
+- **Orchestrator's analysis:** the PDF only asks for going back between steps (AC "Keep data when going back") and the specs do not cover going back to country selection. Even so, it is a clear usability improvement, and it is cheap: the data is already saved per country (D6).
+- **Status:** Approved (the human's own request).
+- **Changes to specs approved in G2, flagged explicitly:**
+  - US-01 v0.4: REQ-01.36 and AC-01.36, the "change country" link. Its text comes from Strapi in a new mandatory field, `wizardTexts.changeCountryLabel` (G2-2, G3-5), so the content model and the seed also change.
+  - US-02 v0.4: REQ-02.34 and AC-02.34, the whole plan card selects the plan. The control is still the native `radio`.
+- **Third point (payment gateway):** nothing changes. See the answer to the human: the PDF says "a button that leads to a confirmation screen or a mock gateway. Do not integrate real payment gateways or use real card data", and D9 and REQ-03.20 exclude card fields.
+
+## D15 — Brand favicon and scope of the close (2026-11-23)
+
+- **Orchestrator's proposals:**
+  - Extras: review 003; a new country with content only, with an e2e; CI with GitHub Actions.
+  - User experience polish: favicon; sticky buttons on mobile; payment and confirmation animations; illustrations in the error states.
+- **Human's decision, literal:**
+  - On the extras: "de lo unico q propusiste solo aprobaria el extra 1 del review 003, de resto no" (*of everything you proposed I would only approve extra 1, review 003; nothing else*).
+  - On the polish: "te adjunto la imagen del favicon, muy buena propuesta esa. De hecho es la unica q apruebo de todas esas. Entonces haz eso y ya podemos proceder con el review 003" (*I'm attaching the favicon image, that's a very good proposal. In fact it's the only one of all those I approve. So do that and then we can proceed with review 003*).
+- **Status:** Approved. Only the favicon and review 003; the rest is rejected (the human's reason: the time left until submission).
+- **Implementation** (orchestrator, a two-file change plus assets):
+  - `frontend/public/favicon.ico` (32 px PNG embedded in an ICO).
+  - `frontend/public/brand/icon-32.png`, `icon-192.png` and `apple-touch-icon.png`, generated with the Chrome canvas from the human's image.
+  - `<link>` in `src/index.html` and `theme-color`.
+  - Verified: build OK, and the rebuilt stack serves the three icons with 200.
+
+## G4 — Triage of review 003 (2026-11-23)
+
+- Presented: [`reviews/003-visual-refresh-and-d14.md`](../reviews/003-visual-refresh-and-d14.md) (commit `2a76a89`), verdict "Approved with changes", 0 Blocker / 0 Major.
+
+| Finding | Severity | Decision | Owner | Human's literal reason |
+|---|---|---|---|---|
+| F-00.15 | Minor | Fix: remove `reducedMotion` from the e2e config, re-run the full suite and correct the e2e report (the cause was not isolated) | orchestrator + `qa-engineer` | "Apruebo ambos" (approval of the proposed triage) |
+| F-00.16 | Minor | Fix: the human repeats a short G5 on the current UI | human | "Apruebo ambos" |
+| F-02.2 | Minor | Accept: side effect of the whole-card click the human asked for (D14); keyboard and accessible name unchanged | — | "Apruebo ambos" |
+| F-02.3 | Minor | Fix: misplaced scenario in US-02 | `requirements-analyst` | "Apruebo ambos" |
+| F-00.17 | Nit | Accept: fixing it would rewrite Git history | — | "Apruebo ambos" |
+| F-00.18 | Nit | Accept: minor CSS cleanup, no impact | — | "Apruebo ambos" |
+| F-00.19 | Nit | Fix: retake the README screenshots | orchestrator | "Apruebo ambos" |
+| F-01.1 | Nit | Fix the misleading seed log message; accept the missing backfill test (verified for real on an existing and an empty volume) | orchestrator | "Apruebo ambos" |
+
+- **Note on the approval:** the human answered with the "Apruebo ambos" button of the next-step box (triage + English docs) and then wrote the message quoted in D16. The orchestrator records the button text as the literal answer.
+
+## D16 — All documentation in English (2026-11-23)
+
+- **Context:** `CLAUDE.md` §11 (approved in G1) set documentation in Spanish and code/commits in English. The orchestrator found no language rule in the PDF text it could extract and recommended translating only README and FLOW.
+- **Human's evidence:** the recruiter's email, attached as an image, says the assessment "está redactada y respondida en inglés" ("is written and answered in English").
+- **Human's literal reason:** "Si tenemos que hacerlo en ingles, te adjunto el correo para que veas que el reclutador lo solicito, manos a la obra"
+- **Status:** Approved. **This changes the G1 decision (`CLAUDE.md` §11), as stated explicitly here.**
+- **Scope:** every versioned document is translated into English: `README.md`, `FLOW.md`, `CLAUDE.md`, agents, Skills, specs, ADRs, architecture, reviews, QA reports, traceability, decision log and the Phase 1 analysis.
+- **Exceptions:**
+  - The human's literal quotes in this log stay in Spanish, because they are evidence; an English translation is added next to each one.
+  - `logs/` is never edited (G1-a).
+  - The end-user texts in the Strapi seed stay in Spanish, because the app's users are in Colombia and Chile (G2-2).
+  - Communication between the human and the orchestrator stays in Spanish.
+- **How:** each owning agent translates its own paths in parallel. The translation must be faithful: same IDs, links, tables and meaning. A translation pass that changes content is a defect.
+
+## G5 re-check and clean start before G6 (2026-11-23)
+
+- **G5 re-check (F-00.16):** the human repeated a short manual check on the current UI (keyboard, "Cambiar de país", clickable plan card, 375 px).
+  - **Human's literal result:** "G5 OK" (*G5 OK*).
+  - **Status:** Approved.
+- **Clean start, verified by the orchestrator:**
+  - The usual stack was stopped, then `docker compose -p ciq-fresh up -d --build` ran with an empty volume (9 min 52 s, mostly the Strapi admin build).
+  - Seed: `[seed] done: 30 created, 0 already present`. The public role has exactly 4 `find` permissions. `hasAdmin:false`, so the superadmin is created on first access.
+  - `/api/countries` → 200, with `co` and `cl` and `changeCountryLabel`. Home → 200. Admin → 200.
+  - E2E smoke on that stack: `co-full-flow` and `cl-flow` → `2 passed (36.8s)`.
+  - Torn down with `docker compose -p ciq-fresh down -v`, and the usual stack restored.
+
+### Verifications that back the decisions
+
+- Angular's default test runner: Vitest with `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). It matches the quality proposal of the analysis.
+- Local environment: see [`docs/phase-1/analysis.md`](phase-1/analysis.md), section "Verified environment (local)".

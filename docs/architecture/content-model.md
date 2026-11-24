@@ -1,16 +1,16 @@
-# Modelo de contenido de Strapi
+# Strapi content model
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Proposed (G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisiones | D3, D4, D8 · G2-1, G2-2, G2-4, G2-6, G2-7, G2-8 · ADR-0001, ADR-0002, ADR-0003, ADR-0005, ADR-0006 |
-| Versión de Strapi | 5.63.0 (SQLite) |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Decisions | D3, D4, D8 · G2-1, G2-2, G2-4, G2-6, G2-7, G2-8 · ADR-0001, ADR-0002, ADR-0003, ADR-0005, ADR-0006 |
+| Strapi version | 5.63.0 (SQLite) |
 
-Los nombres de este documento son **los definitivos** que usarán el Strapi Developer y el Angular Developer: sustituyen a los nombres orientativos de las specs. Los atributos están en camelCase (inglés, `CLAUDE.md` §11). `locale`, `status`, `meta` y `document` están reservados en Strapi 5 y no se usan.
+The names in this document are **the final ones** that the Strapi Developer and the Angular Developer will use: they replace the tentative names in the specs. Attributes are in camelCase (English, `CLAUDE.md` §11). `locale`, `status`, `meta` and `document` are reserved in Strapi 5 and are not used.
 
-## 1. Resumen
+## 1. Summary
 
 ```mermaid
 erDiagram
@@ -21,159 +21,160 @@ erDiagram
     COUNTRY ||--|| UI_PLANS_STEP_TEXTS : "plansStepTexts"
     COUNTRY ||--|| UI_SUMMARY_STEP_TEXTS : "summaryStepTexts"
     COUNTRY ||--|| UI_CONFIRMATION_TEXTS : "confirmationTexts"
-    COUNTRY ||--o{ PRICING_PRICE_FACTOR : "priceFactors (repetible)"
-    FORM_FIELD ||--o{ FORM_SELECT_OPTION : "options (repetible)"
-    FORM_FIELD ||--o{ FORM_VALIDATION_RULE : "validations (repetible)"
-    PLAN ||--o{ PLAN_PLAN_ITEM : "coverages / benefits (repetibles)"
+    COUNTRY ||--o{ PRICING_PRICE_FACTOR : "priceFactors (repeatable)"
+    FORM_FIELD ||--o{ FORM_SELECT_OPTION : "options (repeatable)"
+    FORM_FIELD ||--o{ FORM_VALIDATION_RULE : "validations (repeatable)"
+    PLAN ||--o{ PLAN_PLAN_ITEM : "coverages / benefits (repeatable)"
     COUNTRY_SELECTION
 ```
 
-| UID | Tipo | Draft & Publish | i18n | Ruta pública |
+| UID | Type | Draft & Publish | i18n | Public route |
 |---|---|---|---|---|
-| `api::country.country` | Collection type (`countries`) | Sí | No | `GET /api/countries` |
-| `api::form-field.form-field` | Collection type (`form-fields`) | Sí | No | `GET /api/form-fields` |
-| `api::plan.plan` | Collection type (`plans`) | Sí | No | `GET /api/plans` |
-| `api::country-selection.country-selection` | Single type (`country-selection`) | Sí | No | `GET /api/country-selection` |
+| `api::country.country` | Collection type (`countries`) | Yes | No | `GET /api/countries` |
+| `api::form-field.form-field` | Collection type (`form-fields`) | Yes | No | `GET /api/form-fields` |
+| `api::plan.plan` | Collection type (`plans`) | Yes | No | `GET /api/plans` |
+| `api::country-selection.country-selection` | Single type (`country-selection`) | Yes | No | `GET /api/country-selection` |
 
-Componentes: `form.select-option`, `form.validation-rule`, `plan.plan-item`, `pricing.price-factor`, `ui.wizard-texts`, `ui.form-step-texts`, `ui.plans-step-texts`, `ui.summary-step-texts`, `ui.confirmation-texts`.
+Components: `form.select-option`, `form.validation-rule`, `plan.plan-item`, `pricing.price-factor`, `ui.wizard-texts`, `ui.form-step-texts`, `ui.plans-step-texts`, `ui.summary-step-texts`, `ui.confirmation-texts`.
 
-**"Obligatorio"** en las tablas = `required: true` en el esquema de Strapi, que el admin comprueba al publicar. La app **valida igualmente** cada dato (tablas 5.3 de US-01 y REQ-02.25), porque el contrato puede cambiar y los e2e simulan datos imposibles por intercepción (ADR-0007).
+**"Required"** in the tables = `required: true` in the Strapi schema, which the admin checks on publish. The app **validates each value anyway** (tables 5.3 of US-01 and REQ-02.25), because the contract can change and the e2e tests simulate impossible data by interception (ADR-0007).
 
 ## 2. Content types
 
 ### 2.1 `country` (collection type)
 
-Datos del mercado, textos de interfaz, factores de precio y términos de un país (ADR-0001).
+A country's market data, interface texts, price factors and terms (ADR-0001).
 
-| Atributo | Tipo | Obligatorio | Restricciones | Uso (REQ) |
+| Attribute | Type | Required | Constraints | Use (REQ) |
 |---|---|---|---|---|
-| `code` | string | Sí | `unique: true`, `regex: ^[a-z]{2}$` | Segmento de URL, filtro, claves de almacenamiento, prefijo del número de cotización (REQ-01.1, REQ-03.26) |
-| `name` | string | Sí | `maxLength: 60` | Lista de `/` y "país no disponible" (REQ-01.2) |
-| `intlLocale` | string | Sí | `regex: ^[a-z]{2}-[A-Z]{2}$` (p. ej. `es-CO`) | `Intl.NumberFormat` y `Intl.DateTimeFormat`, `localeCompare` (REQ-02.4, REQ-02.6, REQ-03.3) |
-| `currency` | string | Sí | `regex: ^[A-Z]{3}$` (ISO 4217) | Formato y coincidencia con la moneda del plan (REQ-02.6, REQ-02.7) |
-| `minimumAge` | integer | Sí | `min: 0`, `max: 120` (seed 18) | Mayoría de edad (REQ-01.20, G2-4) |
-| `wizardTexts` | component `ui.wizard-texts` (single) | Sí | — | Textos comunes (§3.5) |
-| `formStepTexts` | component `ui.form-step-texts` | Sí | — | Paso 1 (REQ-01.13) |
-| `plansStepTexts` | component `ui.plans-step-texts` | Sí | — | Paso 2 (REQ-02.32) |
-| `summaryStepTexts` | component `ui.summary-step-texts` | Sí | — | Paso 3 (REQ-03.38) |
-| `confirmationTexts` | component `ui.confirmation-texts` | Sí | — | Confirmación (REQ-03.27, REQ-03.38) |
-| `priceFactors` | component `pricing.price-factor` (repeatable) | No | Orden = orden del array | Regla de precio (ADR-0005, REQ-02.9) |
-| `termsAndConditions` | blocks (Rich text Blocks) | No | — | Términos (ADR-0006, REQ-03.15). Vacío → "términos no disponibles" (REQ-03.18) |
-| `formFields` | relation `oneToMany` → `form-field` (`mappedBy: country`) | — | — | Solo navegación en el admin; la app no la puebla |
-| `plans` | relation `oneToMany` → `plan` (`mappedBy: country`) | — | — | Igual que `formFields` |
+| `code` | string | Yes | `unique: true`, `regex: ^[a-z]{2}$` | URL segment, filter, storage keys, quote number prefix (REQ-01.1, REQ-03.26) |
+| `name` | string | Yes | `maxLength: 60` | `/` list and "país no disponible" (REQ-01.2) |
+| `intlLocale` | string | Yes | `regex: ^[a-z]{2}-[A-Z]{2}$` (e.g. `es-CO`) | `Intl.NumberFormat` and `Intl.DateTimeFormat`, `localeCompare` (REQ-02.4, REQ-02.6, REQ-03.3) |
+| `currency` | string | Yes | `regex: ^[A-Z]{3}$` (ISO 4217) | Formatting and match with the plan currency (REQ-02.6, REQ-02.7) |
+| `minimumAge` | integer | Yes | `min: 0`, `max: 120` (seed 18) | Legal age (REQ-01.20, G2-4) |
+| `wizardTexts` | component `ui.wizard-texts` (single) | Yes | — | Common texts (§3.5) |
+| `formStepTexts` | component `ui.form-step-texts` | Yes | — | Step 1 (REQ-01.13) |
+| `plansStepTexts` | component `ui.plans-step-texts` | Yes | — | Step 2 (REQ-02.32) |
+| `summaryStepTexts` | component `ui.summary-step-texts` | Yes | — | Step 3 (REQ-03.38) |
+| `confirmationTexts` | component `ui.confirmation-texts` | Yes | — | Confirmation (REQ-03.27, REQ-03.38) |
+| `priceFactors` | component `pricing.price-factor` (repeatable) | No | Order = array order | Price rule (ADR-0005, REQ-02.9) |
+| `termsAndConditions` | blocks (Rich text Blocks) | No | — | Terms (ADR-0006, REQ-03.15). Empty → "terms not available" (REQ-03.18) |
+| `formFields` | relation `oneToMany` → `form-field` (`mappedBy: country`) | — | — | Admin navigation only; the app does not populate it |
+| `plans` | relation `oneToMany` → `plan` (`mappedBy: country`) | — | — | Same as `formFields` |
 
-- `code` único garantiza un solo país, y por tanto un solo texto de términos, por código (Q-03.12).
-- Despublicar un `Country` lo convierte en "país no disponible" (REQ-01.2).
+- A unique `code` guarantees a single country, and therefore a single terms text, per code (Q-03.12).
+- Unpublishing a `Country` turns it into "país no disponible" (REQ-01.2).
 
 ### 2.2 `form-field` (collection type)
 
-Un campo del formulario del paso 1 de un país. Los atributos son los del PDF (label, type, required, validations, help text, error message, order, country) más los aprobados en G2.
+A field of a country's step 1 form. The attributes are those of the PDF (label, type, required, validations, help text, error message, order, country) plus those approved in G2.
 
-| Atributo | Tipo | Obligatorio | Restricciones | Uso (REQ) |
+| Attribute | Type | Required | Constraints | Use (REQ) |
 |---|---|---|---|---|
-| `key` | string | Sí | `unique: true`, `regex: ^[a-z][a-zA-Z0-9_]{0,49}$` | Identificador técnico estable, clave de persistencia (Q-01.13, REQ-01.26). Ver §5.1 |
-| `label` | string | Sí | `maxLength: 120` | `<label>` (REQ-01.9) |
-| `type` | enumeration | Sí | `text`, `number`, `select`, `date`, `checkbox` | Control (REQ-01.10) |
+| `key` | string | Yes | `unique: true`, `regex: ^[a-z][a-zA-Z0-9_]{0,49}$` | Stable technical identifier, persistence key (Q-01.13, REQ-01.26). See §5.1 |
+| `label` | string | Yes | `maxLength: 120` | `<label>` (REQ-01.9) |
+| `type` | enumeration | Yes | `text`, `number`, `select`, `date`, `checkbox` | Control (REQ-01.10) |
 | `required` | boolean | No | `default: false` | REQ-01.14 |
 | `helpText` | text | No | — | `aria-describedby` (REQ-01.9) |
-| `errorMessage` | string | No | `maxLength: 200` | Único mensaje del campo; vacío → mensaje genérico del país (REQ-01.16) |
-| `order` | integer | No | — | Orden dentro de la sección; vacío al final (REQ-01.8) |
-| `section` | enumeration | Sí | `policyholder`, `vehicle` | Grupo (REQ-01.12, G2-6) |
-| `role` | enumeration | No | `documentNumber`, `birthDate`, `vehicleYear` | Reglas, precio y enmascarado (REQ-01.28, G2-1) |
-| `options` | component `form.select-option` (repeatable) | No | Orden = orden del array | Opciones de `select` (REQ-01.11) |
-| `validations` | component `form.validation-rule` (repeatable) | No | — | Catálogo G2-7 (REQ-01.15, ADR-0002) |
-| `country` | relation `manyToOne` → `country` (`inversedBy: formFields`) | (ver nota) | — | Filtro por país (REQ-01.1) |
+| `errorMessage` | string | No | `maxLength: 200` | The field's single message; empty → the country's generic message (REQ-01.16) |
+| `order` | integer | No | — | Order within the section; empty goes last (REQ-01.8) |
+| `section` | enumeration | Yes | `policyholder`, `vehicle` | Group (REQ-01.12, G2-6) |
+| `role` | enumeration | No | `documentNumber`, `birthDate`, `vehicleYear` | Rules, price and masking (REQ-01.28, G2-1) |
+| `options` | component `form.select-option` (repeatable) | No | Order = array order | `select` options (REQ-01.11) |
+| `validations` | component `form.validation-rule` (repeatable) | No | — | G2-7 catalog (REQ-01.15, ADR-0002) |
+| `country` | relation `manyToOne` → `country` (`inversedBy: formFields`) | (see note) | — | Filter by country (REQ-01.1) |
 
-- Strapi no permite marcar una relación como obligatoria. Un campo sin país no aparece en ningún país.
-- Compatibilidad entre rol y tipo (5.2 de US-01): `documentNumber` → `text`, `birthDate` → `date`, `vehicleYear` → `number`. El admin no la impone; el mapper ignora el rol incompatible con aviso.
-- `options` solo tiene sentido en `select`, y `validations` solo admite los `kind` del tipo (§3.2). Lo demás se ignora con aviso (5.3).
+- Strapi does not allow marking a relation as required. A field without a country does not appear in any country.
+- Compatibility between role and type (5.2 of US-01): `documentNumber` → `text`, `birthDate` → `date`, `vehicleYear` → `number`. The admin does not enforce it; the mapper ignores the incompatible role with a warning.
+- `options` only makes sense for `select`, and `validations` only accepts the `kind` values of the type (§3.2). Everything else is ignored with a warning (5.3).
 
 ### 2.3 `plan` (collection type)
 
-| Atributo | Tipo | Obligatorio | Restricciones | Uso (REQ) |
+| Attribute | Type | Required | Constraints | Use (REQ) |
 |---|---|---|---|---|
-| `name` | string | Sí | `maxLength: 80` | REQ-02.3 |
+| `name` | string | Yes | `maxLength: 80` | REQ-02.3 |
 | `shortDescription` | text | No | `maxLength: 300` | REQ-02.3, REQ-03.4 |
-| `basePrice` | integer | Sí | `min: 1` (unidades enteras de la moneda) | REQ-02.8, ADR-0005 |
-| `currency` | string | Sí | `regex: ^[A-Z]{3}$` | Debe coincidir con `country.currency` (REQ-02.7) |
-| `coverages` | component `plan.plan-item` (repeatable) | No | Orden = orden del array | REQ-02.3 |
-| `benefits` | component `plan.plan-item` (repeatable) | No | Orden = orden del array | REQ-02.3 |
+| `basePrice` | integer | Yes | `min: 1` (whole currency units) | REQ-02.8, ADR-0005 |
+| `currency` | string | Yes | `regex: ^[A-Z]{3}$` | Must match `country.currency` (REQ-02.7) |
+| `coverages` | component `plan.plan-item` (repeatable) | No | Order = array order | REQ-02.3 |
+| `benefits` | component `plan.plan-item` (repeatable) | No | Order = array order | REQ-02.3 |
 | `order` | integer | No | — | REQ-02.4 |
 | `recommended` | boolean | No | `default: false` | REQ-02.5 |
-| `active` | boolean | No | `default: false` | Solo `true` se muestra (REQ-02.2) |
-| `country` | relation `manyToOne` → `country` (`inversedBy: plans`) | (ver nota de 2.2) | — | REQ-02.1 |
+| `active` | boolean | No | `default: false` | Only `true` is shown (REQ-02.2) |
+| `country` | relation `manyToOne` → `country` (`inversedBy: plans`) | (see note in 2.2) | — | REQ-02.1 |
 
-`active` vale `false` por defecto: un plan nuevo no aparece hasta que el negocio lo activa *y* lo publica (dos decisiones explícitas).
+`active` is `false` by default: a new plan does not appear until the business activates it *and* publishes it (two explicit decisions).
 
 ### 2.4 `country-selection` (single type)
 
-Contenido global de la página `/`, no ligado a ningún país (REQ-01.2, G2-3; ADR-0001 opción B1).
+Global content of the `/` page, not tied to any country (REQ-01.2, G2-3; ADR-0001 option B1).
 
-| Atributo | Tipo | Obligatorio | Uso |
+| Attribute | Type | Required | Use |
 |---|---|---|---|
-| `heading` | string | Sí | `<h1>` y `document.title` de `/` |
-| `intro` | text | No | Párrafo opcional bajo el encabezado |
-| `countryListLabel` | string | Sí | Nombre accesible de la lista o navegación de países |
+| `heading` | string | Yes | `<h1>` and `document.title` of `/` |
+| `intro` | text | No | Optional paragraph under the heading |
+| `countryListLabel` | string | Yes | Accessible name of the country list or navigation |
 
-## 3. Componentes
+## 3. Components
 
 ### 3.1 `form.select-option`
 
-| Atributo | Tipo | Obligatorio | Restricciones |
+| Attribute | Type | Required | Constraints |
 |---|---|---|---|
-| `value` | string | Sí | `regex: ^[A-Za-z0-9_-]{1,64}$`. Valor estable que se persiste (REQ-01.11) |
-| `label` | string | Sí | `maxLength: 120`. Texto visible y `displayValue` del resumen (REQ-03.3) |
+| `value` | string | Yes | `regex: ^[A-Za-z0-9_-]{1,64}$`. Stable value that is persisted (REQ-01.11) |
+| `label` | string | Yes | `maxLength: 120`. Visible text and `displayValue` in the summary (REQ-03.3) |
 
-Un `value` repetido dentro del mismo campo se trata como opción inválida y se queda la primera.
+A repeated `value` within the same field is treated as an invalid option and the first one is kept.
 
 ### 3.2 `form.validation-rule`
 
-| Atributo | Tipo | Obligatorio | Notas |
+| Attribute | Type | Required | Notes |
 |---|---|---|---|
-| `kind` | enumeration | Sí | `minLength`, `maxLength`, `pattern`, `min`, `max`, `integer` |
-| `value` | decimal | No | Parámetro de `minLength`, `maxLength` (entero ≥ 0), `min` y `max` |
-| `pattern` | string | No | `maxLength: 500`. Expresión regular **sin** `^`/`$` (la app la ancla a todo el valor) |
+| `kind` | enumeration | Yes | `minLength`, `maxLength`, `pattern`, `min`, `max`, `integer` |
+| `value` | decimal | No | Parameter of `minLength`, `maxLength` (integer ≥ 0), `min` and `max` |
+| `pattern` | string | No | `maxLength: 500`. Regular expression **without** `^`/`$` (the app anchors it to the whole value) |
 
-Validez (la comprueba el mapper; si no se cumple, la regla se ignora con aviso):
+Validity (checked by the mapper; if it is not met, the rule is ignored with a warning):
 
-| `kind` | Tipo de campo | Parámetro |
+| `kind` | Field type | Parameter |
 |---|---|---|
-| `minLength`, `maxLength` | `text` | `value` entero ≥ 0 |
-| `pattern` | `text` | `pattern` que compila como `RegExp` |
-| `min`, `max` | `number` | `value` finito; si hay los dos, `min ≤ max` |
-| `integer` | `number` | Ninguno |
+| `minLength`, `maxLength` | `text` | integer `value` ≥ 0 |
+| `pattern` | `text` | `pattern` that compiles as a `RegExp` |
+| `min`, `max` | `number` | finite `value`; if both are present, `min ≤ max` |
+| `integer` | `number` | None |
 
 ### 3.3 `plan.plan-item`
 
-| Atributo | Tipo | Obligatorio |
+| Attribute | Type | Required |
 |---|---|---|
-| `label` | string | Sí (`maxLength: 200`) |
+| `label` | string | Yes (`maxLength: 200`) |
 
 ### 3.4 `pricing.price-factor`
 
-Ver ADR-0005 y [`pricing-rule.md`](pricing-rule.md).
+See ADR-0005 and [`pricing-rule.md`](pricing-rule.md).
 
-| Atributo | Tipo | Obligatorio | Notas |
+| Attribute | Type | Required | Notes |
 |---|---|---|---|
-| `role` | enumeration | Sí | `vehicleYear`, `birthDate` |
-| `operand` | enumeration | Sí | `vehicleAge`, `ageInYears` |
-| `min` | integer | No | Vacío = sin límite |
-| `max` | integer | No | Vacío = sin límite |
-| `multiplier` | decimal | Sí | > 0 y finito (REQ-02.12) |
+| `role` | enumeration | Yes | `vehicleYear`, `birthDate` |
+| `operand` | enumeration | Yes | `vehicleAge`, `ageInYears` |
+| `min` | integer | No | Empty = no bound |
+| `max` | integer | No | Empty = no bound |
+| `multiplier` | decimal | Yes | > 0 and finite (REQ-02.12) |
 
-### 3.5 Textos de interfaz (`ui.*`)
+### 3.5 Interface texts (`ui.*`)
 
-Todos son `string` (o `text` cuando se indica), **obligatorios**, y se cargan una vez por carga de la app con el país (C3 en api-contracts). Los únicos textos en código son "cargando", "error de carga", "reintentar" y "país no disponible" (G2-2).
+All of them are `string` (or `text` where indicated), **required**, and are loaded once per app load with the country (C3 in api-contracts). The only texts in code are "cargando", "error de carga", "reintentar" and "país no disponible" (G2-2).
 
 **`ui.wizard-texts`**
 
-| Atributo | Uso | REQ |
+| Attribute | Use | REQ |
 |---|---|---|
-| `stepIndicatorLabel` | Nombre accesible del indicador de pasos | REQ-01.31 |
-| `step1Label`, `step2Label`, `step3Label` | Nombres de los pasos en el indicador | REQ-01.31 |
-| `policyholderSectionLabel` | Leyenda de la sección asegurado (paso 1 y resumen) | REQ-01.12, REQ-03.2 |
-| `vehicleSectionLabel` | Leyenda de la sección vehículo (paso 1 y resumen) | REQ-01.12, REQ-03.2 |
-| `genericErrorMessage` (text) | Mensaje de error genérico del país | REQ-01.13, REQ-02.32, REQ-03.38 |
+| `stepIndicatorLabel` | Accessible name of the step indicator | REQ-01.31 |
+| `step1Label`, `step2Label`, `step3Label` | Step names in the indicator | REQ-01.31 |
+| `policyholderSectionLabel` | Legend of the policyholder section (step 1 and summary) | REQ-01.12, REQ-03.2 |
+| `vehicleSectionLabel` | Legend of the vehicle section (step 1 and summary) | REQ-01.12, REQ-03.2 |
+| `genericErrorMessage` (text) | The country's generic error message | REQ-01.13, REQ-02.32, REQ-03.38 |
+| `changeCountryLabel` | Link to go back to the country selection (added in D14) | REQ-01.36 |
 
 **`ui.form-step-texts`**: `title`, `continueLabel`, `emptyMessage` (text). REQ-01.5, REQ-01.13.
 
@@ -181,84 +182,86 @@ Todos son `string` (o `text` cuando se indica), **obligatorios**, y se cargan un
 
 **`ui.summary-step-texts`**
 
-| Atributo | Sección del resumen (REQ-03.38) |
+| Attribute | Summary section (REQ-03.38) |
 |---|---|
-| `title` | Página |
-| `editDataLabel`, `yesLabel`, `noLabel`, `emptyValueLabel` (seed "—") | Datos |
-| `planHeading`, `changePlanLabel`, `finalPriceLabel` | Plan (usa además `coveragesHeading` y `benefitsHeading` de `plansStepTexts`) |
-| `termsHeading`, `acceptTermsLabel`, `acceptTermsHint`, `termsUnavailableMessage` (text) | Términos |
-| `gatewayLegend`, `approvedOptionLabel`, `rejectedOptionLabel`, `payLabel`, `processingMessage`, `rejectedMessage` (text) | Pago simulado (REQ-03.21, REQ-03.30, REQ-03.35) |
+| `title` | Page |
+| `editDataLabel`, `yesLabel`, `noLabel`, `emptyValueLabel` (seed "—") | Data |
+| `planHeading`, `changePlanLabel`, `finalPriceLabel` | Plan (also uses `coveragesHeading` and `benefitsHeading` from `plansStepTexts`) |
+| `termsHeading`, `acceptTermsLabel`, `acceptTermsHint`, `termsUnavailableMessage` (text) | Terms |
+| `gatewayLegend`, `approvedOptionLabel`, `rejectedOptionLabel`, `payLabel`, `processingMessage`, `rejectedMessage` (text) | Simulated payment (REQ-03.21, REQ-03.30, REQ-03.35) |
 
 **`ui.confirmation-texts`**: `title`, `quoteNumberLabel`, `planLabel`, `paidPriceLabel`, `newQuoteLabel`. REQ-03.27.
 
-**Texto ausente** (al llegar por intercepción o por un cambio de contrato): el mapper marca la pantalla o la sección afectada como `configError`. Se muestra `genericErrorMessage` y, si también falta, "error de carga" + "reintentar" (REQ-01.13, REQ-02.32, REQ-03.38, F-00.7).
+**Missing text** (when it arrives by interception or through a contract change): the mapper marks the affected screen or section as `configError`. `genericErrorMessage` is shown and, if that is also missing, "error de carga" + "reintentar" (REQ-01.13, REQ-02.32, REQ-03.38, F-00.7).
 
-## 4. Permisos del rol público
+## 4. Public role permissions
 
-**Solo `find`** en cuatro tipos, sin `findOne`. Es una precisión de D4 aprobada en G3-2: D4 fijaba `find`/`findOne` como máximo, y ninguna lectura necesita `findOne`. Los aplica `bootstrap` en cada arranque, de forma idempotente: concede estos y **revoca cualquier otro** (ADR-0003).
+**Only `find`** on four types, without `findOne`. It is a refinement of D4 approved in G3-2: D4 set `find`/`findOne` as the maximum, and no read needs `findOne`. They are applied by `bootstrap` on every startup, idempotently: it grants these and **revokes any other** (ADR-0003).
 
-| Permiso (solo `find`) | Motivo | Peticiones (api-contracts) |
+| Permission (`find` only) | Reason | Requests (api-contracts) |
 |---|---|---|
-| `api::country.country.find` | Lista de países, configuración del país, factores, términos | C1, C3, C6, C7 |
-| `api::form-field.form-field.find` | Campos del paso 1 | C4 |
-| `api::plan.plan.find` | Planes del paso 2 y del resumen | C5 |
-| `api::country-selection.country-selection.find` | Textos de `/` | C2 |
+| `api::country.country.find` | Country list, country configuration, factors, terms | C1, C3, C6, C7 |
+| `api::form-field.form-field.find` | Step 1 fields | C4 |
+| `api::plan.plan.find` | Plans for step 2 and the summary | C5 |
+| `api::country-selection.country-selection.find` | `/` texts | C2 |
 
-- Sin `findOne`, `create`, `update` ni `delete` en ningún tipo. Sin permisos de `upload`, `users-permissions` (`auth.*`, `user.*`, `role.*`) ni `i18n`. "Enable sign-ups" desactivado.
-- Los routers de los cuatro tipos se declaran con `only: ['find']` y referencian `global::published-only` en `find` (ADR-0003): fuerza `status=published` y elimina `publicationFilter`.
-- El rol `authenticated` no tiene permisos.
-- No existe ningún token de API ni credencial de escritura para la app ni para los e2e (G3-3). Solo el equipo de negocio escribe, desde el admin de Strapi.
+- No `findOne`, `create`, `update` or `delete` on any type. No `upload`, `users-permissions` (`auth.*`, `user.*`, `role.*`) or `i18n` permissions. "Enable sign-ups" disabled.
+- The routers of the four types are declared with `only: ['find']` and reference `global::published-only` on `find` (ADR-0003): it forces `status=published` and removes `publicationFilter`.
+- The `authenticated` role has no permissions.
+- There is no API token or write credential for the app or for the e2e tests (G3-3). Only the business team writes, from the Strapi admin.
 
-## 5. Decisiones del modelo (resueltas en G3)
+## 5. Model decisions (resolved in G3)
 
-Se conservan las alternativas como registro. La resolución está en `docs/decision-log.md`, sección G3.
+The alternatives are kept as a record. The resolution is in `docs/decision-log.md`, section G3.
 
-### 5.1 Unicidad de `key` por país (Q-01.13) — G3-4: opción A
+### 5.1 Uniqueness of `key` per country (Q-01.13) — G3-4: option A
 
-Strapi solo ofrece `unique` sobre toda la colección; no admite unicidad compuesta (`country` + `key`).
+Strapi only offers `unique` over the whole collection; it does not support composite uniqueness (`country` + `key`).
 
-| Opción | A favor | En contra |
+| Option | For | Against |
 |---|---|---|
-| **A. `unique: true` global + convención de prefijo por país** (`co_documentNumber`, `cl_documentNumber`) **(recomendada)** | Lo impone Strapi sin código; el admin avisa al guardar; las claves no son visibles para el usuario y el almacenamiento ya está separado por país | Prefijo por convención (no lo impone la regex); al copiar campos a un país nuevo hay que renombrar las claves |
-| B. Validación propia `(country, key)` en un middleware del Document Service | Unicidad exacta por país, sin prefijos | Código propio que interpreta el formato de las relaciones al guardar (`connect`, `documentId`), frágil entre versiones |
-| C. Solo la defensa de la app (5.3: se queda el primero por `order`) | Cero trabajo en Strapi | El negocio no recibe aviso; un campo desaparece en silencio (solo un aviso en consola) |
+| **A. Global `unique: true` + per-country prefix convention** (`co_documentNumber`, `cl_documentNumber`) **(recommended)** | Strapi enforces it without code; the admin warns on save; keys are not visible to the user and storage is already separated by country | Prefix by convention (the regex does not enforce it); when copying fields to a new country the keys must be renamed |
+| B. Custom `(country, key)` validation in a Document Service middleware | Exact uniqueness per country, without prefixes | Custom code that interprets the relation format on save (`connect`, `documentId`), fragile across versions |
+| C. Only the app's defense (5.3: the first by `order` is kept) | Zero work in Strapi | The business gets no warning; a field disappears silently (only a console warning) |
 
-La defensa de la app (C) se mantiene en cualquier caso, porque la exige la spec.
+The app's defense (C) is kept in any case, because the spec requires it.
 
-### 5.2 Textos obligatorios en Strapi — G3-5
+### 5.2 Required texts in Strapi — G3-5
 
-Aprobado: `required: true` (el negocio no puede publicar un país con textos vacíos). Consecuencia: AC-01.35, AC-02.33 y AC-03.36 se verifican por intercepción y no con un cambio real en Strapi. La alternativa (textos opcionales en Strapi) permite reproducirlos con un cambio real, pero deja publicar un país que muestra el mensaje genérico en lugar del formulario.
+Approved: `required: true` (the business cannot publish a country with empty texts). Consequence: AC-01.35, AC-02.33 and AC-03.36 are verified by interception and not with a real change in Strapi. The alternative (optional texts in Strapi) allows reproducing them with a real change, but lets a country be published that shows the generic message instead of the form.
 
-### 5.3 Leyendas de sección compartidas — G3-10
+### 5.3 Shared section legends — G3-10
 
-Aprobado: las leyendas `policyholderSectionLabel` y `vehicleSectionLabel` son las mismas en el paso 1 y en el resumen. Si el negocio quiere textos distintos en el resumen, se añaden dos atributos a `ui.summary-step-texts` (caso B).
+Approved: the legends `policyholderSectionLabel` and `vehicleSectionLabel` are the same in step 1 and in the summary. If the business wants different texts in the summary, two attributes are added to `ui.summary-step-texts` (case B).
 
-### 5.4 "—" para un opcional vacío (REQ-03.3) — G3-10
+### 5.4 "—" for an empty optional value (REQ-03.3) — G3-10
 
-Aprobado: viene de Strapi (`emptyValueLabel`, seed "—"), para cumplir G2-2 al pie de la letra. La alternativa es tratarlo como símbolo fijo en código, lo que exigiría ampliar la excepción de G2-2.
+Approved: it comes from Strapi (`emptyValueLabel`, seed "—"), to comply with G2-2 to the letter. The alternative is to treat it as a fixed symbol in code, which would require widening the G2-2 exception.
 
-## 6. Seed (requisitos para el Strapi Developer)
+## 6. Seed (requirements for the Strapi Developer)
 
-Ubicación: `cms/src/seed/` (`data/co.ts`, `data/cl.ts`, `seed.ts`, `permissions.ts`), invocado desde `bootstrap` en `cms/src/index.ts`. Es idempotente: crea lo que no existe, buscando por `code`, por `key` o por `name` de plan dentro del país, y **no sobrescribe** lo que el negocio haya cambiado.
+Location: `cms/src/seed/` (`data/co.ts`, `data/cl.ts`, `seed.ts`, `permissions.ts`), invoked from `bootstrap` in `cms/src/index.ts`. It is idempotent: it creates what does not exist, looking up by `code`, by `key` or by plan `name` within the country, and **does not overwrite** what the business has changed.
 
-| País | Contenido mínimo | REQ |
+| Country | Minimum content | REQ |
 |---|---|---|
-| CO y CL | `Country` publicado con `intlLocale`, `currency`, `minimumAge: 18`, todos los textos y términos (párrafos y una lista) | REQ-01.34, REQ-02.33, REQ-03.15 |
-| CO | Campos: tipo de documento (`select`: cédula de ciudadanía y cédula de extranjería), número de documento (`text`, rol `documentNumber`, `pattern` que admite CC y CE), placa (`text`), marca y ciudad (`select`), fecha de nacimiento (`date`, rol `birthDate`), año del vehículo (`number`, rol `vehicleYear`, `integer`), aceptación de tratamiento de datos (`checkbox`, obligatorio) | REQ-01.34 |
-| CL | Igual que CO con RUT (`text`, rol `documentNumber`) y patente en lugar de placa | REQ-01.34 |
-| CO y CL | 1 campo **en borrador** (nunca publicado, sin rol, opcional) | REQ-01.6, AC-01.11 (verificado contra Strapi real sin escrituras, ADR-0003 §5) |
-| CO y CL | 3 planes publicados y activos (orden y precio distintos, exactamente 1 recomendado), 1 publicado e inactivo, 1 en borrador | REQ-02.33 |
-| CO y CL | `priceFactors` con las bandas de US-02 §6.3 | REQ-02.33 |
-| Global | `country-selection` publicado | REQ-01.2 |
+| CO and CL | Published `Country` with `intlLocale`, `currency`, `minimumAge: 18`, all texts and terms (paragraphs and a list) | REQ-01.34, REQ-02.33, REQ-03.15 |
+| CO | Fields: document type (`select`: cédula de ciudadanía and cédula de extranjería), document number (`text`, role `documentNumber`, `pattern` that accepts CC and CE), license plate (`text`), brand and city (`select`), birth date (`date`, role `birthDate`), vehicle year (`number`, role `vehicleYear`, `integer`), data processing consent (`checkbox`, required) | REQ-01.34 |
+| CL | Same as CO with RUT (`text`, role `documentNumber`) and patente instead of the license plate | REQ-01.34 |
+| CO and CL | 1 **draft** field (never published, no role, optional) | REQ-01.6, AC-01.11 (verified against the real Strapi without writes, ADR-0003 §5) |
+| CO and CL | 3 published and active plans (different order and price, exactly 1 recommended), 1 published and inactive, 1 draft | REQ-02.33 |
+| CO and CL | `priceFactors` with the bands of US-02 §6.3 | REQ-02.33 |
+| Global | Published `country-selection` | REQ-01.2 |
 
-Todos los datos son ficticios (`CLAUDE.md` §6). Las claves siguen la convención de prefijo por país de §5.1 (G3-4).
+All data is fictitious (`CLAUDE.md` §6). The keys follow the per-country prefix convention of §5.1 (G3-4).
 
-## 7. Qué cambia el negocio sin código (caso A) y qué no (caso B)
+## 7. What the business changes without code (case A) and what it cannot (case B)
 
-| Sin código (Strapi) | Con código (caso B o C) |
+| Without code (Strapi) | With code (case B or C) |
 |---|---|
-| Añadir, quitar, publicar, despublicar o reordenar campos; cambiar label, ayuda, error, sección, rol (de los 3), `required`; validaciones del catálogo y sus parámetros; opciones de `select` | Tipo de campo nuevo; `kind` de validación nuevo; rol nuevo; sección nueva |
-| Planes: alta, baja, activar, orden, recomendado, precio base, coberturas, beneficios | Moneda con decimales (ADR-0005) |
-| Factores: bandas, multiplicadores, orden, rol de los existentes | Operando nuevo |
-| Términos y todos los textos de interfaz existentes | Texto de interfaz nuevo |
-| Edad mínima, locale y moneda de un país; publicar un país nuevo con sus campos y planes | Límites del año del vehículo (fijos por G2-4) |
+| Add, remove, publish, unpublish or reorder fields; change label, help, error, section, role (out of the 3), `required`; catalog validations and their parameters; `select` options | New field type; new validation `kind`; new role; new section |
+| Plans: create, remove, activate, order, recommended, base price, coverages, benefits | Currency with decimals (ADR-0005) |
+| Factors: bands, multipliers, order, role of the existing ones | New operand |
+| Terms and all existing interface texts | New interface text |
+| Minimum age, locale and currency of a country; publishing a new country with its fields and plans | Vehicle year limits (fixed by G2-4) |
+
+> Translated into English on 2026-11-23 (D16); no content change.

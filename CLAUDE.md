@@ -1,81 +1,86 @@
-# CLAUDE.md — Contexto global del proyecto
+# CLAUDE.md — Global project context
 
-Lo leen el orquestador y **todos** los subagentes. Si una instrucción de un agente o de una Skill contradice este archivo, gana este archivo; si este archivo contradice el PDF de la prueba, gana el PDF.
+Read by the orchestrator and **all** subagents. If an instruction from an agent or a Skill contradicts this file, this file wins; if this file contradicts the assessment PDF, the PDF wins.
 
-## 1. Qué construimos
+## 1. What we build
 
-Wizard de cotización de seguro de auto para **Colombia (CO)** y **Chile (CL)**: un único build de Angular que consume de Strapi el formulario, los planes y los términos de cada país. Tres historias: US-01 formulario, US-02 planes, US-03 resumen y pago simulado.
+Car insurance quote wizard for **Colombia (CO)** and **Chile (CL)**: a single Angular build that consumes from Strapi the form, the plans and the terms of each country. Three stories: US-01 form, US-02 plans, US-03 summary and simulated payment.
 
-## 2. Fuentes de verdad (orden de precedencia)
+## 2. Sources of truth (order of precedence)
 
-1. `docs/assessment/Technical assessment -Frontend.pdf`: requisitos. No se inventan requisitos ni se contradicen.
-2. `specs/US-XX/spec.md` aprobadas (gate G2): fuente de verdad de cada historia. El código se deriva de la spec.
-3. `docs/adr/` aceptados (gate G3).
-4. Este archivo y `docs/decision-log.md` (decisiones humanas D1–Dn).
-5. `docs/assessment/master-prompt.md`: contexto operativo.
+1. `docs/assessment/Technical assessment -Frontend.pdf`: requirements. Requirements are not invented or contradicted.
+2. Approved `specs/US-XX/spec.md` (gate G2): source of truth of each story. The code is derived from the spec.
+3. Accepted `docs/adr/` (gate G3).
+4. This file and `docs/decision-log.md` (human decisions D1–Dn).
+5. `docs/assessment/master-prompt.md`: operational context.
 
-Si encuentras un hueco o una contradicción: **no supongas**. Regístralo como pregunta abierta en la spec o en tu salida y detente.
+If you find a gap or a contradiction: **do not assume**. Record it as an open question in the spec or in your output and stop.
 
-## 3. Decisiones vigentes (G0, ver `docs/decision-log.md`)
+## 3. Current decisions (G0, see `docs/decision-log.md`)
 
-| # | Decisión |
+| # | Decision |
 |---|---|
-| D2 | Angular 22: standalone, signals, `@if`/`@for`, sin NgModules, zoneless |
-| D3 | Multipaís: colección `Country` + relaciones en Strapi (sin i18n); país en la URL `/co/...`, `/cl/...` |
-| D4 | Rol público de Strapi solo `find`/`findOne`; nginx proxy GET-only con allowlist; ningún token en el navegador |
-| D5 | Formularios con **Signal Forms** (`@angular/forms/signals`) |
-| D6 | Persistencia del wizard en `sessionStorage`, separada por país |
-| D7 | 3 pasos + pantalla de confirmación |
-| D8 | Precio: factores por país en Strapi + función pura documentada |
-| D9 | Pago: pasarela mock con resultado elegido (éxito/rechazo), sin campos de tarjeta |
-| D10 | SDD propio y ligero mediante la Skill `sdd-traceability` |
-| D11 | 6 subagentes en `.claude/agents/` + Skills `sdd-traceability` y `country-content` |
+| D2 | Angular 22: standalone, signals, `@if`/`@for`, no NgModules, zoneless |
+| D3 | Multi-country: `Country` collection + relations in Strapi (no i18n); country in the URL `/co/...`, `/cl/...` |
+| D4 | Strapi public role only `find`/`findOne`; GET-only nginx proxy with allowlist; no token in the browser |
+| D5 | Forms with **Signal Forms** (`@angular/forms/signals`) |
+| D6 | Wizard persistence in `sessionStorage`, separated by country |
+| D7 | 3 steps + confirmation screen |
+| D8 | Price: per-country factors in Strapi + documented pure function |
+| D9 | Payment: mock gateway with a chosen result (success/rejection), no card fields |
+| D10 | Own lightweight SDD through the `sdd-traceability` Skill |
+| D11 | 6 subagents in `.claude/agents/` + Skills `sdd-traceability` and `country-content` |
+| D12 | Visual style inspired by SURA: CSS and presentational markup only; no changes to behavior, specs or Strapi content |
+| D13 | Extension of D12: "Seguros SURA" logo provided by the human, self-hosted Figtree font, original SVG illustration and UX polish (transitions, skeletons, styled inputs) |
+| D14 | "Change country" link back to country selection (REQ-01.36) and whole clickable plan card (REQ-02.34) |
+| D15 | Brand favicon; of the closing extras, only review 003 |
+| D16 | All documentation in English (changes §11); communication with the human stays in Spanish |
 
-Cambiar una decisión aprobada exige una nueva entrada en `docs/decision-log.md` y aprobación humana.
+Changing an approved decision requires a new entry in `docs/decision-log.md` and human approval.
 
-## 4. Stack y entorno verificado
+## 4. Stack and verified environment
 
-Node 24.22.3 · npm 11 · Angular 22.3 · Strapi 5.63 (SQLite) · Vitest (unit, `jsdom`) · Playwright (e2e, Chrome del sistema con `channel: 'chrome'`) · Docker Compose v5 · nginx. Host Windows 11; los contenedores son Linux.
+Node 24.22.3 · npm 11 · Angular 22.3 · Strapi 5.63 (SQLite) · Vitest (unit, `jsdom`) · Playwright (e2e, system Chrome with `channel: 'chrome'`) · Docker Compose v5 · nginx. Windows 11 host; the containers are Linux.
 
-## 5. Estructura del repositorio
+## 5. Repository structure
 
 ```
 CLAUDE.md · FLOW.md · README.md · docker-compose.yml · .env.example
-.claude/agents/        subagentes (uno por rol)
+.claude/agents/        subagents (one per role)
 .claude/skills/        sdd-traceability, country-content
-specs/US-0X/spec.md    una spec por historia
+specs/US-0X/spec.md    one spec per story
 docs/adr/              ADRs (MADR)
-docs/architecture/     modelo de contenido, contratos de API
-docs/qa/               plan e informes de pruebas
-docs/traceability.md   matriz US → REQ → AC → ADR → código → tests → review
-docs/decision-log.md   decisiones y rechazos humanos
-reviews/               informes de code review y su resolución
-logs/sessions/         transcripciones originales (NO EDITAR)
+docs/architecture/     content model, API contracts
+docs/qa/               test plan and reports
+docs/traceability.md   matrix US → REQ → AC → ADR → code → tests → review
+docs/decision-log.md   human decisions and rejections
+reviews/               code review reports and their resolution
+logs/sessions/         original transcripts (DO NOT EDIT)
 frontend/  cms/  e2e/
-infra/nginx/           proxy GET-only y build de Angular (Strapi Developer, G1-d)
-scripts/               utilidades del flujo (export-session-logs.ps1)
+infra/nginx/           GET-only proxy and Angular build (Strapi Developer, G1-d)
+scripts/               flow utilities (export-session-logs.ps1)
 ```
 
-## 6. Reglas no negociables
+## 6. Non-negotiable rules
 
-- **Spec antes que código.** Ninguna historia se implementa sin su spec aprobada en G2.
-- **`logs/` es evidencia original.** Nunca se edita, reescribe ni borra nada dentro de `logs/` (lo bloquea un hook, G1-a). Las transcripciones se añaden solo con `scripts/export-session-logs.ps1`, cuya única transformación es redactar datos personales listados fuera del repo (G1-f); hashes en `docs/logs-manifest.md`.
-- **Seguridad.** Ningún token de Strapi llega al navegador. El rol público solo lee. Credenciales solo en `.env` (versionado únicamente `.env.example` con valores ficticios).
-- **Datos ficticios.** Nada de datos personales reales, tarjetas reales ni pasarelas reales.
-- **Evidencia real.** No se declaran tests, builds ni revisiones que no se hayan ejecutado. Los informes incluyen el comando y su salida real.
-- **Dependencias.** Ninguna dependencia nueva sin justificarla en el commit o en un ADR.
-- **Git.** Commits pequeños, Conventional Commits. Sin `push` salvo petición humana. Nunca `--no-verify`. Los subagentes **no hacen commit**: entregan al orquestador, que revisa el diff contra el criterio de terminado del agente y hace el commit citando los IDs.
-- **Propiedad de rutas.** Cada subagente escribe solo en las rutas que declara su definición en `.claude/agents/`.
-- **Errores.** Ante un fallo, primero la causa; después la corrección.
+- **Spec before code.** No story is implemented without its spec approved in G2.
+- **`logs/` is original evidence.** Nothing inside `logs/` is ever edited, rewritten or deleted (a hook blocks it, G1-a). Transcripts are added only with `scripts/export-session-logs.ps1`, whose only transformation is redacting personal data listed outside the repo (G1-f); hashes in `docs/logs-manifest.md`.
+- **Security.** No Strapi token reaches the browser. The public role only reads. Credentials only in `.env` (only `.env.example` with fictitious values is versioned).
+- **Fictitious data.** No real personal data, real cards or real gateways.
+- **Real evidence.** No tests, builds or reviews that were not executed are declared. Reports include the command and its real output.
+- **Dependencies.** No new dependency without justifying it in the commit or in an ADR.
+- **Git.** Small commits, Conventional Commits. No `push` unless the human asks. Never `--no-verify`. Subagents **do not commit**: they hand over to the orchestrator, who reviews the diff against the agent's definition of done and makes the commit citing the IDs.
+- **Path ownership.** Each subagent writes only to the paths declared in its definition in `.claude/agents/`.
+- **Errors.** On a failure, first the cause; then the fix.
 
-## 7. Trazabilidad
+## 7. Traceability
 
-IDs (definidos en la Skill `sdd-traceability`):
+IDs (defined in the `sdd-traceability` Skill):
 
-- `US-01` historia · `REQ-01.3` requisito de la spec · `AC-01.2` criterio de aceptación · `Q-01.1` pregunta abierta
-- `ADR-0001` decisión de arquitectura · `F-01.4` hallazgo de review · `D7` decisión humana
+- `US-01` story · `REQ-01.3` spec requirement · `AC-01.2` acceptance criterion · `Q-01.1` open question
+- `ADR-0001` architecture decision · `F-01.4` review finding · `D7` human decision
 
-Commits que implementan algo citan los IDs al final del asunto:
+Commits that implement something cite the IDs at the end of the subject:
 
 ```
 feat(frontend): render dynamic fields by order [US-01][REQ-01.2]
@@ -83,59 +88,64 @@ feat(frontend): render dynamic fields by order [US-01][REQ-01.2]
 
 Scopes: `frontend`, `cms`, `e2e`, `infra`, `docs`, `specs`, `adr`, `agents`, `skills`, `review`.
 
-Los tests nombran el criterio que verifican: `it('AC-01.2 shows the configured error message', ...)`.
+Tests name the criterion they verify: `it('AC-01.2 shows the configured error message', ...)`.
 
-## 8. Convenciones de código
+## 8. Code conventions
 
 **Angular (`frontend/`)**
 
-- Componentes standalone con `ChangeDetectionStrategy.OnPush`; estado con `signal`/`computed`; `inject()` en lugar de constructores con parámetros.
-- Plantillas con `@if`, `@for` (con `track`), `@switch`. Prohibido `*ngIf`, `*ngFor` y NgModules.
-- TypeScript `strict`; prohibido `any` (usar `unknown` + validación). DTOs de Strapi separados del dominio mediante mappers.
-- Lógica de negocio (precio, enmascarado, validadores, edad, año) en **funciones puras** con unit tests.
-- Nombres de archivo según lo que genera `ng generate` en Angular 22.
-- Accesibilidad: cada control con `<label>` asociado, errores con `aria-describedby`, foco gestionado al cambiar de paso, todo operable con teclado.
-- Estados de carga, vacío y error explícitos en cada llamada a Strapi.
+- Standalone components with `ChangeDetectionStrategy.OnPush`; state with `signal`/`computed`; `inject()` instead of constructors with parameters.
+- Templates with `@if`, `@for` (with `track`), `@switch`. `*ngIf`, `*ngFor` and NgModules are forbidden.
+- TypeScript `strict`; `any` is forbidden (use `unknown` + validation). Strapi DTOs separated from the domain through mappers.
+- Business logic (price, masking, validators, age, year) in **pure functions** with unit tests.
+- File names as generated by `ng generate` in Angular 22.
+- Accessibility: each control with an associated `<label>`, errors with `aria-describedby`, focus managed when changing step, everything operable with the keyboard.
+- Explicit loading, empty and error states in every call to Strapi.
 
 **Strapi (`cms/`)**
 
-- Content types y componentes como código (`src/api`, `src/components`).
-- Seed y permisos del rol público en `bootstrap`, idempotentes.
-- Nada de lógica de presentación en Strapi.
+- Content types and components as code (`src/api`, `src/components`).
+- Seed and public role permissions in `bootstrap`, idempotent.
+- No presentation logic in Strapi.
 
 **Tests**
 
-- Unit (Vitest): junto al código, `*.spec.ts`. Los mantiene el Angular Developer.
-- E2E (Playwright): `e2e/`. Los mantiene el QA Engineer. Al menos el flujo completo de un país.
+- Unit (Vitest): next to the code, `*.spec.ts`. Maintained by the Angular Developer.
+- E2E (Playwright): `e2e/`. Maintained by the QA Engineer. At least the full flow of one country.
 
-## 9. Flujo y gates humanos
+## 9. Flow and human gates
 
-Detalle en `FLOW.md`. Resumen:
+Detail in `FLOW.md`. Summary:
 
-| Gate | Qué aprueba el humano |
+| Gate | What the human approves |
 |---|---|
-| G0 | Estrategia (Fase 1) |
-| G1 | Flujo agéntico: este archivo, agentes, Skills, FLOW.md |
-| G2 | Specs de cada historia |
-| G3 | ADRs y modelo de contenido |
-| Demo | Cada historia implementada, antes de la siguiente |
-| G4 | Triage de hallazgos de review |
-| G5 | Prueba manual con teclado y móvil, sin IA |
-| G6 | Entrega |
+| G0 | Strategy (Phase 1) |
+| G1 | Agentic flow: this file, agents, Skills, FLOW.md |
+| G2 | Specs of each story |
+| G3 | ADRs and content model |
+| Demo | Each implemented story, before the next one |
+| G4 | Triage of review findings |
+| G5 | Manual test with keyboard and mobile, without AI |
+| G6 | Delivery |
 
-Un rechazo devuelve el trabajo al agente productor con el motivo registrado en `docs/decision-log.md`.
+A rejection returns the work to the producing agent with the reason recorded in `docs/decision-log.md`.
 
-## 10. Definition of Done (por historia)
+## 10. Definition of Done (per story)
 
-- [ ] Spec aprobada y sin preguntas abiertas bloqueantes.
-- [ ] Código que cumple cada `REQ` de la spec, con commits que citan los IDs.
-- [ ] Unit tests de la lógica relevante, ejecutados en verde (salida real en `docs/qa/`).
-- [ ] E2E del flujo afectado ejecutado en verde.
-- [ ] Review en `reviews/` con hallazgos resueltos o aceptados por el humano (G4).
-- [ ] `docs/traceability.md` actualizado.
+- [ ] Spec approved and without blocking open questions.
+- [ ] Code that meets each `REQ` of the spec, with commits that cite the IDs.
+- [ ] Unit tests of the relevant logic, executed green (real output in `docs/qa/`).
+- [ ] E2E of the affected flow executed green.
+- [ ] Review in `reviews/` with findings resolved or accepted by the human (G4).
+- [ ] `docs/traceability.md` updated.
 
-## 11. Idioma
+## 11. Language
 
-Documentación y comunicación con el humano en **español**. Código, identificadores, nombres de archivo y mensajes de commit en **inglés**. Los textos visibles al usuario final vienen de Strapi.
+Rule in force since **D16** (replaces the G1 rule):
 
-**Única excepción (G2-2):** un conjunto mínimo de textos fijos en código, en español, para cuando aún no hay configuración o Strapi no responde: "cargando", "error de carga", "reintentar" y "país no disponible". Si falta un texto en Strapi, se trata como error de configuración y se muestra el mensaje genérico; no se añaden textos por defecto en código.
+- **Documentation** (every versioned document), code, identifiers, file names and commit messages in **English**.
+- **Communication with the human** in **Spanish**.
+- **End-user texts** come from Strapi: Spanish product copy for CO and CL, in the seed.
+- **Human's literal quotes** in `docs/decision-log.md` stay in Spanish exactly as written (they are evidence), with an English translation next to each one.
+
+**Only exception (G2-2), unchanged:** a minimal set of fixed texts in code, in Spanish, for when there is no configuration yet or Strapi does not respond: "cargando", "error de carga", "reintentar" and "país no disponible" (*loading*, *load error*, *retry*, *country not available*). If a text is missing in Strapi, it is treated as a configuration error and the generic message is shown; no default texts are added in code.

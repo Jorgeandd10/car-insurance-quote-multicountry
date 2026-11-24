@@ -39,6 +39,8 @@ export const WIZARD_TEXT_KEYS = [
   'step3Label',
   'policyholderSectionLabel',
   'vehicleSectionLabel',
+  /** Link back to the country selection `/` on every wizard screen (REQ-01.36, D14). */
+  'changeCountryLabel',
 ] as const;
 
 export const FORM_STEP_TEXT_KEYS = ['title', 'continueLabel', 'emptyMessage'] as const;

@@ -1,4 +1,63 @@
-/* Global styles: base typography, visible focus and no horizontal scroll from 320 px (REQ-01.33). */
+/*
+ * Global styles (D12, extended by D13): visual style inspired by the SURA site.
+ * Palette, shapes, spacing and motion live in custom properties; components reuse them.
+ * Contrast (WCAG AA) of each text/background pair is noted next to the token.
+ * Font: Figtree (OFL), self-hosted through `@fontsource-variable/figtree` (angular.json `styles`),
+ * so the CSP `default-src 'self'` does not change (D13).
+ * No horizontal scroll from 320 px (REQ-01.33, REQ-02.29, REQ-03.36).
+ */
+
+:root {
+  /* Brand */
+  --color-primary: #2d6df6; /* 4.54:1 on white; 3.75:1 on surface (large text / UI only) */
+  --color-primary-dark: #0033a0; /* 10.6:1 on white; 8.76:1 on surface */
+  --color-accent: #e3e829; /* CTA background */
+  --color-accent-hover: #d4d91f; /* on-accent on it: 7.17:1 */
+  --color-accent-active: #c9ce14; /* on-accent on it: 6.43:1 */
+  --color-on-accent: #26328c; /* 8.26:1 on accent; 10.95:1 on white; 9.05:1 on surface */
+  --color-surface: #dfeaff; /* hero, selected plan, highlighted blocks */
+  --color-surface-strong: #ccdcff; /* pressed secondary button: on-accent 7.95:1 */
+  --color-surface-soft: #f5f8ff;
+
+  /* Text and lines */
+  --color-text: #1c1c24; /* 16.9:1 on white; 13.98:1 on surface */
+  --color-text-muted: #3f3f41; /* 10.5:1 on white; 8.68:1 on surface */
+  --color-link: #0b5fff; /* 5.13:1 on white */
+  --color-border: #e3eaf7; /* decorative card borders */
+  --color-border-strong: #6b6b70; /* inputs and UI boundaries: 5.3:1 on white, 4.38:1 on surface */
+  --color-focus: #0033a0; /* focus ring: 10.6:1 on white, 8.76:1 on surface, 8:1 on accent */
+  --focus-halo: 0 0 0 4px rgb(45 109 246 / 0.22); /* decorative halo, the outline is the indicator */
+
+  /* States */
+  --color-error: #b3261e; /* 6.54:1 on white; 5.92:1 on error surface */
+  --color-error-surface: #fdf1f0;
+  --color-disabled-bg: #f2f2f2;
+  --color-disabled-text: #5c5c61; /* 5.94:1 on disabled background */
+
+  /* Shapes, elevation and layout (4/8 px spacing scale) */
+  --radius-sm: 0.625rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-pill: 1.75rem;
+  --shadow-sm: 0 1px 2px rgb(0 51 160 / 0.06), 0 2px 8px rgb(0 51 160 / 0.08);
+  --shadow-md: 0 4px 16px rgb(0 51 160 / 0.12);
+  --container-max: 72rem;
+  --gutter: 1rem;
+  --card-padding: 1.25rem;
+  --font-family: 'Figtree Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-view: 220ms;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 1.5rem;
+    --card-padding: 1.75rem;
+  }
+}
 
 *,
 *::before,
@@ -7,20 +66,25 @@
 }
 
 html {
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-family);
   line-height: 1.5;
-  color: #1a1a1a;
+  color: var(--color-text);
   background: #ffffff;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   margin: 0;
+  font-size: 1rem;
   overflow-wrap: anywhere;
+}
+
+@media (min-width: 48rem) {
+  body {
+    font-size: 1.0625rem;
+  }
 }
 
 img,
@@ -28,8 +92,41 @@ svg {
   max-width: 100%;
 }
 
+/* Headings: primary blue, bold (SURA reference). */
+h1,
+h2 {
+  color: var(--color-primary);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+/*
+ * Every screen heading sits on a full-width light-blue hero band. The band is painted with
+ * border-image outset, which is ink overflow: it never adds horizontal scroll.
+ * h1 is at least 32 px bold, so #2D6DF6 on the hero (3.75:1) is large text (>= 3:1).
+ */
+h1,
+.hero-bleed {
+  border-image: linear-gradient(var(--color-surface), var(--color-surface)) fill 0 / 0 / 0 100vmax;
+}
+
+h1 {
+  margin: 0 0 2rem;
+  padding: 1.5rem 0 2rem;
+  font-size: clamp(2rem, 1.5rem + 2.4vw, 3rem);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Visible focus everywhere, dark blue so it keeps >= 3:1 on white, hero and yellow. */
 :focus-visible {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -38,19 +135,158 @@ h1:focus {
 }
 
 h1:focus-visible {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--color-focus);
 }
 
+/* Buttons: secondary pill by default; `.btn-primary` is the yellow call to action. */
 button {
   font: inherit;
-  min-height: 44px;
+  font-weight: 700;
+  line-height: 1.25;
+  min-height: 48px;
   min-width: 44px;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.75rem;
+  border: 1.5px solid var(--color-on-accent);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-on-accent);
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+button:hover {
+  background: var(--color-surface);
+}
+
+button:active {
+  background: var(--color-surface-strong);
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  padding-inline: 2.25rem;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 2px 6px rgb(38 50 140 / 0.16);
+}
+
+.btn-primary:hover {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+  box-shadow: 0 4px 12px rgb(38 50 140 / 0.2);
+}
+
+.btn-primary:active {
+  border-color: var(--color-accent-active);
+  background: var(--color-accent-active);
+  box-shadow: 0 1px 3px rgb(38 50 140 / 0.2);
+}
+
+/* Disabled (native or aria-disabled): grey, dashed border, still readable (5.94:1). */
+button:is(:disabled, [aria-disabled='true']),
+button:is(:disabled, [aria-disabled='true']):hover,
+button:is(:disabled, [aria-disabled='true']):active {
+  border: 1.5px dashed var(--color-border-strong);
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
+
+button[aria-disabled='true'] {
+  cursor: progress;
 }
 
 a {
-  color: #0b57d0;
+  color: var(--color-link);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/*
+ * Country links (selection page and "país no disponible"): large white cards. The icon and the
+ * arrow are empty pseudo-elements, so the accessible name is still only the country name.
+ */
+.country-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  max-width: 32rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.country-links a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4.5rem;
+  padding: 1rem 3rem 1rem 1rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+  color: var(--color-on-accent);
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+/* Decorative pin: blue disc with a white ring. */
+.country-links a::before {
+  content: '';
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #ffffff 0 0.3rem, transparent 0.32rem),
+    radial-gradient(circle, var(--color-primary) 0 0.6rem, transparent 0.62rem),
+    var(--color-surface);
+}
+
+/* Decorative arrow (chevron drawn with borders). */
+.country-links a::after {
+  content: '';
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: solid currentColor;
+  border-width: 0 3px 3px 0;
+  transform: translateY(-50%) rotate(-45deg);
+  transition: right var(--duration-fast) ease;
+}
+
+.country-links a:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  color: var(--color-on-accent);
+  transform: translateY(-2px);
+}
+
+.country-links a:hover::after {
+  right: 1rem;
+}
+
+.country-links a:active {
+  transform: translateY(0);
 }
 
 .visually-hidden {
@@ -63,4 +299,48 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/*
+ * View transition (D13): the content of each routed screen fades in and rises 10 px when it is
+ * inserted. Only opacity and transform: the element is focusable and clickable at once, and the
+ * focus moved to the h1 (ADR-0004) is not delayed. The h1 itself is not animated, so its hero
+ * band stays still between steps. Disabled with `prefers-reduced-motion`.
+ */
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+app-dynamic-form,
+app-status-message,
+app-terms-blocks {
+  display: block;
+}
+
+:is(app-form-step-page, app-plans-step-page, app-summary-step-page, app-confirmation-page)
+  > :not(app-step-heading),
+app-country-not-available > nav,
+.view-enter {
+  animation: view-enter var(--duration-view) var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  :is(app-form-step-page, app-plans-step-page, app-summary-step-page, app-confirmation-page)
+    > :not(app-step-heading),
+  app-country-not-available > nav,
+  .view-enter {
+    animation: none;
+  }
 }

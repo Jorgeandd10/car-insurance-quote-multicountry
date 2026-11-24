@@ -15,6 +15,14 @@ describe('StatusMessage', () => {
     expect(el.querySelector('[role="status"]')?.textContent?.trim()).toBe('cargando');
   });
 
+  it('REQ-01.3 D13 the loading skeleton is decorative: hidden from assistive technologies and without text', async () => {
+    const el = (await render('loading')).nativeElement as HTMLElement;
+    const skeleton = el.querySelector('.skeleton');
+    expect(skeleton?.getAttribute('aria-hidden')).toBe('true');
+    expect(skeleton?.textContent?.trim()).toBe('');
+    expect(el.textContent?.trim()).toBe('cargando');
+  });
+
   it('REQ-01.32 REQ-01.4 error is an alert with "error de carga" and a "reintentar" button that emits', async () => {
     const fixture = await render('error');
     const el = fixture.nativeElement as HTMLElement;

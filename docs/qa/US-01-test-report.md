@@ -1,32 +1,32 @@
-# Informe de pruebas — US-01 (formulario dinámico del paso 1), fase 4b
+# Test report — US-01 (dynamic step 1 form), phase 4b
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Autor | Angular Developer (subagente) |
-| Fecha | 2026-11-23 |
-| Commit probado | Sin commit propio: árbol de trabajo sobre `40840ed` (rama `phase-4/implementation`) con los cambios de 4b sin confirmar. El commit lo hace el orquestador |
-| Entorno | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 (`@angular/forms/signals` 22.3.0) · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). Sin Strapi: fixtures en formato v5 de `api-contracts.md` (`frontend/src/app/core/cms/testing/strapi-fixtures.ts`, `frontend/src/app/features/form-step/testing/form-fixtures.ts`) |
+| Author | Angular Developer (subagent) |
+| Date | 2026-11-23 |
+| Tested commit | No commit of its own: working tree on top of `40840ed` (branch `phase-4/implementation`) with the 4b changes uncommitted. The orchestrator makes the commit |
+| Environment | Node 24.22.3 · npm 11.19.1 · Angular 22.3.0 (`@angular/forms/signals` 22.3.0) · TypeScript 6.0.3 · Vitest 5.1.1 · jsdom 31.0.1 · Windows 11 (Git Bash). No Strapi: fixtures in the v5 format of `api-contracts.md` (`frontend/src/app/core/cms/testing/strapi-fixtures.ts`, `frontend/src/app/features/form-step/testing/form-fixtures.ts`) |
 
-Alcance: `features/form-step/` (página del paso 1, formulario dinámico con Signal Forms, schema generado, registro de validadores, reconciliación, evaluación, `isComplete` y `step1CompleteGuard` en `/:country/plans` y `/:country/summary`), más `CountryRouteReuseStrategy` (corrección de un fallo que encontró AC-01.22; ver "Fallos y causa").
+Scope: `features/form-step/` (step 1 page, dynamic form with Signal Forms, generated schema, validator registry, reconciliation, evaluation, `isComplete` and `step1CompleteGuard` on `/:country/plans` and `/:country/summary`), plus `CountryRouteReuseStrategy` (fix for a failure found by AC-01.22; see "Failures and cause").
 
-Las salidas se pegan tal cual. Solo se han quitado los códigos de color ANSI (`sed 's/\x1b\[[0-9;]*m//g'`). Los códigos de salida se capturaron con `set -o pipefail`.
+The outputs are pasted as they are. Only the ANSI color codes were removed (`sed 's/\x1b\[[0-9;]*m//g'`). The exit codes were captured with `set -o pipefail`.
 
-## Spike de ADR-0002
+## ADR-0002 spike
 
-Lo hice leyendo `node_modules/@angular/forms/types/*.d.ts` y `fesm2022/signals.mjs` (funciones `getNativeControlValue`, `setNativeControlValue`, `nativeControlCreate` y `FormField.elementAcceptsNativeProperty`) y lo confirmé con `frontend/src/app/features/form-step/signal-forms-spike.spec.ts`. Ese test sigue en la suite para detectar cambios de comportamiento al actualizar Angular.
+I did it by reading `node_modules/@angular/forms/types/*.d.ts` and `fesm2022/signals.mjs` (functions `getNativeControlValue`, `setNativeControlValue`, `nativeControlCreate` and `FormField.elementAcceptsNativeProperty`) and confirmed it with `frontend/src/app/features/form-step/signal-forms-spike.spec.ts`. That test stays in the suite to detect behavior changes when Angular is updated.
 
-| Hueco | Resultado | ¿Coincide con ADR-0002? |
+| Gap | Result | Matches ADR-0002? |
 |---|---|---|
-| 1. `<input type="number">` vacío | Con un modelo `number \| null`, Signal Forms escribe `element.value === '' ? null : element.valueAsNumber`: el vacío es `null`, nunca `NaN`. Un decimal llega como número (la regla `integer` es nuestra). Si el navegador marca `validity.badInput` (p. ej. una "e" suelta), no escribe el modelo y añade al campo un error `NativeInputParseError` (`kind: 'parse'`) | Sí. La normalización `NaN` → `null` se mantiene como defensa (`normalizeValue`) |
-| 2. `<input type="date">` con modelo `string` | Si el modelo es `string`, lee y escribe `element.value` (`YYYY-MM-DD`) sin pasar por `Date`. **Condición:** si el modelo vale `null` o un `Date`, cambia a `valueAsDate`. Por eso el valor inicial de `date` es `''` y nunca `null` (`initialValue`) | Sí. No hace falta un control propio con `FormValueControl` |
-| 3. `aria-invalid` y `aria-describedby` | `FormField` solo pone propiedades nativas: `disabled`, `required`, `readonly`, `name`, `min`/`max` y `minLength`/`maxLength` (en controles de texto). No pone `aria-invalid` ni `aria-describedby` | Sí. Se enlazan a mano con `[attr.aria-invalid]` y `[attr.aria-describedby]` |
+| 1. Empty `<input type="number">` | With a `number \| null` model, Signal Forms writes `element.value === '' ? null : element.valueAsNumber`: empty is `null`, never `NaN`. A decimal arrives as a number (the `integer` rule is ours). If the browser flags `validity.badInput` (e.g. a lone "e"), it does not write the model and adds a `NativeInputParseError` error (`kind: 'parse'`) to the field | Yes. The `NaN` → `null` normalization is kept as a defense (`normalizeValue`) |
+| 2. `<input type="date">` with a `string` model | If the model is a `string`, it reads and writes `element.value` (`YYYY-MM-DD`) without going through `Date`. **Condition:** if the model is `null` or a `Date`, it switches to `valueAsDate`. That is why the initial value of `date` is `''` and never `null` (`initialValue`) | Yes. No custom control with `FormValueControl` is needed |
+| 3. `aria-invalid` and `aria-describedby` | `FormField` only sets native properties: `disabled`, `required`, `readonly`, `name`, `min`/`max` and `minLength`/`maxLength` (on text controls). It does not set `aria-invalid` or `aria-describedby` | Yes. They are bound by hand with `[attr.aria-invalid]` and `[attr.aria-describedby]` |
 
-Consecuencias en la implementación:
+Consequences for the implementation:
 
-- No se usan los validadores incorporados `minLength`, `maxLength` ni `pattern`: no recortan espacios, y `maxLength` pondría el atributo nativo, que trunca lo que se escribe. Se usa `required()` (para que `FormField` ponga `required` nativo) y un `validate()` por campo que llama a las funciones puras de `validator-registry.ts`.
-- `touched()` pasa a `true` en `blur` (lo confirma el spike), y `submit()` marca todo el árbol como tocado antes de llamar a `onInvalid`.
+- The built-in `minLength`, `maxLength` and `pattern` validators are not used: they do not trim spaces, and `maxLength` would set the native attribute, which truncates what is typed. `required()` is used (so that `FormField` sets the native `required`) plus one `validate()` per field that calls the pure functions in `validator-registry.ts`.
+- `touched()` becomes `true` on `blur` (the spike confirms it), and `submit()` marks the whole tree as touched before calling `onInvalid`.
 
-## Comando y salida real
+## Command and real output
 
 ### Build
 
@@ -58,7 +58,7 @@ Application bundle generation complete. [25.382 seconds] - 2026-11-23T05:13:10.6
 Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
 ```
 
-Código de salida: `0`.
+Exit code: `0`.
 
 ### Unit tests
 
@@ -415,9 +415,9 @@ Application bundle generation complete. [14.731 seconds] - 2026-11-23T05:16:07.5
    Duration  24.30s (environment 74%, setup 11%, tests 10%, import 3%, transform 2%)
 ```
 
-Código de salida: `0`. Resumen: **33 archivos, 336 tests, 336 pasan, 0 fallan** (229 de la fase 4a y 107 nuevos).
+Exit code: `0`. Summary: **33 files, 336 tests, 336 pass, 0 fail** (229 from phase 4a and 107 new).
 
-### Formato
+### Formatting
 
 ```text
 $ npx prettier --check "src/**/*.{ts,html,css}" vitest-base.config.mts
@@ -425,9 +425,9 @@ Checking formatting...
 All matched files use Prettier code style!
 ```
 
-### `grep` de reglas
+### `grep` of the rules
 
-Ejecutados en `frontend/`. Cada bloque es el comando exacto seguido de su salida.
+Run in `frontend/`. Each block is the exact command followed by its output.
 
 ```text
 $ grep -rnE ":\s*any\b|<any\b|\bas any\b|\bany\[\]|Array<any>|Record<[^>]*any>" src --include="*.ts"
@@ -461,67 +461,172 @@ $ grep -rnE "placeholder=" src --include="*.html"
 (sin resultados)
 ```
 
-Lectura: no hay `any` como tipo, ni `*ngIf`/`*ngFor`, ni NgModules ni formularios reactivos. `sessionStorage` solo aparece en `core/storage/`. Todos los componentes son `OnPush`. No se usa ninguna API experimental de Signal Forms (`experimentalWebMcpTool`) ni placeholders (Q-01.17).
+Reading: there is no `any` as a type, no `*ngIf`/`*ngFor`, no NgModules and no reactive forms. `sessionStorage` only appears in `core/storage/`. Every component is `OnPush`. No experimental Signal Forms API (`experimentalWebMcpTool`) and no placeholders are used (Q-01.17).
 
-## Cobertura de criterios de US-01
+## US-01 criteria coverage
 
-Las rutas son relativas a `frontend/src/app/`. "E2E" indica la parte que corresponde al QA Engineer en `e2e/` (ADR-0007).
+Paths are relative to `frontend/src/app/`. "E2E" marks the part that belongs to the QA Engineer in `e2e/` (ADR-0007).
 
-| AC | Test (archivo › nombre) | Resultado |
+| AC | Test (file › name) | Result |
 |---|---|---|
-| AC-01.1 | `features/form-step/form-step-page.spec.ts › AC-01.1 shows only the fields of the country, in sections and in the configured order` | ✅ Pass (E2E contra el seed: QA) |
+| AC-01.1 | `features/form-step/form-step-page.spec.ts › AC-01.1 shows only the fields of the country, in sections and in the configured order` | ✅ Pass (E2E against the seed: QA) |
 | AC-01.2 | `form-step-page.spec.ts › AC-01.2 AC-01.26 an invalid field shows its configured message, aria-invalid and aria-describedby`; `› AC-01.16 REQ-01.17 …` | ✅ Pass |
-| AC-01.3 | — | ⏭ No cubierto por unit: es un cambio de contenido con recarga. E2E por intercepción + G5 (G3-3) |
+| AC-01.3 | — | ⏭ Not covered by unit: it is a content change with reload. E2E by interception + G5 (G3-3) |
 | AC-01.4 | `form-step-page.spec.ts › AC-01.4 going back from step 2 keeps the data filled in` | ✅ Pass |
 | AC-01.5 | `features/country-selection/country-selection-page.spec.ts › AC-01.5 …` (4a) | ✅ Pass |
 | AC-01.6 | `core/country/country-case-guard.spec.ts › AC-01.6 …`, `features/wizard-shell/country-shell.spec.ts › AC-01.6 …` (4a) | ✅ Pass |
 | AC-01.7 | `country-shell.spec.ts › REQ-01.3 AC-01.7 shows only the fixed "cargando" …` (4a) | ✅ Pass |
 | AC-01.8 | `country-shell.spec.ts › AC-01.8 shows "error de carga" + "reintentar" and retrying shows the step` (4a) | ✅ Pass |
 | AC-01.9 | `form-step-page.spec.ts › AC-01.9 REQ-01.5 without published fields shows the empty message of the country and no continue` | ✅ Pass |
-| AC-01.10 | `core/cms/form-field-mapper.spec.ts › AC-01.10 swapping order in Strapi swaps the fields on screen` (4a) | ✅ Pass (cambio real con recarga: E2E por intercepción) |
-| AC-01.11 | `core/cms/cms-queries.spec.ts › REQ-01.6 C4 never asks for drafts …` (4a) | ✅ Pass (parte unit). Contra Strapi real: E2E |
+| AC-01.10 | `core/cms/form-field-mapper.spec.ts › AC-01.10 swapping order in Strapi swaps the fields on screen` (4a) | ✅ Pass (real change with reload: E2E by interception) |
+| AC-01.11 | `core/cms/cms-queries.spec.ts › REQ-01.6 C4 never asks for drafts …` (4a) | ✅ Pass (unit part). Against real Strapi: E2E |
 | AC-01.12 | `form-step-page.spec.ts › AC-01.12 a {text, number, select, date, checkbox} field is a native control with its label` (5), `› AC-01.12 REQ-01.9 the help text is associated with aria-describedby` | ✅ Pass |
-| AC-01.13 | `form-step-page.spec.ts › AC-01.13 the select offers exactly the Strapi options, in order, after an empty option`; `form-field-mapper.spec.ts › AC-01.13 …` | ✅ Pass (primera parte). "Marca C" tras recargar: E2E por intercepción |
+| AC-01.13 | `form-step-page.spec.ts › AC-01.13 the select offers exactly the Strapi options, in order, after an empty option`; `form-field-mapper.spec.ts › AC-01.13 …` | ✅ Pass (first part). "Marca C" after reload: E2E by interception |
 | AC-01.14 | `validation/validator-registry.spec.ts › AC-01.14 a required text left empty or with only spaces is invalid`; `form-step-page.spec.ts › AC-01.14 a required text with only spaces shows its message and stays on step 1` | ✅ Pass |
-| AC-01.15 | `validator-registry.spec.ts › AC-01.15 …` (las 5 filas); `form-field-mapper.spec.ts › AC-01.15 the pattern is anchored to the whole value` | ✅ Pass |
+| AC-01.15 | `validator-registry.spec.ts › AC-01.15 …` (the 5 rows); `form-field-mapper.spec.ts › AC-01.15 the pattern is anchored to the whole value` | ✅ Pass |
 | AC-01.16 | `form-step-page.spec.ts › AC-01.16 REQ-01.17 trying to continue shows all errors, focuses the first invalid field and keeps the URL` | ✅ Pass |
-| AC-01.17 | `validator-registry.spec.ts › AC-01.17 …` (5 filas); `form-step-page.spec.ts › AC-01.17 …`; `domain/dates/vehicle-year.spec.ts › AC-01.17 …` (4a) | ✅ Pass |
-| AC-01.18 | `validator-registry.spec.ts › AC-01.18 …` (5 filas); `form-step-page.spec.ts › AC-01.18 …`; `domain/dates/legal-age.spec.ts › AC-01.18 …` (4a) | ✅ Pass |
+| AC-01.17 | `validator-registry.spec.ts › AC-01.17 …` (5 rows); `form-step-page.spec.ts › AC-01.17 …`; `domain/dates/vehicle-year.spec.ts › AC-01.17 …` (4a) | ✅ Pass |
+| AC-01.18 | `validator-registry.spec.ts › AC-01.18 …` (5 rows); `form-step-page.spec.ts › AC-01.18 …`; `domain/dates/legal-age.spec.ts › AC-01.18 …` (4a) | ✅ Pass |
 | AC-01.19 | `core/clock/clock.spec.ts › AC-01.19 …` (4a, `TZ=America/Bogota`); `form-step-page.spec.ts › AC-01.19 REQ-01.21 the birth date is stored exactly as typed, YYYY-MM-DD` | ✅ Pass |
 | AC-01.20 | `form-step-page.spec.ts › AC-01.20 without a field with role birthDate shows the generic error, no continue, and warns`; `form-field-mapper.spec.ts › AC-01.20 …` | ✅ Pass |
-| AC-01.21 | `form-step-page.spec.ts › AC-01.21 REQ-01.24 the stored values are restored when the page is opened again (reload)` | ✅ Pass (recarga). "Pestaña nueva vacía" depende del `sessionStorage` real: E2E |
+| AC-01.21 | `form-step-page.spec.ts › AC-01.21 REQ-01.24 the stored values are restored when the page is opened again (reload)` | ✅ Pass (reload). "Empty new tab" depends on the real `sessionStorage`: E2E |
 | AC-01.22 | `form-step-page.spec.ts › AC-01.22 data is separated by country`; `core/storage/wizard-storage.spec.ts › AC-01.22 …` (4a); `step1-complete-guard.spec.ts › REQ-01.25 …` | ✅ Pass |
 | AC-01.23 | `validation/reconcile-step1.spec.ts › AC-01.23 …`; `form-step-page.spec.ts › AC-01.23 a stored option that no longer exists leaves the select empty, with a warning` | ✅ Pass |
 | AC-01.24 | `reconcile-step1.spec.ts › AC-01.24 …`; `form-step-page.spec.ts › AC-01.24 a stored value that breaks a new validation is shown and fails on continue` | ✅ Pass |
 | AC-01.25 | `form-step-page.spec.ts › AC-01.25 skipped malformed fields do not break the rest of the form`; `form-field-mapper.spec.ts › AC-01.25 …` (4a) | ✅ Pass |
 | AC-01.26 | `form-step-page.spec.ts › AC-01.26 REQ-01.12 each section is a fieldset with its Strapi legend …`, `› AC-01.2 AC-01.26 …`, `› AC-01.12 …` (labels) | ✅ Pass |
-| AC-01.27 | `form-step-page.spec.ts › REQ-01.31 the focus is on the heading of the step and the indicator marks step 1`; `country-shell.spec.ts › REQ-01.31 AC-01.27 …` (4a) | ✅ Pass (foco y `aria-current`). Solo teclado y Enter: E2E, porque jsdom no implementa el envío implícito con Enter |
-| AC-01.28 | — | ⏭ No cubierto por unit: responsive (viewports 320 y 1280). E2E + G5 |
+| AC-01.27 | `form-step-page.spec.ts › REQ-01.31 the focus is on the heading of the step and the indicator marks step 1`; `country-shell.spec.ts › REQ-01.31 AC-01.27 …` (4a) | ✅ Pass (focus and `aria-current`). Keyboard only and Enter: E2E, because jsdom does not implement implicit submission with Enter |
+| AC-01.28 | — | ⏭ Not covered by unit: responsive (320 and 1280 viewports). E2E + G5 |
 | AC-01.29 | `validation/evaluate-step1.spec.ts › AC-01.29 …` (4); `form-step-page.spec.ts › REQ-01.23 every change is stored, normalised …, without any completed flag` | ✅ Pass |
-| AC-01.30 | `core/cms/cms-client.spec.ts › REQ-01.35 sends a GET … without Authorization nor credentials` (4a) | ✅ Pass (parte unit). Inspección de red: E2E |
-| AC-01.31 | `form-step-page.spec.ts › AC-01.31 the continue button shows the Strapi text` | ✅ Pass (el texto viene de Strapi). Cambio en CL con recarga: E2E por intercepción |
+| AC-01.30 | `core/cms/cms-client.spec.ts › REQ-01.35 sends a GET … without Authorization nor credentials` (4a) | ✅ Pass (unit part). Network inspection: E2E |
+| AC-01.31 | `form-step-page.spec.ts › AC-01.31 the continue button shows the Strapi text` | ✅ Pass (the text comes from Strapi). Change in CL with reload: E2E by interception |
 | AC-01.32 | `form-step-page.spec.ts › AC-01.32 with a valid form, continue goes to step 2 of the same country and stores the data` | ✅ Pass |
 | AC-01.33 | `validator-registry.spec.ts › AC-01.33 …`; `form-step-page.spec.ts › AC-01.33 a required checkbox left unchecked shows its message and stays on step 1` | ✅ Pass |
-| AC-01.34 | — | ⏭ No cubierto por unit: es el seed de Strapi (Strapi Developer). E2E |
+| AC-01.34 | — | ⏭ Not covered by unit: it is the Strapi seed (Strapi Developer). E2E |
 | AC-01.35 | `form-step-page.spec.ts › AC-01.35 a missing continue text shows the generic error instead of the form, with no default text`; `country-mapper.spec.ts › AC-01.35 …` (4a) | ✅ Pass |
 
-REQ sin AC propio que cubren los unit:
+REQ without an AC of their own that the unit tests cover:
 
-- REQ-01.16: el error solo aparece tras el primer blur, desaparece al corregir y usa el mensaje genérico si el del campo está vacío.
-- REQ-01.22: las reglas por rol no se desactivan con `required: false`.
-- REQ-01.23: normalización de los valores guardados.
-- REQ-01.26: tipo cambiado, tipo inesperado y JSON corrupto.
-- REQ-01.27: los estados `empty`, `unavailable` y `configError` nunca están completos.
-- REQ-02.19 y REQ-03.13: `step1CompleteGuard` (8 tests).
+- REQ-01.16: the error only appears after the first blur, disappears when corrected and uses the generic message if the field's message is empty.
+- REQ-01.22: the per-role rules are not disabled with `required: false`.
+- REQ-01.23: normalization of the stored values.
+- REQ-01.26: changed type, unexpected type and corrupt JSON.
+- REQ-01.27: the `empty`, `unavailable` and `configError` states are never complete.
+- REQ-02.19 and REQ-03.13: `step1CompleteGuard` (8 tests).
 
-## Fallos y causa
+## Failures and cause
 
-En la ejecución final no falla ningún test. Estas son las incidencias de la fase, con su causa y su corrección:
+No test fails in the final run. These are the issues of the phase, with their cause and fix:
 
-| # | Síntoma | Causa | Corrección |
+| # | Symptom | Cause | Fix |
 |---|---|---|---|
-| 1 | `AC-01.22 data is separated by country` fallaba: al volver a `/co/form`, `#f-co_plate` no existía | **Fallo real de la app.** El `RouteReuseStrategy` por defecto reutiliza un componente cuando solo cambian los parámetros. De `/cl/form` a `/co/form`, con las dos configuraciones ya en memoria, el shell seguía en `ready`, el outlet no se destruía y `DynamicForm`, que crea el formulario una sola vez en `ngOnInit` (ADR-0002), conservaba los campos de Chile. De `/co` a `/cl` no fallaba porque la configuración de CL aún no estaba cargada y el shell pasaba por "cargando" | `core/country/country-route-reuse-strategy.ts`: no reutiliza una ruta si cambia el país. Se registra con `provideAppRouting()` en `app.config.ts` y en los tests. Tiene su propio test: `country-route-reuse-strategy.spec.ts` (2) |
-| 2 | Tres tests de `country-shell.spec.ts` (4a) dejaron de pasar: esperaban ver `/co/plans` y `/co/summary` | Es lo esperado: ahora `step1CompleteGuard` redirige a `/co/form` cuando el paso 1 no está completo (REQ-02.19, REQ-03.13). Además, ese archivo usaba el `sessionStorage` real de jsdom | El spec usa `WIZARD_STORAGE` en memoria y `CLOCK` fijo, y guarda un paso 1 válido antes de abrir los pasos 2 y 3. Lo que comprueban esos tests (indicador, foco, título ausente) no cambia |
-| 3 | `AC-01.1`, `AC-01.5` y `AC-02.22` fallaron por timeout (entre 5,2 y 6,1 s) en la suite completa, pero pasaban ejecutados solos | Son el primer test con router de cada archivo: cargan los chunks lazy, y con la suite entera en paralelo en Windows superan los 5 s por defecto de Vitest. Es tiempo de carga, no un bloqueo | `frontend/vitest-base.config.mts` con `testTimeout: 15_000`, referenciado en `angular.json` (`test.options.runnerConfig`), que es la opción que documenta el builder (`ng test --help`). Sin dependencias nuevas |
+| 1 | `AC-01.22 data is separated by country` failed: when going back to `/co/form`, `#f-co_plate` did not exist | **Real app failure.** The default `RouteReuseStrategy` reuses a component when only the parameters change. From `/cl/form` to `/co/form`, with both configurations already in memory, the shell stayed in `ready`, the outlet was not destroyed and `DynamicForm`, which creates the form only once in `ngOnInit` (ADR-0002), kept Chile's fields. From `/co` to `/cl` it did not fail because the CL configuration was not loaded yet and the shell went through "cargando" | `core/country/country-route-reuse-strategy.ts`: it does not reuse a route if the country changes. It is registered with `provideAppRouting()` in `app.config.ts` and in the tests. It has its own test: `country-route-reuse-strategy.spec.ts` (2) |
+| 2 | Three tests in `country-shell.spec.ts` (4a) stopped passing: they expected to see `/co/plans` and `/co/summary` | This is expected: now `step1CompleteGuard` redirects to `/co/form` when step 1 is not complete (REQ-02.19, REQ-03.13). In addition, that file used jsdom's real `sessionStorage` | The spec uses an in-memory `WIZARD_STORAGE` and a fixed `CLOCK`, and stores a valid step 1 before opening steps 2 and 3. What those tests check (indicator, focus, missing title) does not change |
+| 3 | `AC-01.1`, `AC-01.5` and `AC-02.22` failed by timeout (between 5.2 and 6.1 s) in the full suite, but passed when run alone | They are the first test with a router in each file: they load the lazy chunks, and with the whole suite in parallel on Windows they exceed Vitest's default 5 s. It is load time, not a hang | `frontend/vitest-base.config.mts` with `testTimeout: 15_000`, referenced in `angular.json` (`test.options.runnerConfig`), which is the option documented by the builder (`ng test --help`). No new dependencies |
 
-**Control de los propios tests (mutación):** quitar `touched()` de `DynamicForm.errorVisible` (el error se vería mientras se escribe) hace fallar exactamente `REQ-01.16 the error is not shown while typing, only after leaving the field` y `AC-01.12 REQ-01.9 the help text is associated with aria-describedby`. Después restauré el código y volví a ejecutar la suite (salida de arriba).
+**Check on the tests themselves (mutation):** removing `touched()` from `DynamicForm.errorVisible` (the error would show while typing) makes exactly `REQ-01.16 the error is not shown while typing, only after leaving the field` and `AC-01.12 REQ-01.9 the help text is associated with aria-describedby` fail. Then I restored the code and ran the suite again (output above).
+
+## D14 (2026-11-23)
+
+Scope: REQ-01.36 / AC-01.36, the "cambiar de país" link in the wizard shell. Its text is `wizardTexts.changeCountryLabel`, required (G3-5): if it is missing, configuration error with the generic message (G2-2).
+
+Tested commit: none of its own. Working tree on top of `47443de` (branch `style/sura-visual-refresh`) with the D14 changes uncommitted. The outputs are pasted as they are, except for two things: the ANSI codes and the repeated blank lines were removed. In the verbose run, the lines of this story's spec are filtered (`grep`), and I say so where it is done.
+
+### Build
+
+```text
+$ npm run build
+
+> car-insurance-quote@0.0.0 build
+> ng build
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names                  |  Raw size | Estimated transfer size
+main-SOBT4VEK.js    | main                   | 295.92 kB |                80.30 kB
+styles-NTDGXMFB.css | styles                 |   6.21 kB |                 1.91 kB
+
+                    | Initial total          | 302.13 kB |                82.22 kB
+
+Lazy chunk files    | Names                  |  Raw size | Estimated transfer size
+chunk-C8VTNn4N.js   | form-step-page         |  65.25 kB |                16.98 kB
+chunk-Bjw0i0Qb.js   | summary-step-page      |  23.19 kB |                 6.18 kB
+chunk-BYpa-ZCU.js   | plans-step-page        |  10.46 kB |                 3.17 kB
+chunk-Bsx2fnci.js   | country-shell          |   8.23 kB |                 2.64 kB
+chunk-Ce3_FM81.js   | -                      |   4.14 kB |                 1.71 kB
+chunk-DvNqx6U3.js   | confirmation-page      |   3.45 kB |                 1.37 kB
+chunk-B4DYgJbP.js   | country-selection-page |   3.37 kB |                 1.50 kB
+chunk-CXDbEDFl.js   | -                      |   3.08 kB |                 1.17 kB
+chunk-BvN-fAav.js   | -                      |   1.35 kB |               658 bytes
+chunk-FpvmFjhC.js   | -                      | 622 bytes |               622 bytes
+chunk-CGwJUSht.js   | -                      | 153 bytes |               153 bytes
+
+Application bundle generation complete. [21.507 seconds] - 2026-11-23T21:27:04.864Z
+
+Output location: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\dist\car-insurance-quote
+```
+
+### Unit tests (full suite)
+
+```text
+$ npx ng test --watch=false
+Using Vitest configuration file: C:\Users\Jorge Andres\Documents\_SURA\car-insurance-quote-multicountry\frontend\vitest-base.config.mts
+❯ Building...
+✔ Building...
+Application bundle generation complete. [12.965 seconds] - 2026-11-23T21:31:08.878Z
+
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+
+ Test Files  46 passed (46)
+      Tests  469 passed (469)
+   Start at  16:31:09
+   Duration  29.92s (environment 70%, tests 22%, setup 5%, import 2%, transform 1%)
+$ echo $?
+0
+```
+
+### Unit tests of the change (verbose reporter, lines of the affected spec)
+
+```text
+$ npx ng test --watch=false --reporters=verbose --include src/app/features/wizard-shell/country-shell.spec.ts --include src/app/features/plans-step/plans-step-page.spec.ts
+ RUN  v5.1.1 C:/Users/Jorge Andres/Documents/_SURA/car-insurance-quote-multicountry/frontend
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.3 AC-01.7 shows only the fixed "cargando" while the configuration loads 892ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.8 shows "error de carga" + "reintentar" and retrying shows the step 649ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.1 requests only the configuration of the country of the URL 153ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 AC-01.27 the step indicator marks the current step with aria-current="step" 266ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.31 the focus goes to the heading of the step and document.title follows it 298ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > D7 the confirmation is not a step: no step is marked as current 86ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > ADR-0001 "/co" and unknown sub-paths redirect to "/co/form" 123ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > AC-01.6 an unknown code shows "país no disponible" and the published countries as links 74ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 a code that cannot be a country is not requested to Strapi 85ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.2 if the country list fails, "país no disponible" shows "error de carga" + "reintentar" 80ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-01.13 a missing step indicator text shows the generic error instead of the wizard 60ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/" 231ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country 190ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default 34ms
+ ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-02.32 a missing step title shows the generic error of the country, never a default 48ms
+ Test Files  2 passed (2)
+      Tests  44 passed (44)
+   Start at  16:32:08
+   Duration  12.24s (tests 38%, environment 38%, setup 15%, import 4%, transform 4%, worker 1%)
+```
+
+To avoid trimming the output, only the `country-shell.spec.ts` lines are filtered here. The run's total (44 tests in 2 files) includes `plans-step-page.spec.ts`, which is in `US-02-test-report.md`.
+
+### AC-01.36 coverage
+
+| AC / REQ | Test (file › name) | Result |
+|---|---|---|
+| AC-01.36, REQ-01.36 | `features/wizard-shell/country-shell.spec.ts › AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/"` (steps 1 to 3 and confirmation; `href="/"`, no children in the DOM, so the accessible name is only the Strapi text) | ✅ Pass |
+| AC-01.36, REQ-01.36, D6 | `country-shell.spec.ts › AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country` (click → `/` shows the country selection; `ciq.v1.co.step1` is still stored; when going back to `/co/form` the document number is filled in) | ✅ Pass |
+| REQ-01.36, REQ-01.13 | `country-shell.spec.ts › REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default` | ✅ Pass |
+| AC-01.36 against the seed | — | ⏭ E2E (QA), according to the spec's verification table |
+
+Visual check (throwaway Playwright script against `ng serve` on port 4300, with a proxy to the stack). Strapi did not have the field yet, so the script added it by intercepting C3. The link measures 147×44 px at a width of 375 px and 154×44 px at 1280, in `rgb(0, 51, 160)` on `#DFEAFF` (8.76:1). It receives focus with Tab and the ring is visible. There is no horizontal scroll (`scrollWidth === clientWidth` at 375 and at 1280). After filling in step 1, going to `/` and back to Colombia, `1234567890`, `ABC123` and `2018` are recovered. Nothing anomalous appears on `/`: `CountryRouteReuseStrategy` only acts between `/:country` routes, and `/` is a different route configuration.
+
+### Failures and cause
+
+| # | Symptom | Cause | Fix |
+|---|---|---|---|
+| 1 | First run of the suite: 7 files with `[vitest-pool]: Failed to start forks worker … Timeout waiting for worker to respond`; 333 tests run, all green | It was environmental: the workers did not start in time with the machine under load (`environment 82%`), while another agent was working on Strapi in parallel. No assertion failed | None in the code. The repeat run executed the 46 files |
+| 2 | `AC-01.36 … D6 going back to "/" keeps the step 1 data` failed by timeout (30 s) | Test failure. `/` requests C2 (`country-selection`) and the spec's `seedHandler` did not answer C2, which fell into `pending()`. `whenStable()` waited for a resource that never finished | The `seedHandler` answers C2 with `strapiC2()`. The test also checks that the country selection heading is shown |

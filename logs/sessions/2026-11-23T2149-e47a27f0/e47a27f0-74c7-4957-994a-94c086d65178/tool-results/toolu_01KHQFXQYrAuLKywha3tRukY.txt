@@ -1,0 +1,252 @@
+cms\src\seed\seed.ts:118: *   - changeCountryLabel → D14, REQ-01.36.
+cms\src\seed\seed.ts-119- */
+cms\src\seed\seed.ts-120-const BACKFILLED_WIZARD_TEXTS = ['changeCountryLabel'] as const;
+cms\src\seed\seed.ts-121-
+cms\src\seed\seed.ts-122-const isBlank = (value: unknown): boolean =>
+cms\src\seed\seed.ts-123-  value === null || value === undefined || (typeof value === 'string' && value.trim() === '');
+cms\src\seed\seed.ts-124-
+cms\src\seed\seed.ts-125-/**
+cms\src\seed\seed.ts-126- * Idempotent backfill of an already seeded country: fills each attribute of
+--
+docs\architecture\content-model.md:177:| `changeCountryLabel` | Enlace para volver a la selección de país (añadido en D14) | REQ-01.36 |
+docs\architecture\content-model.md-178-
+docs\architecture\content-model.md-179-**`ui.form-step-texts`**: `title`, `continueLabel`, `emptyMessage` (text). REQ-01.5, REQ-01.13.
+docs\architecture\content-model.md-180-
+docs\architecture\content-model.md-181-**`ui.plans-step-texts`**: `title`, `groupLegend`, `recommendedLabel`, `coveragesHeading`, `benefitsHeading`, `backLabel`, `continueLabel`, `choosePlanMessage`, `emptyMessage` (text), `planUnavailableMessage` (text). REQ-02.5, REQ-02.15, REQ-02.17, REQ-02.22, REQ-02.32.
+docs\architecture\content-model.md-182-
+docs\architecture\content-model.md-183-**`ui.summary-step-texts`**
+docs\architecture\content-model.md-184-
+docs\architecture\content-model.md-185-| Atributo | Sección del resumen (REQ-03.38) |
+--
+docs\decision-log.md:212:  - US-01 v0.4: REQ-01.36 y AC-01.36, el enlace "cambiar de país". Su texto viene de Strapi en un campo nuevo obligatorio, `wizardTexts.changeCountryLabel` (G2-2, G3-5), así que también cambian el modelo de contenido y el seed.
+docs\decision-log.md:213:  - US-02 v0.4: REQ-02.34 y AC-02.34, toda la tarjeta del plan selecciona el plan. El control sigue siendo el `radio` nativo.
+docs\decision-log.md-214-- **Tercera cuestión (pasarela de pago):** no cambia nada. Ver la respuesta al humano: el PDF dice "a button that leads to a confirmation screen or a mock gateway. Do not integrate real payment gateways or use real card data", y D9 y REQ-03.20 excluyen los campos de tarjeta.
+docs\decision-log.md-215-
+docs\decision-log.md-216-### Verificaciones que respaldan las decisiones
+docs\decision-log.md-217-
+docs\decision-log.md-218-- Test runner por defecto de Angular: Vitest con `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). Coincide con la propuesta de calidad del análisis.
+docs\decision-log.md-219-- Entorno local: ver [`docs/phase-1/analysis.md`](phase-1/analysis.md), sección "Entorno verificado (local)".
+--
+docs\qa\US-01-test-report.md:531:Alcance: REQ-01.36 / AC-01.36, el enlace "cambiar de país" en el shell del wizard. Su texto es `wizardTexts.changeCountryLabel`, obligatorio (G3-5): si falta, error de configuración con el mensaje genérico (G2-2).
+docs\qa\US-01-test-report.md-532-
+docs\qa\US-01-test-report.md-533-Commit probado: ninguno propio. Árbol de trabajo sobre `47443de` (rama `style/sura-visual-refresh`) con los cambios de D14 sin confirmar. Las salidas se pegan tal cual, salvo dos cosas: se han quitado los códigos ANSI y las líneas en blanco repetidas. En la ejecución verbose se filtran las líneas del spec de esta historia (`grep`), y lo indico donde se hace.
+docs\qa\US-01-test-report.md-534-
+docs\qa\US-01-test-report.md-535-### Build
+docs\qa\US-01-test-report.md-536-
+docs\qa\US-01-test-report.md-537-```text
+docs\qa\US-01-test-report.md-538-$ npm run build
+docs\qa\US-01-test-report.md-539-
+--
+docs\qa\US-01-test-report.md:604: ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/" 231ms
+docs\qa\US-01-test-report.md:605: ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country 190ms
+docs\qa\US-01-test-report.md:606: ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > change country link (REQ-01.36) > REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default 34ms
+docs\qa\US-01-test-report.md-607- ✓  car-insurance-quote  src/app/features/wizard-shell/country-shell.spec.ts > CountryShell > REQ-02.32 a missing step title shows the generic error of the country, never a default 48ms
+docs\qa\US-01-test-report.md-608- Test Files  2 passed (2)
+docs\qa\US-01-test-report.md-609-      Tests  44 passed (44)
+docs\qa\US-01-test-report.md-610-   Start at  16:32:08
+docs\qa\US-01-test-report.md-611-   Duration  12.24s (tests 38%, environment 38%, setup 15%, import 4%, transform 4%, worker 1%)
+docs\qa\US-01-test-report.md-612-```
+docs\qa\US-01-test-report.md-613-
+docs\qa\US-01-test-report.md-614-Para no recortar la salida, aquí solo se filtran las líneas de `country-shell.spec.ts`. El total de la ejecución (44 tests en 2 archivos) incluye `plans-step-page.spec.ts`, que está en `US-02-test-report.md`.
+--
+docs\qa\US-01-test-report.md:616:### Cobertura de AC-01.36
+docs\qa\US-01-test-report.md-617-
+docs\qa\US-01-test-report.md-618-| AC / REQ | Test (archivo › nombre) | Resultado |
+docs\qa\US-01-test-report.md-619-|---|---|---|
+docs\qa\US-01-test-report.md:620:| AC-01.36, REQ-01.36 | `features/wizard-shell/country-shell.spec.ts › AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/"` (pasos 1 a 3 y confirmación; `href="/"`, sin hijos en el DOM, así que el nombre accesible es solo el texto de Strapi) | ✅ Pass |
+docs\qa\US-01-test-report.md:621:| AC-01.36, REQ-01.36, D6 | `country-shell.spec.ts › AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country` (clic → `/` muestra la selección de país; `ciq.v1.co.step1` sigue guardado; al volver a `/co/form` el número de documento está relleno) | ✅ Pass |
+docs\qa\US-01-test-report.md:622:| REQ-01.36, REQ-01.13 | `country-shell.spec.ts › REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default` | ✅ Pass |
+docs\qa\US-01-test-report.md:623:| AC-01.36 contra el seed | — | ⏭ E2E (QA), según la tabla de verificación de la spec |
+docs\qa\US-01-test-report.md-624-
+docs\qa\US-01-test-report.md-625-[Omitted long context line]
+docs\qa\US-01-test-report.md-626-
+docs\qa\US-01-test-report.md-627-### Fallos y causa
+docs\qa\US-01-test-report.md-628-
+docs\qa\US-01-test-report.md-629-| # | Síntoma | Causa | Corrección |
+docs\qa\US-01-test-report.md-630-|---|---|---|---|
+docs\qa\US-01-test-report.md-631-| 1 | Primera ejecución de la suite: 7 archivos con `[vitest-pool]: Failed to start forks worker … Timeout waiting for worker to respond`; 333 tests ejecutados, todos en verde | Fue de entorno: los workers no arrancaron a tiempo con la máquina cargada (`environment 82%`), mientras otro agente trabajaba en paralelo en Strapi. Ninguna aserción falló | Ninguna en el código. La repetición ejecutó los 46 archivos |
+docs\qa\US-01-test-report.md:632:| 2 | `AC-01.36 … D6 going back to "/" keeps the step 1 data` falló por timeout (30 s) | Fallo del test. `/` pide C2 (`country-selection`) y el `seedHandler` del spec no contestaba C2, que caía en `pending()`. `whenStable()` esperaba un recurso que nunca terminaba | El `seedHandler` contesta C2 con `strapiC2()`. El test comprueba además que se ve el encabezado de la selección de país |
+--
+docs\qa\US-02-test-report.md:585:Alcance: REQ-02.34 / AC-02.34, toda la tarjeta del plan selecciona el plan. Se hace con un pseudo-elemento `::after` del `label` que cubre la tarjeta; el control sigue siendo el `radio` nativo.
+docs\qa\US-02-test-report.md-586-
+docs\qa\US-02-test-report.md-587-Commit probado: ninguno propio. Árbol de trabajo sobre `47443de` (rama `style/sura-visual-refresh`) con los cambios de D14 sin confirmar. Las salidas se pegan tal cual, salvo dos cosas: se han quitado los códigos ANSI y las líneas en blanco repetidas. En la ejecución verbose se filtran las líneas del spec de esta historia (`grep`), y lo indico donde se hace.
+docs\qa\US-02-test-report.md-588-
+docs\qa\US-02-test-report.md-589-### Build
+docs\qa\US-02-test-report.md-590-
+docs\qa\US-02-test-report.md-591-```text
+docs\qa\US-02-test-report.md-592-$ npm run build
+docs\qa\US-02-test-report.md-593-
+--
+docs\qa\US-02-test-report.md:667: ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > selection > AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan 122ms
+docs\qa\US-02-test-report.md-668- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > AC-02.27 the group has a name and each option names the plan, price and recommendation 82ms
+docs\qa\US-02-test-report.md-669- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > AC-02.28 the focus is on the heading of the step and the indicator marks step 2 63ms
+docs\qa\US-02-test-report.md-670- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > accessibility > REQ-02.26 the buttons are back (button) and continue (submit of the form) 65ms
+docs\qa\US-02-test-report.md-671- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.4 AC-02.22 with no active plans shows the empty message, no continue, and back to step 1 106ms
+docs\qa\US-02-test-report.md-672- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.23 REQ-02.20 while loading shows the fixed "cargando" as status and no continue 56ms
+docs\qa\US-02-test-report.md-673- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.24 REQ-02.21 a failure shows "error de carga" and "reintentar"; retrying lists the plans 86ms
+docs\qa\US-02-test-report.md-674- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > REQ-02.21 a failure of the price factors is also "error de carga" (no partial prices) 45ms
+docs\qa\US-02-test-report.md-675- ✓  car-insurance-quote  src/app/features/plans-step/plans-step-page.spec.ts > PlansStepPage > states > AC-02.33 a missing continue text shows the generic error, no plans, and no plan request 34ms
+--
+docs\qa\US-02-test-report.md:684:### Cobertura de AC-02.34
+docs\qa\US-02-test-report.md-685-
+docs\qa\US-02-test-report.md-686-| AC / REQ | Test (archivo › nombre) | Resultado |
+docs\qa\US-02-test-report.md-687-|---|---|---|
+docs\qa\US-02-test-report.md:688:| AC-02.34, REQ-02.34 (precondiciones) | `features/plans-step/plans-step-page.spec.ts › AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan` | ✅ Pass |
+docs\qa\US-02-test-report.md:689:| AC-02.34 (clic en la lista de coberturas) | — | ⏭ No cubierto por unit. jsdom no tiene layout ni *hit testing*, así que un clic en el `li` no llega al pseudo-elemento del `label`. Lo cubre el E2E (QA) |
+docs\qa\US-02-test-report.md-690-
+docs\qa\US-02-test-report.md-691-El unit test comprueba lo que la técnica necesita: en cada tarjeta el único elemento interactivo es el `radio` (ningún otro elemento capturaría el clic) y un clic en el `label`, que es lo que pinta el pseudo-elemento, selecciona el plan.
+docs\qa\US-02-test-report.md-692-
+docs\qa\US-02-test-report.md-693-Comprobación visual (script desechable de Playwright contra `ng serve` en el puerto 4300). Un clic real del ratón en el primer elemento de coberturas de "Plan Total" lo selecciona (`checked=true`), y un clic en la descripción del primer plan también, tanto a 375 como a 1280 px. No hay scroll horizontal.
+docs\qa\US-02-test-report.md-694-
+docs\qa\US-02-test-report.md:695:**Nota para el E2E de AC-02.34:** `locator('li').click()` de Playwright no hace el clic: su comprobación de accionabilidad informa de `<label class="plan-label"> intercepts pointer events` y reintenta hasta el timeout. Es lo esperado, porque el `label` cubre la tarjeta a propósito. Usa `click({ force: true })` en el `li` o `page.mouse.click()` en sus coordenadas: es el mismo clic real en ese punto, sin la comprobación de interceptación.
+docs\qa\US-02-test-report.md-696-
+docs\qa\US-02-test-report.md-697-**Contrapartida aceptada:** el texto de la tarjeta no se puede seleccionar con el ratón, porque la capa del `label` lo cubre. Es contenido de solo lectura y el humano pidió que toda la tarjeta fuera pulsable. El teclado y el nombre accesible no cambian (REQ-02.26, REQ-02.27).
+--
+frontend\src\app\core\country\country-config.ts:42:  /** Link back to the country selection `/` on every wizard screen (REQ-01.36, D14). */
+frontend\src\app\core\country\country-config.ts-43-  'changeCountryLabel',
+frontend\src\app\core\country\country-config.ts-44-] as const;
+frontend\src\app\core\country\country-config.ts-45-
+frontend\src\app\core\country\country-config.ts-46-export const FORM_STEP_TEXT_KEYS = ['title', 'continueLabel', 'emptyMessage'] as const;
+frontend\src\app\core\country\country-config.ts-47-
+frontend\src\app\core\country\country-config.ts-48-export const PLANS_STEP_TEXT_KEYS = [
+frontend\src\app\core\country\country-config.ts-49-  'title',
+frontend\src\app\core\country\country-config.ts-50-  'groupLegend',
+--
+frontend\src\app\features\plans-step\plans-step-page.css:108: * The whole card selects the plan (REQ-02.34, D14): an empty pseudo-element of the label covers
+frontend\src\app\features\plans-step\plans-step-page.css-109- * the card (its containing block is `.plan`), so a click on the description, coverages or
+frontend\src\app\features\plans-step\plans-step-page.css-110- * benefits is a click on the label, which checks the native radio. Nothing is added to the DOM
+frontend\src\app\features\plans-step\plans-step-page.css-111- * or to the accessible name; the radio is the only interactive element of the card. Trade-off:
+frontend\src\app\features\plans-step\plans-step-page.css-112- * the card text cannot be selected with the mouse (it is read-only plan content).
+frontend\src\app\features\plans-step\plans-step-page.css-113- */
+frontend\src\app\features\plans-step\plans-step-page.css-114-.plan-label::after {
+frontend\src\app\features\plans-step\plans-step-page.css-115-  content: '';
+frontend\src\app\features\plans-step\plans-step-page.css-116-  position: absolute;
+--
+frontend\src\app\features\plans-step\plans-step-page.spec.ts:293:     * the card (REQ-02.34). jsdom has no layout nor hit testing, so that click is covered by the
+frontend\src\app\features\plans-step\plans-step-page.spec.ts:294:     * e2e of AC-02.34. Here: the preconditions of the technique, i.e. the radio is the only
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-295-     * interactive element of the card (nothing else would capture the click) and a click on the
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-296-     * label (what the overlay is) selects the plan.
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-297-     */
+frontend\src\app\features\plans-step\plans-step-page.spec.ts:298:    it('AC-02.34 REQ-02.34 the radio is the only interactive element of a card and its label selects the plan', async () => {
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-299-      const w = await setup();
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-300-      await w.open('/co/plans');
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-301-      const cards = Array.from(w.root().querySelectorAll<HTMLElement>('.plan'));
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-302-      expect(cards).toHaveLength(3);
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-303-      for (const card of cards) {
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-304-        const interactive = Array.from(
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-305-          card.querySelectorAll(
+frontend\src\app\features\plans-step\plans-step-page.spec.ts-306-            'a, button, input, select, textarea, [tabindex], [contenteditable]',
+--
+frontend\src\app\features\wizard-shell\country-shell.spec.ts:240:  describe('change country link (REQ-01.36)', () => {
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-241-    const changeCountryLink = () =>
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-242-      Array.from(root().querySelectorAll('a')).find(
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-243-        (a) => a.textContent?.trim() === 'Cambiar de país',
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-244-      ) ?? null;
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-245-
+frontend\src\app\features\wizard-shell\country-shell.spec.ts:246:    it('AC-01.36 REQ-01.36 every wizard screen has the Strapi "change country" link to "/"', async () => {
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-247-      completeStep1();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-248-      storage.setItem(
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-249-        'ciq.v1.co.confirmation',
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-250-        JSON.stringify({
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-251-          quoteNumber: 'CO-20261122-AAAAAA',
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-252-          planName: 'Plan Esencial',
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-253-          finalPrice: 935000,
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-254-          currency: 'COP',
+--
+frontend\src\app\features\wizard-shell\country-shell.spec.ts:269:    it('AC-01.36 REQ-01.36 D6 going back to "/" keeps the step 1 data of the country', async () => {
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-270-      completeStep1();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-271-      await open('/co/form');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-272-      changeCountryLink()?.click();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-273-      await harness.fixture.whenStable();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-274-      expect(TestBed.inject(Router).url).toBe('/');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-275-      expect(text('h1')).toBe('Cotiza el seguro de tu auto');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-276-      expect(storage.getItem('ciq.v1.co.step1')).toContain('1234567890');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-277-
+--
+frontend\src\app\features\wizard-shell\country-shell.spec.ts:283:    it('REQ-01.36 REQ-01.13 a missing "change country" text is a configuration error, never a default', async () => {
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-284-      cms.handler = seedHandler((country) => {
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-285-        country.wizardTexts.changeCountryLabel = ' ';
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-286-      });
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-287-      await open('/co/form');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-288-      expect(text('[role="alert"]')).toBe('No pudimos mostrar esta sección. Intenta más tarde.');
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-289-      expect(root().querySelector('a')).toBeNull();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-290-      expect(root().querySelector('nav')).toBeNull();
+frontend\src\app\features\wizard-shell\country-shell.spec.ts-291-      expect(root().querySelector('h1')).toBeNull();
+--
+frontend\src\app\features\wizard-shell\country-shell.ts:20: * to the country selection on every screen (REQ-01.36), the step indicator (REQ-01.31) and the
+frontend\src\app\features\wizard-shell\country-shell.ts-21- * step routed below. Provides the `CountryContext` of its steps.
+frontend\src\app\features\wizard-shell\country-shell.ts-22- */
+frontend\src\app\features\wizard-shell\country-shell.ts-23-@Component({
+frontend\src\app\features\wizard-shell\country-shell.ts-24-  selector: 'app-country-shell',
+frontend\src\app\features\wizard-shell\country-shell.ts-25-  changeDetection: ChangeDetectionStrategy.OnPush,
+frontend\src\app\features\wizard-shell\country-shell.ts-26-  providers: [CountryContext],
+frontend\src\app\features\wizard-shell\country-shell.ts-27-  imports: [RouterOutlet, RouterLink, StatusMessage, StepIndicator, CountryNotAvailable],
+frontend\src\app\features\wizard-shell\country-shell.ts-28-  template: `
+--
+frontend\src\app\features\wizard-shell\country-shell.ts:69:     * "Change country" link (REQ-01.36, D14) on the hero band, above the step indicator. Its only
+frontend\src\app\features\wizard-shell\country-shell.ts-70-     * text is the Strapi label: the chevron is an empty pseudo-element drawn with borders, so it
+frontend\src\app\features\wizard-shell\country-shell.ts-71-     * adds nothing to the accessible name. 44 px high target; #0033A0 on #DFEAFF is 8.76:1.
+frontend\src\app\features\wizard-shell\country-shell.ts-72-     */
+frontend\src\app\features\wizard-shell\country-shell.ts-73-    .change-country {
+frontend\src\app\features\wizard-shell\country-shell.ts-74-      padding-top: 0.75rem;
+frontend\src\app\features\wizard-shell\country-shell.ts-75-    }
+frontend\src\app\features\wizard-shell\country-shell.ts-76-    .change-country-link {
+frontend\src\app\features\wizard-shell\country-shell.ts-77-      display: inline-flex;
+--
+specs\US-01\spec.md:129:| REQ-01.36 | En cada pantalla del wizard de un país (pasos 1 a 3 y confirmación) hay un enlace visible para volver a la selección de país (`/`). Su texto viene de Strapi por país (`wizardTexts.changeCountryLabel`, obligatorio como el resto de textos, G3-5). Volver no borra los datos guardados del país (D6): al entrar de nuevo en ese país, se recuperan. Es operable con teclado y tiene un área de al menos 24×24 px. | D14 (petición del humano tras G5) | Strapi (texto) + Código | E2E |
+specs\US-01\spec.md-130-
+specs\US-01\spec.md-131-### H. Seed y seguridad
+specs\US-01\spec.md-132-
+specs\US-01\spec.md-133-| ID | Requisito verificable | Origen | Config. | Verificación |
+specs\US-01\spec.md-134-|---|---|---|---|---|
+specs\US-01\spec.md-135-[Omitted long context line]
+specs\US-01\spec.md-136-| REQ-01.35 | La configuración se obtiene con peticiones de solo lectura a los endpoints públicos permitidos (D4): ninguna petición del navegador lleva token de Strapi. | Requisito técnico Security; D4; `CLAUDE.md` §6 | Código + permisos en Strapi | E2E (inspección de red) · Review |
+specs\US-01\spec.md-137-
+--
+specs\US-01\spec.md:446:# AC-01.36 — origen: D14
+specs\US-01\spec.md-447-Scenario: Go back to the country selection
+specs\US-01\spec.md-448-  Given I am on any screen of the "/co" quote
+specs\US-01\spec.md-449-  When I activate the "change country" link configured in Strapi for Colombia
+specs\US-01\spec.md-450-  Then I see the country selection
+specs\US-01\spec.md-451-  And when I choose Colombia again my step 1 data is still filled in
+specs\US-01\spec.md-452-```
+specs\US-01\spec.md-453-
+specs\US-01\spec.md-454-| AC | Escenario | REQ cubiertos |
+--
+specs\US-01\spec.md:491:| AC-01.36 | Go back to the country selection | REQ-01.36 |
+specs\US-01\spec.md-492-
+specs\US-01\spec.md-493-## 5. Preguntas abiertas y huecos
+specs\US-01\spec.md-494-
+specs\US-01\spec.md-495-Todas las preguntas se resolvieron en G2 (2026-11-22, "Apruebo todo"; ver `docs/decision-log.md`, sección G2). La columna "Respuesta" recoge la resolución aprobada: la propuesta del borrador 0.1 salvo donde la tabla G2 dice otra cosa, lo que se indica en la fila.
+specs\US-01\spec.md-496-
+specs\US-01\spec.md-497-| ID | Pregunta | Respuesta | Estado | Resuelto por |
+specs\US-01\spec.md-498-|---|---|---|---|---|
+specs\US-01\spec.md-499-| Q-01.1 | ¿Cómo se entra a un país? ¿Qué pasa en `/`, con un código desconocido (`/pe`), con un país existente pero despublicado o con mayúsculas (`/CO`)? | `/` muestra la selección entre los `Country` publicados en Strapi (no es un paso del wizard, D7 intacta). Código desconocido o despublicado: "país no disponible" (texto fijo, G2-2) con los países publicados como enlaces. `/CO` redirige a `/co`. No se detecta el país por IP ni por el idioma del navegador. | Resuelta | G2-3 |
+--
+specs\US-01\spec.md:618:| AC-01.36 (REQ-01.36) | E2E sobre el seed de CO | `e2e/` |
+specs\US-01\spec.md-619-| AC-01.5, AC-01.6, AC-01.21, AC-01.22 | E2E | `e2e/` |
+specs\US-01\spec.md-620-| AC-01.26, AC-01.27 | E2E (consultas por rol y label, solo teclado) + Manual G5 | `e2e/`, `docs/qa/manual-check.md` |
+specs\US-01\spec.md-621-| AC-01.28 | E2E con viewport 320 y 1280 + Manual G5 en móvil | `e2e/`, `docs/qa/manual-check.md` |
+specs\US-01\spec.md-622-| AC-01.30 | E2E (inspección de peticiones) + Review con checklist de seguridad | `e2e/`, `reviews/` |
+specs\US-01\spec.md-623-| REQ-01.6 (sin caché persistente) | Review + E2E (intercepción con `page.route`, AC-01.3) + Manual G5 (cambio real en el admin de Strapi, `docs/qa/manual-check.md`) | `reviews/`, `e2e/`, `docs/qa/manual-check.md` |
+specs\US-01\spec.md-624-
+specs\US-01\spec.md-625-## 9. Historial
+specs\US-01\spec.md-626-
+--
+specs\US-01\spec.md:632:| 0.4 | 2026-11-23 | REQ-01.36 y AC-01.36: enlace para volver a la selección de país | D14 |
+--
+specs\US-02\spec.md:98:| REQ-02.34 | Al hacer clic o tocar en cualquier parte de la tarjeta de un plan, ese plan queda seleccionado, igual que al pulsar su botón de opción. El control sigue siendo el `radio` nativo con su `label` (mismo nombre accesible y mismo comportamiento con teclado, REQ-02.26 y REQ-02.27). | D14 (petición del humano tras G5) | Código | E2E |
+specs\US-02\spec.md-99-
+specs\US-02\spec.md-100-## 4. Criterios de aceptación
+specs\US-02\spec.md-101-
+specs\US-02\spec.md-102-### Escenarios del PDF (literales)
+specs\US-02\spec.md-103-
+specs\US-02\spec.md-104-```gherkin
+specs\US-02\spec.md-105-# AC-02.1 — origen: PDF
+specs\US-02\spec.md-106-Scenario: Plans for the country
+--
+specs\US-02\spec.md:370:# AC-02.34 — origen: D14
+specs\US-02\spec.md-371-Scenario: Choose a plan by clicking anywhere on its card
+specs\US-02\spec.md-372-  Given I am on the plans step of "/co"
+
+[Showing results with pagination = limit: 250]

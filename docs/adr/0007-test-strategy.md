@@ -1,145 +1,147 @@
-# ADR-0007 — Estrategia de pruebas: entorno e2e, determinismo y dobles de red
+# ADR-0007 — Test strategy: e2e environment, determinism and network doubles
 
-| Campo | Valor |
+| Field | Value |
 |---|---|
-| Estado | Accepted (2026-11-22, G3) |
-| Fecha | 2026-11-22 |
-| Autor | Software Architect (subagente) |
-| Decisores | Humano (G3) |
-| Motivado por | `CLAUDE.md` §8 y §10 · PDF ("unit tests of relevant logic", "at least one end-to-end test of the full flow") · G3-3 · REQ-01.21, REQ-02.8, REQ-03.21, REQ-03.24, REQ-03.26 · planes de verificación de US-01 §8, US-02 §8 y US-03 §8 |
+| Status | Accepted (2026-11-22, G3) |
+| Date | 2026-11-22 |
+| Author | Software Architect (subagent) |
+| Deciders | Human (G3) |
+| Motivated by | `CLAUDE.md` §8 and §10 · PDF ("unit tests of relevant logic", "at least one end-to-end test of the full flow") · G3-3 · REQ-01.21, REQ-02.8, REQ-03.21, REQ-03.24, REQ-03.26 · verification plans of US-01 §8, US-02 §8 and US-03 §8 |
 
-## Contexto y problema
+## Context and problem
 
-Las tres specs dejan a G3 dónde y cómo se ejecutan las pruebas: contra qué entorno corre el e2e, cómo se fijan la fecha y la zona horaria (AC-01.17 a AC-01.19, AC-02.9), cómo se simulan los fallos y los datos mal formados de Strapi, y cómo se prueban los cambios de contenido (ADR-0003 §5: intercepción más comprobación manual en G5, G3-3). Sin esta decisión, los tests dependientes de fecha fallarían con el paso del tiempo y algunos AC quedarían en "manual".
+The three specs leave to G3 where and how the tests run: which environment the e2e runs against, how the date and the time zone are fixed (AC-01.17 to AC-01.19, AC-02.9), how failures and malformed data from Strapi are simulated, and how content changes are tested (ADR-0003 §5: interception plus a manual check in G5, G3-3). Without this decision, date-dependent tests would fail as time passes and some ACs would remain "manual".
 
-## Factores de decisión
+## Decision drivers
 
-- Determinismo: ningún test depende del día real ni de la zona horaria de la máquina.
-- El e2e debe probar la misma superficie que la producción: nginx con la allowlist, cabeceras y build de producción (D4, ADR-0003).
-- Herramientas ya verificadas: Vitest con `jsdom` (runner por defecto de Angular) y Playwright 1.65.1 con el Chrome del sistema (`channel: 'chrome'`); sin dependencias nuevas.
-- Sin puertas traseras en la app: nada de `?today=` ni flags ocultos (mismo criterio que REQ-03.21).
+- Determinism: no test depends on the real day or on the machine's time zone.
+- The e2e must test the same surface as production: nginx with the allowlist, headers and production build (D4, ADR-0003).
+- Tools already verified: Vitest with `jsdom` (Angular's default runner) and Playwright 1.65.1 with the system Chrome (`channel: 'chrome'`); no new dependencies.
+- No back doors in the app: no `?today=` or hidden flags (same criterion as REQ-03.21).
 
-## Opciones consideradas
+## Considered options
 
-**Entorno del e2e**
+**E2E environment**
 
-1. **E1. Pila completa de `docker compose`** (nginx + build de producción + Strapi con seed) en `http://localhost:8080`.
-2. **E2. `ng serve` + Strapi local**, con el proxy de desarrollo.
+1. **E1. Full `docker compose` stack** (nginx + production build + Strapi with seed) at `http://localhost:8080`.
+2. **E2. `ng serve` + local Strapi**, with the development proxy.
 
-**Fecha y zona horaria**
+**Date and time zone**
 
-1. **T1. Inyección en la app** (`CLOCK`) para los unit, y en el e2e `page.clock.setFixedTime` + `timezoneId` del contexto de Playwright.
-2. **T2. Parámetro o flag de test en la app** (`?today=2026-11-22`).
-3. **T3. Datos del seed elegidos para que no crucen ningún límite** cerca de la fecha real, sin fijar el reloj.
+1. **T1. Injection in the app** (`CLOCK`) for the unit tests, and in the e2e `page.clock.setFixedTime` + the Playwright context's `timezoneId`.
+2. **T2. Test parameter or flag in the app** (`?today=2026-11-22`).
+3. **T3. Seed data chosen so that it does not cross any boundary** near the real date, without fixing the clock.
 
-**Fallos y datos mal formados de Strapi**
+**Failures and malformed data from Strapi**
 
-1. **N1. Intercepción con `page.route`** en el e2e, y `HttpTestingController` o un `CmsClient` falso en los unit.
-2. **N2. Variantes de seed** (otra base de datos con datos rotos).
+1. **N1. Interception with `page.route`** in the e2e, and `HttpTestingController` or a fake `CmsClient` in the unit tests.
+2. **N2. Seed variants** (another database with broken data).
 
-## Decisión
+## Decision
 
-Opción elegida: **E1 + T1 + N1**. N1 cubre también los AC de cambio de contenido (ADR-0003 §5, G3-3), y el cambio real en Strapi se comprueba a mano en G5.
+Chosen option: **E1 + T1 + N1**. N1 also covers the content-change ACs (ADR-0003 §5, G3-3), and the real change in Strapi is checked by hand in G5.
 
 **Unit (Vitest, `jsdom`, `frontend/**/*.spec.ts`, Angular Developer):**
 
-- Funciones puras sin TestBed: validadores, reglas de edad y año, `reconcileStep1`, `evaluateStep1`, `computeFinalPrice`, `formatPrice`, orden de planes, `maskDocument`, `createQuoteNumber`, mappers DTO → dominio, mapper de Blocks.
-- "Hoy" siempre como parámetro (`YYYY-MM-DD`). `todayLocal(now: Date)` es la única función que lee la zona horaria. Su test de AC-01.19 fija `process.env.TZ = 'America/Bogota'` y luego lo restaura. Node aplica el cambio de `process.env.TZ` en tiempo de ejecución también en Windows desde v16.2.0. Si el *pool* de Vitest no lo respeta en algún entorno, se ejecuta ese archivo con `TZ` en la variable de entorno del proceso.
-- Componentes con TestBed zoneless (por defecto), `await fixture.whenStable()`, `CmsClient` falso, `WIZARD_STORAGE` en memoria, `CLOCK` fijo y `PAYMENT_DELAY_MS = 0`.
-- Nombres de test: `it('AC-0X.n …')` o `it('REQ-0X.n …')` (Skill `sdd-traceability` §5).
+- Pure functions without TestBed: validators, age and year rules, `reconcileStep1`, `evaluateStep1`, `computeFinalPrice`, `formatPrice`, plan ordering, `maskDocument`, `createQuoteNumber`, DTO → domain mappers, Blocks mapper.
+- "Today" always as a parameter (`YYYY-MM-DD`). `todayLocal(now: Date)` is the only function that reads the time zone. Its AC-01.19 test sets `process.env.TZ = 'America/Bogota'` and then restores it. Node applies the change of `process.env.TZ` at runtime on Windows too since v16.2.0. If the Vitest *pool* does not respect it in some environment, that file is run with `TZ` in the process environment variable.
+- Components with zoneless TestBed (the default), `await fixture.whenStable()`, fake `CmsClient`, in-memory `WIZARD_STORAGE`, fixed `CLOCK` and `PAYMENT_DELAY_MS = 0`.
+- Test names: `it('AC-0X.n …')` or `it('REQ-0X.n …')` (Skill `sdd-traceability` §5).
 
 **E2E (Playwright, `e2e/`, QA Engineer):**
 
-- `baseURL: 'http://localhost:8080'` (nginx). Se arranca antes con `docker compose up -d` y se espera a que responda `/api/countries`. `use.channel: 'chrome'`.
-- Proyectos:
-  - `flow`: flujo completo de CO (obligatorio por el PDF) y de CL.
-  - `states`: carga, error, vacío y mal formado por intercepción.
-  - `content-changes`: AC de cambio de contenido por intercepción sobre la respuesta real (`route.fetch()` + `route.fulfill()`, ADR-0003 §5). No escribe en Strapi ni usa credenciales, y puede correr en paralelo.
-  - `a11y-responsive`: teclado y viewports 320, 375 y 1280.
-- **AC de cambio de contenido (G3-3):**
+- `baseURL: 'http://localhost:8080'` (nginx). It is started beforehand with `docker compose up -d` and the run waits until `/api/countries` responds. `use.channel: 'chrome'`.
+- Projects:
+  - `flow`: full flow for CO (required by the PDF) and for CL.
+  - `states`: loading, error, empty and malformed by interception.
+  - `content-changes`: content-change ACs by interception over the real response (`route.fetch()` + `route.fulfill()`, ADR-0003 §5). It does not write to Strapi or use credentials, and it can run in parallel.
+  - `a11y-responsive`: keyboard and viewports 320, 375 and 1280.
+- **Content-change ACs (G3-3):**
 
-  | AC | Prueba automatizada | Comprobación del cambio real en Strapi |
+  | AC | Automated test | Check of the real change in Strapi |
   |---|---|---|
-  | AC-01.3 | Intercepción de C4 (campo publicado añadido) y recarga | Manual en G5: campo nuevo publicado en el admin (`docs/qa/manual-check.md`) |
-  | AC-01.10 | Intercepción de C4 (campo quitado y `order` intercambiado) y recarga | Cubierta de forma indirecta por la comprobación manual del campo nuevo en G5 |
-  | AC-01.11 | Contra Strapi real: campo en borrador del seed no visible; ninguna petición lleva `status` o `publicationFilter` | No hace falta: el seed ya contiene el borrador |
-  | AC-01.31 | Intercepción de C3 (texto de continuar de CL) y recarga; CO sin cambios | Cubierta de forma indirecta por la comprobación manual en G5 |
-  | AC-02.25 | Intercepción de C5 y C6 (orden, recomendado, precio base, factor) y recarga | Manual en G5: plan desactivado en el admin (`docs/qa/manual-check.md`) |
+  | AC-01.3 | Interception of C4 (published field added) and reload | Manual in G5: new field published in the admin (`docs/qa/manual-check.md`) |
+  | AC-01.10 | Interception of C4 (field removed and `order` swapped) and reload | Covered indirectly by the manual check of the new field in G5 |
+  | AC-01.11 | Against the real Strapi: seed draft field not visible; no request carries `status` or `publicationFilter` | Not needed: the seed already contains the draft |
+  | AC-01.31 | Interception of C3 (CL continue text) and reload; CO unchanged | Covered indirectly by the manual check in G5 |
+  | AC-02.25 | Interception of C5 and C6 (order, recommended, base price, factor) and reload | Manual in G5: plan deactivated in the admin (`docs/qa/manual-check.md`) |
 
-  El informe de e2e indica para estos AC "automatizado por intercepción + comprobación manual G5", con un enlace a `docs/qa/manual-check.md`.
-- **Reloj:** `page.clock.setFixedTime(new Date('2026-11-22T12:00:00'))` antes de `page.goto`. Fija `Date.now()` y `new Date()`, y **no** afecta a los temporizadores, así que los 1500 ms del pago corren normales.
-- **AC-01.19:** contexto con `timezoneId: 'America/Bogota'` y `page.clock.setFixedTime(new Date('2026-11-23T01:00:00Z'))` (20:00 local del 22).
-- **Red:** `page.route` con un predicado sobre `URL.pathname` (p. ej. `url => url.pathname === '/api/plans'`), porque un glob debe coincidir con la URL completa, query incluida. Sirve para `route.fulfill` (cuerpos mal formados, 500, 30 planes), para modificar la respuesta real con `route.fetch()` o para introducir un retraso controlado (estado de carga). Las respuestas simuladas siguen el formato v5 de api-contracts.
-- **Seguridad:** un fixture registra `page.on('request')` y comprueba que toda petición a `/api` es `GET` y no lleva `Authorization` (AC-01.30, AC-02.31, AC-03.24).
-- **Evidencia:** el informe (`docs/qa/e2e-report.md`) pega el comando y la salida real. Todas las pruebas se pueden ejecutar tras `docker compose up`, sin credenciales ni pasos previos.
+  For these ACs the e2e report states "automated by interception + G5 manual check", with a link to `docs/qa/manual-check.md`.
+- **Clock:** `page.clock.setFixedTime(new Date('2026-11-22T12:00:00'))` before `page.goto`. It fixes `Date.now()` and `new Date()`, and does **not** affect timers, so the 1500 ms of the payment run normally.
+- **AC-01.19:** context with `timezoneId: 'America/Bogota'` and `page.clock.setFixedTime(new Date('2026-11-23T01:00:00Z'))` (20:00 local time on the 22nd).
+- **Network:** `page.route` with a predicate on `URL.pathname` (e.g. `url => url.pathname === '/api/plans'`), because a glob must match the full URL, query included. It is used for `route.fulfill` (malformed bodies, 500, 30 plans), to modify the real response with `route.fetch()` or to introduce a controlled delay (loading state). Simulated responses follow the v5 format of api-contracts.
+- **Security:** a fixture registers `page.on('request')` and checks that every request to `/api` is `GET` and carries no `Authorization` (AC-01.30, AC-02.31, AC-03.24).
+- **Evidence:** the report (`docs/qa/e2e-report.md`) pastes the command and the real output. All tests can be run after `docker compose up`, without credentials or prior steps.
 
-## Consecuencias
+## Consequences
 
-- **Positivas:**
-  - El e2e prueba el artefacto que se entrega: build de producción, nginx real con la allowlist y `no-store`, y Strapi con el seed.
-  - Pruebas deterministas sin código de test dentro de la app.
-  - Todos los AC de estados raros y de cambio de contenido quedan automatizados por intercepción, sin bases de datos alternativas ni credenciales. Ningún AC queda "No ejecutado" para quien clone el repositorio.
-  - Los e2e no modifican la base de datos de la demo.
-- **Negativas:**
-  - El e2e necesita Docker en marcha y tarda más que con `ng serve`; un cambio en el frontend exige reconstruir la imagen antes del e2e.
-  - `page.clock.setFixedTime` fija la fecha para toda la página; un test que necesite que el tiempo avance para `Date` debe usar `install` y `runFor` (y entonces los temporizadores también quedan controlados).
-  - La intercepción prueba la reacción de la app a una respuesta simulada, no que Strapi la produzca al publicar. Para los escenarios del PDF de cambio de contenido (AC-01.3, AC-02.25), esa integración real solo se comprueba a mano en G5, y esa evidencia no se repite en cada ejecución (G3-3).
-  - El test de zona horaria depende del comportamiento de `process.env.TZ` en el *pool* de Vitest; no se ha ejecutado todavía.
-- **Riesgos y mitigación:**
-  - *Las respuestas modificadas divergen del formato real de Strapi:* se parte siempre de la respuesta real (`route.fetch()`) y solo se cambia el dato del escenario.
+- **Positive:**
+  - The e2e tests the artifact that is delivered: production build, real nginx with the allowlist and `no-store`, and Strapi with the seed.
+  - Deterministic tests with no test code inside the app.
+  - All ACs for unusual states and content changes are automated by interception, without alternative databases or credentials. No AC is left "Not executed" for anyone who clones the repository.
+  - The e2e tests do not modify the demo database.
+- **Negative:**
+  - The e2e needs Docker running and takes longer than with `ng serve`; a frontend change requires rebuilding the image before the e2e.
+  - `page.clock.setFixedTime` fixes the date for the whole page; a test that needs time to advance for `Date` must use `install` and `runFor` (and then the timers are also controlled).
+  - Interception tests the app's reaction to a simulated response, not that Strapi produces it when publishing. For the PDF's content-change scenarios (AC-01.3, AC-02.25), that real integration is only checked by hand in G5, and that evidence is not repeated on every run (G3-3).
+  - The time zone test depends on the behavior of `process.env.TZ` in the Vitest *pool*; it has not been run yet.
+- **Risks and mitigation:**
+  - *Modified responses diverge from Strapi's real format:* it always starts from the real response (`route.fetch()`) and only the scenario's data is changed.
 
-### Confirmación
+### Confirmation
 
-- `npm test` en `frontend/` y `npx playwright test` en `e2e/` con la salida pegada en `docs/qa/` (`CLAUDE.md` §6). Sin pruebas omitidas por falta de configuración.
-- AC-01.3, AC-01.10, AC-01.11, AC-01.31 y AC-02.25 aparecen en el informe de e2e como ejecutados por intercepción, y `docs/qa/manual-check.md` (G5) registra el cambio real en Strapi: un campo nuevo publicado y un plan desactivado.
-- Review: `grep -rn "today=\|__TEST__\|isE2E" frontend/src` sin resultados.
+- `npm test` in `frontend/` and `npx playwright test` in `e2e/` with the output pasted in `docs/qa/` (`CLAUDE.md` §6). No tests skipped for lack of configuration.
+- AC-01.3, AC-01.10, AC-01.11, AC-01.31 and AC-02.25 appear in the e2e report as executed by interception, and `docs/qa/manual-check.md` (G5) records the real change in Strapi: a new published field and a deactivated plan.
+- Review: `grep -rn "today=\|__TEST__\|isE2E" frontend/src` with no results.
 
-## Pros y contras de las opciones
+## Pros and cons of the options
 
-### E1. Pila de `docker compose` (elegida)
+### E1. `docker compose` stack (chosen)
 
-- A favor: misma superficie que producción; valida nginx y las cabeceras.
-- En contra: más lento; depende de Docker.
+- For: same surface as production; validates nginx and the headers.
+- Against: slower; depends on Docker.
 
 ### E2. `ng serve`
 
-- A favor: rápido para iterar.
-- En contra: no prueba nginx ni el build de producción; una regla de la allowlist o de caché rota pasaría desapercibida. Sigue siendo útil para que el desarrollador itere, no para la evidencia.
+- For: fast for iterating.
+- Against: does not test nginx or the production build; a broken allowlist or cache rule would go unnoticed. It is still useful for the developer to iterate, not for evidence.
 
-### T1. Reloj inyectado + reloj de Playwright (elegida)
+### T1. Injected clock + Playwright clock (chosen)
 
-- A favor: sin cambios en la app; API oficial de Playwright; zona horaria por contexto.
-- En contra: dos mecanismos (unit y e2e) que mantener coherentes.
+- For: no changes in the app; official Playwright API; time zone per context.
+- Against: two mechanisms (unit and e2e) to keep consistent.
 
-### T2. Flag de fecha en la app
+### T2. Date flag in the app
 
-- A favor: simple.
-- En contra: puerta trasera en producción; contradice el criterio de REQ-03.21 (sin parámetros de URL ni flags ocultos).
+- For: simple.
+- Against: a back door in production; contradicts the criterion of REQ-03.21 (no URL parameters or hidden flags).
 
-### T3. Seed sin límites cercanos
+### T3. Seed without nearby boundaries
 
-- A favor: no hay que fijar nada.
-- En contra: los AC de límites exactos (AC-01.17, AC-01.18, E3 de US-02) exigen una fecha concreta; caducaría con el paso de los años.
+- For: nothing needs to be fixed.
+- Against: the exact-boundary ACs (AC-01.17, AC-01.18, E3 of US-02) require a specific date; it would expire as the years pass.
 
-### N1. Intercepción (elegida)
+### N1. Interception (chosen)
 
-- A favor: determinista, sin credenciales, cubre casos que Strapi impide publicar y los cambios de contenido (G3-3).
-- En contra: puede divergir del formato real si cambia Strapi. Se mitiga partiendo de la respuesta real (`route.fetch()`) o de fixtures capturadas del seed. No prueba que Strapi produzca la respuesta al publicar (comprobación manual en G5).
+- For: deterministic, no credentials, covers cases Strapi does not allow publishing and the content changes (G3-3).
+- Against: it can diverge from the real format if Strapi changes. This is mitigated by starting from the real response (`route.fetch()`) or from fixtures captured from the seed. It does not test that Strapi produces the response on publishing (manual check in G5).
 
-### N2. Variantes de seed
+### N2. Seed variants
 
-- A favor: datos reales de Strapi.
-- En contra: varias bases y reinicios del contenedor; lento y frágil; Strapi rechaza muchos de esos datos al validar.
+- For: real Strapi data.
+- Against: several databases and container restarts; slow and fragile; Strapi rejects much of that data on validation.
 
-## Referencias
+## References
 
-Consultadas el 2026-11-22:
+Consulted on 2026-11-22:
 
-- Playwright, Clock (`setFixedTime` solo afecta a `Date`; `install`, `runFor`): https://playwright.dev/docs/clock
-- Playwright, opciones de test (`timezoneId`, `channel`, `baseURL`): https://playwright.dev/docs/api/class-testoptions
-- Playwright, red (`page.route`, glob sobre la URL completa, modificar respuestas con `route.fetch()` + `route.fulfill()`): https://playwright.dev/docs/network
-- Angular, testing (Vitest con `jsdom` por defecto): https://angular.dev/guide/testing
+- Playwright, Clock (`setFixedTime` only affects `Date`; `install`, `runFor`): https://playwright.dev/docs/clock
+- Playwright, test options (`timezoneId`, `channel`, `baseURL`): https://playwright.dev/docs/api/class-testoptions
+- Playwright, network (`page.route`, glob over the full URL, modifying responses with `route.fetch()` + `route.fulfill()`): https://playwright.dev/docs/network
+- Angular, testing (Vitest with `jsdom` by default): https://angular.dev/guide/testing
 - Angular, `ng test`: https://angular.dev/cli/test
-- Angular, zoneless en `TestBed` y `whenStable`: https://angular.dev/guide/zoneless
-- Node.js, variable `TZ` (el cambio de `process.env.TZ` se aplica en Windows desde v16.2.0): https://nodejs.org/api/cli.html#tz
-- Versiones: Playwright 1.65.1 y Vitest 5.1.1, verificadas en local (`docs/phase-1/analysis.md`).
+- Angular, zoneless in `TestBed` and `whenStable`: https://angular.dev/guide/zoneless
+- Node.js, `TZ` variable (the change of `process.env.TZ` applies on Windows since v16.2.0): https://nodejs.org/api/cli.html#tz
+- Versions: Playwright 1.65.1 and Vitest 5.1.1, verified locally (`docs/phase-1/analysis.md`).
+
+> Translated into English on 2026-11-23 (D16); no content change.
