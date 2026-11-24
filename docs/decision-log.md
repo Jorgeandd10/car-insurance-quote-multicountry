@@ -259,6 +259,18 @@ In addition, F-00.6 is fixed (AC-02.8 must use U+00A0 in the COP example), which
   - Communication between the human and the orchestrator stays in Spanish.
 - **How:** each owning agent translates its own paths in parallel. The translation must be faithful: same IDs, links, tables and meaning. A translation pass that changes content is a defect.
 
+## G5 re-check and clean start before G6 (2026-11-23)
+
+- **G5 re-check (F-00.16):** the human repeated a short manual check on the current UI (keyboard, "Cambiar de país", clickable plan card, 375 px).
+  - **Human's literal result:** "G5 OK" (*G5 OK*).
+  - **Status:** Approved.
+- **Clean start, verified by the orchestrator:**
+  - The usual stack was stopped, then `docker compose -p ciq-fresh up -d --build` ran with an empty volume (9 min 52 s, mostly the Strapi admin build).
+  - Seed: `[seed] done: 30 created, 0 already present`. The public role has exactly 4 `find` permissions. `hasAdmin:false`, so the superadmin is created on first access.
+  - `/api/countries` → 200, with `co` and `cl` and `changeCountryLabel`. Home → 200. Admin → 200.
+  - E2E smoke on that stack: `co-full-flow` and `cl-flow` → `2 passed (36.8s)`.
+  - Torn down with `docker compose -p ciq-fresh down -v`, and the usual stack restored.
+
 ### Verifications that back the decisions
 
 - Angular's default test runner: Vitest with `jsdom` (https://angular.dev/guide/testing, https://angular.dev/cli/test). It matches the quality proposal of the analysis.

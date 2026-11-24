@@ -351,7 +351,7 @@ Human G4 decisions in [`docs/decision-log.md`](../docs/decision-log.md), section
 | ID | Human decision | Status | Commit / reason |
 |---|---|---|---|
 | F-00.15 | Fix: remove `reducedMotion` from the e2e config, re-run the full suite and correct the e2e report (the cause was not isolated) | Fixed | `bb34dab` (config + e2e report); final run 80/80 with animations |
-| F-00.16 | Fix: the human repeats a short G5 on the current UI | In progress | Owner: human |
+| F-00.16 | Fix: the human repeats a short G5 on the current UI | Fixed | Human: "G5 OK" (`docs/qa/manual-check.md`) |
 | F-02.2 | Accept | Accepted | Side effect of the whole-card click the human asked for (D14); keyboard and accessible name unchanged |
 | F-02.3 | Fix: misplaced scenario in US-02 | Fixed | `43e681e` |
 | F-00.17 | Accept | Accepted | Fixing it would rewrite Git history |
@@ -367,4 +367,4 @@ Verified by the orchestrator after the G4 fixes (2026-11-23):
 - F-02.3: the `# AC-02.34` block now follows both AC-02.33 scenarios in `specs/US-02/spec.md`.
 - F-00.19: the README screenshots were retaken after D14 and show the "Cambiar de país" link.
 - F-01.1: the seed summary log now reads "content kept; see backfill lines above for any filled-in field".
-- F-00.16: depends on the human's short G5 re-check, recorded in `docs/qa/manual-check.md`.
+- F-00.16: the human repeated a short G5 on the current UI: "G5 OK" (`docs/qa/manual-check.md`).

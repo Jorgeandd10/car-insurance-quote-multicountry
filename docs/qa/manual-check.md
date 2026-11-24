@@ -102,3 +102,14 @@ The admin only listens on `127.0.0.1`. No administrator is seeded: the first acc
 | Verdict (Approved / Rejected / Modified) | Approved |
 | Defects found (steps, expected, obtained) | None |
 | Signature or initials | Human's confirmation by chat (quote in "Recorded result") |
+
+## G5 re-check after D12–D15 (F-00.16, 2026-11-23)
+
+- **Scope given to the human:**
+  - Colombia with the keyboard only, up to the confirmation, with a rejected and then an approved payment.
+  - The "Cambiar de país" link: back to the home page, then Colombia again with the data kept.
+  - A click anywhere on a plan card selects it.
+  - A look at 375 px or on a phone.
+- **Stack:** the compose stack built from `c4f5095` with the D14 CMS, in an incognito window.
+- **Human's literal result:** "G5 OK".
+- **Verdict:** Approved, no defects.
